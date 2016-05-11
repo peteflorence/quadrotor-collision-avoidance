@@ -28,5 +28,4 @@ void DepthImageProcessor::TestOpenCV() {
 
   std::cout << "Here are my new_corners " << new_corners << std::endl;  
 
-
 }
