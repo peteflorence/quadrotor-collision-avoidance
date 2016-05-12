@@ -28,8 +28,10 @@ include_directories(
 
 add_library( depth_image_processor src/depth_image_processor.cpp)
 add_executable( test_depth_image_processor src/test_depth_image_processor.cpp)
+add_executable( dip_node src/depth_image_processor_node.cpp)
 target_link_libraries( test_depth_image_processor depth_image_processor)
+target_link_libraries( dip_node depth_image_processor)
 
 target_link_libraries(depth_image_processor
-  ${OpenCV_LIBS}
+  ${OpenCV_LIBS} ${catkin_LIBRARIES}
 )
