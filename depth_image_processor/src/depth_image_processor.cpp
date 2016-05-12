@@ -2,18 +2,20 @@
 
 void DepthImageProcessor::TestOpenCV() {
 
-  cv::Mat img_a(640, 480, cv::DataType<float>::type);
-  cv::Mat img_b(640, 480, cv::DataType<float>::type);
+  cv::Mat img_a(480, 640, cv::DataType<float>::type);
+  cv::Mat img_b(480, 640, cv::DataType<float>::type);
+  cv::Mat debug(480, 640, cv::DataType<uint8_t>::type);
+
   // Need to choose size of img_a and img_b
+  debug = cv::Scalar(0);
 
   Eigen::Quaternionf q_a, q_b;
+
   q_a.setIdentity();
-
-  q_b = Eigen::AngleAxis<float>(2.0 * M_PI / 180.0, Eigen::Vector3f::UnitY());
-
-  //q_b.setIdentity();
-  // Need to make q_a the identity
-  // Need to set q_b to be pitch and roll of the vehicle
+  //X axis rotation is pitch
+  //Y axis is yaw
+  //Z axis is roll
+  q_b = Eigen::AngleAxis<float>(-10.0 * M_PI / 180.0, Eigen::Vector3f(1,0,0)) * Eigen::AngleAxis<float>(-10.0 * M_PI / 180.0, Eigen::Vector3f(0,0,1)) ;
 
   Eigen::Matrix3f K_b;
   K_b.setIdentity();
@@ -24,8 +26,8 @@ void DepthImageProcessor::TestOpenCV() {
   // Need parameters of xtion
   // Project corners of image b into rectified camera.
   std::vector<cv::Point2f> corners(2);
-  corners[0] = cv::Point2f(240.0f, 0.0f);
-  corners[1] = cv::Point2f(240.0f, 639.0f);
+  corners[0] = cv::Point2f(0.0f, 239.0f);
+  corners[1] = cv::Point2f(639.0f, 239.0f);
 
   std::vector<cv::Point2f> new_corners(2);
   Eigen::Quaternionf q_b_to_a(q_a.inverse() * q_b);
@@ -40,6 +42,14 @@ void DepthImageProcessor::TestOpenCV() {
     new_corners[ii].y = u_ii(1);
   }
 
+
+  //cv::line(debug, )
+  cv::Point corner1((int)new_corners[0].x, (int)new_corners[0].y), corner2((int)new_corners[1].x, (int)new_corners[1].y);
+
+  cv::clipLine(debug.size(), corner1, corner2);
+  cv::line(debug, corner1, corner2, 255);
+  cv::imshow("debug", debug);
+  cv::waitKey(0);
   std::cout << "Here are my new_corners " << new_corners << std::endl;  
 
 }
