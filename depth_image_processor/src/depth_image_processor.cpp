@@ -9,17 +9,19 @@ void DepthImageProcessor::TestOpenCV() {
   Eigen::Quaternionf q_a, q_b;
   q_a.setIdentity();
 
-  //q_b = Eigen::AngleAxis<float>(1.0 * M_PI / 180.0, Eigen::Vector3f::UnitX());
+  q_b = Eigen::AngleAxis<float>(2.0 * M_PI / 180.0, Eigen::Vector3f::UnitY());
 
-  q_b.setIdentity();
+  //q_b.setIdentity();
   // Need to make q_a the identity
   // Need to set q_b to be pitch and roll of the vehicle
 
   Eigen::Matrix3f K_b;
   K_b.setIdentity();
-  K_b << 1, 0, 320, 0, 1, 240, 0, 0, 1; 
-  // Need parameters of xtion
+  K_b << 525,   0, 319.5,
+           0, 525, 239.5,
+           0,   0,     1;
 
+  // Need parameters of xtion
   // Project corners of image b into rectified camera.
   std::vector<cv::Point2f> corners(2);
   corners[0] = cv::Point2f(240.0f, 0.0f);

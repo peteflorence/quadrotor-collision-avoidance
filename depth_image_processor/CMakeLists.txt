@@ -16,9 +16,7 @@ find_package( Eigen3 REQUIRED )
 find_package(OpenCV 2.4.8 REQUIRED)
 
 include_directories ( src )
-
 include_directories( ${EIGEN3_INCLUDE_DIR} )
-
 
 catkin_package(
 
