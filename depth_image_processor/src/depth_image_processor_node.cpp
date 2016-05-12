@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include <tf/transform_listener.h>
 #include <iostream>
+#include "depth_image_processor.h"
 
 
 int main(int argc, char **argv)
@@ -8,6 +9,8 @@ int main(int argc, char **argv)
 
   ros::init(argc, argv, "tf_listener");
   tf::TransformListener listener;
+
+  DepthImageProcessor dip;
 
 
 
@@ -23,13 +26,20 @@ int main(int argc, char **argv)
   {
     tf::StampedTransform transform;
     try {
-      listener.lookupTransform("/world", "/rdf_world", ros::Time(0), transform);
+      listener.lookupTransform("/xtion_depth_optical_frame", "/rdf_world", ros::Time(0), transform);
     }
     catch (tf::TransformException ex) {
-      std::cout << "didn't worky" << std::endl;
+      std::cout << "didn't work" << std::endl;
+      std::cout << ex.what() << std::endl;
     }
 
-    std::cout << transform.getRotation().length()  << std::endl;
+    std::cout << transform.getRotation()[0] << " " << transform.getRotation()[1]  << " " << transform.getRotation()[2]<< " " << transform.getRotation()[3] << std::endl;
+
+    auto t = transform.getRotation(); 
+    Eigen::Quaternionf e = Eigen::Quaternionf(t[3],t[0],t[1],t[2]);
+
+    dip.TestOpenCV(e);
+    
 
     ros::spinOnce();
 
@@ -40,3 +50,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
+

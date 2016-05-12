@@ -1,6 +1,6 @@
 #include "depth_image_processor.h"
 
-void DepthImageProcessor::TestOpenCV() {
+void DepthImageProcessor::TestOpenCV(Eigen::Quaternionf const& q_b) {
 
   cv::Mat img_a(480, 640, cv::DataType<float>::type);
   cv::Mat img_b(480, 640, cv::DataType<float>::type);
@@ -9,13 +9,13 @@ void DepthImageProcessor::TestOpenCV() {
   // Need to choose size of img_a and img_b
   debug = cv::Scalar(0);
 
-  Eigen::Quaternionf q_a, q_b;
+  Eigen::Quaternionf q_a;
 
   q_a.setIdentity();
   //X axis rotation is pitch
   //Y axis is yaw
   //Z axis is roll
-  q_b = Eigen::AngleAxis<float>(-10.0 * M_PI / 180.0, Eigen::Vector3f(1,0,0)) * Eigen::AngleAxis<float>(-10.0 * M_PI / 180.0, Eigen::Vector3f(0,0,1)) ;
+  //q_b = Eigen::AngleAxis<float>(-10.0 * M_PI / 180.0, Eigen::Vector3f(1,0,0)) * Eigen::AngleAxis<float>(-10.0 * M_PI / 180.0, Eigen::Vector3f(0,0,1)) ;
 
   Eigen::Matrix3f K_b;
   K_b.setIdentity();
@@ -49,7 +49,7 @@ void DepthImageProcessor::TestOpenCV() {
   cv::clipLine(debug.size(), corner1, corner2);
   cv::line(debug, corner1, corner2, 255);
   cv::imshow("debug", debug);
-  cv::waitKey(0);
+  cv::waitKey(10);
   std::cout << "Here are my new_corners " << new_corners << std::endl;  
 
 }

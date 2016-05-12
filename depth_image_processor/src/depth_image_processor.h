@@ -6,7 +6,7 @@
 
 class DepthImageProcessor {
 public:
-  void TestOpenCV();
+  void TestOpenCV(Eigen::Quaternionf const& q_b);
 
 
 
