@@ -33,7 +33,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
       std::cout << ex.what() << std::endl;
     }
 
-
+ 
     std::cout << transform.getRotation()[0] << " " << transform.getRotation()[1]  << " " << transform.getRotation()[2]<< " " << transform.getRotation()[3] << std::endl;
     auto t = transform.getRotation(); 
     Eigen::Quaternionf e = Eigen::Quaternionf(t[3],t[0],t[1],t[2]);
@@ -41,8 +41,19 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
     cv::Point corner1, corner2;
     dip.TestOpenCV(e, corner1, corner2);
 
+    cv::namedWindow("cv_ptr", cv::WINDOW_NORMAL);
+    cv::resizeWindow("cv_ptr", 1920, 1080);
+
     cv::clipLine(cv_ptr->image.size(), corner1, corner2);
-    cv::line(cv_ptr->image, corner1, corner2, 255);
+
+    if (corner1.x > 5) {
+      double m = ( corner2.y - corner1.y ) / (corner2.x - corner2.y);
+      corner1.y = corner1.y - m * (corner1.x - 0.0) ;
+      corner1.x = 0;
+    }
+
+    cv::line(cv_ptr->image, corner1, corner2, cv::Scalar(0xffff));
+    //cv::line(cv_ptr->image, cv::Point(0,0), cv::Point(100,100), cv::Scalar(0xffff));
     cv::imshow("cv_ptr", cv_ptr->image);
     cv::waitKey(10);
 

@@ -3,9 +3,9 @@
 
 void DepthImageProcessor::TestOpenCV(Eigen::Quaternionf const& q_b, cv::Point & corner1, cv::Point & corner2) {
 
-  cv::Mat img_a(480, 640, cv::DataType<float>::type);
-  cv::Mat img_b(480, 640, cv::DataType<float>::type);
-  cv::Mat debug(480, 640, cv::DataType<uint8_t>::type);
+  cv::Mat img_a(120, 160, cv::DataType<float>::type);
+  cv::Mat img_b(120, 160, cv::DataType<float>::type);
+  cv::Mat debug(120, 160, cv::DataType<uint8_t>::type);
 
   // Need to choose size of img_a and img_b
   debug = cv::Scalar(0);
@@ -20,15 +20,15 @@ void DepthImageProcessor::TestOpenCV(Eigen::Quaternionf const& q_b, cv::Point & 
 
   Eigen::Matrix3f K_b;
   K_b.setIdentity();
-  K_b << 525,   0, 319.5,
-           0, 525, 239.5,
+  K_b << 525/4.0,   0, 79.5,
+           0, 525/4.0, 59.5,
            0,   0,     1;
 
   // Need parameters of xtion
   // Project corners of image b into rectified camera.
   std::vector<cv::Point2f> corners(2);
-  corners[0] = cv::Point2f(0.0f, 239.0f);
-  corners[1] = cv::Point2f(639.0f, 239.0f);
+  corners[0] = cv::Point2f(0.0f, 59.0f);
+  corners[1] = cv::Point2f(159.0f, 59.0f);
 
   std::vector<cv::Point2f> new_corners(2);
   Eigen::Quaternionf q_b_to_a(q_a.inverse() * q_b);
