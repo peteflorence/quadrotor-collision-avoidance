@@ -1,6 +1,7 @@
 #include "depth_image_processor.h"
 
-void DepthImageProcessor::TestOpenCV(Eigen::Quaternionf const& q_b) {
+
+void DepthImageProcessor::TestOpenCV(Eigen::Quaternionf const& q_b, cv::Point & corner1, cv::Point & corner2) {
 
   cv::Mat img_a(480, 640, cv::DataType<float>::type);
   cv::Mat img_b(480, 640, cv::DataType<float>::type);
@@ -44,12 +45,10 @@ void DepthImageProcessor::TestOpenCV(Eigen::Quaternionf const& q_b) {
 
 
   //cv::line(debug, )
-  cv::Point corner1((int)new_corners[0].x, (int)new_corners[0].y), corner2((int)new_corners[1].x, (int)new_corners[1].y);
+  //cv::Point corner1(), corner2((int)new_corners[1].x, (int)new_corners[1].y);
 
-  cv::clipLine(debug.size(), corner1, corner2);
-  cv::line(debug, corner1, corner2, 255);
-  cv::imshow("debug", debug);
-  cv::waitKey(10);
+  corner1 = cv::Point((int)new_corners[0].x, (int)new_corners[0].y);
+  corner2 = cv::Point((int)new_corners[1].x, (int)new_corners[1].y);
   std::cout << "Here are my new_corners " << new_corners << std::endl;  
 
 }
