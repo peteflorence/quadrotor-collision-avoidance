@@ -28,9 +28,20 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library( trajectory_selector src/trajectory_selector.cpp)
-add_executable( test_trajectory_selector src/test_trajectory_selector.cpp)
-target_link_libraries( test_trajectory_selector trajectory_selector)
+add_library( trajectory_selector src/trajectory_selector.cpp )
+add_executable( test_trajectory_selector src/test_trajectory_selector.cpp )
+target_link_libraries( test_trajectory_selector trajectory_selector )
+
+add_library( trajectory_library src/trajectory_library.cpp )
+target_link_libraries( trajectory_selector trajectory_library )
+
+add_library( trajectory_evaluator src/trajectory_evaluator.cpp )
+target_link_libraries( trajectory_selector trajectory_evaluator )
+
+add_library( trajectory src/trajectory.cpp )
+target_link_libraries( trajectory_library trajectory )
+
+
 
 ##add_library( depth_image_processor src/devel/depth_image_processor.cpp)
 ##add_executable( test_depth_image_processor src/devel/test_depth_image_processor.cpp)
