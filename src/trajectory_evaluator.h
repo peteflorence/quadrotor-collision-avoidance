@@ -1,4 +1,5 @@
 #include <iostream>
+#include "trajectory.h"
 
 class TrajectoryEvaluator {
 public:
@@ -7,6 +8,5 @@ public:
 
 private:
   
-  double v = 6.0;
 
 };

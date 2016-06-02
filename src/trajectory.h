@@ -1,5 +1,12 @@
+#ifndef TRAJECTORY_H
+#define TRAJECTORY_H
+
 #include <iostream>
 #include <Eigen/Dense>
+
+typedef double Scalar;
+typedef Eigen::Matrix<Scalar, 3, 1> Vector3 ;
+typedef Eigen::Matrix<Scalar, 3, 3> Matrix3;
 
 class Trajectory {
 public:
@@ -8,21 +15,23 @@ public:
 
   Trajectory(){};
 
-  Trajectory(Eigen::Vector3d acceleration, Eigen::Vector3d initial_velocity) {
+  Trajectory(Vector3 acceleration, Vector3 initial_velocity) {
   	this->acceleration = acceleration;
   	this->initial_velocity = initial_velocity; 
   };
   
-  void setInitialVelocity(Eigen::Vector3d const& initial_velocity);
+  void setInitialVelocity(Vector3 const& initial_velocity);
 
-  Eigen::Vector3d getPosition(double const& t);
-  Eigen::Vector3d getVelocity(double const& t);
-  Eigen::Matrix3d getCovariance(double const& t);
+  Vector3 getPosition(Scalar const& t);
+  Vector3 getVelocity(Scalar const& t);
+  Matrix3 getCovariance(Scalar const& t);
 
 
 private:
   
-  Eigen::Vector3d acceleration;
-  Eigen::Vector3d initial_velocity;
+  Vector3 acceleration;
+  Vector3 initial_velocity;
 
 };
+
+#endif

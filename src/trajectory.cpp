@@ -6,19 +6,20 @@ void Trajectory::TestTrajectory() {
 
 }
 
-void Trajectory::setInitialVelocity(Eigen::Vector3d const& initial_velocity) {
+void Trajectory::setInitialVelocity(Vector3 const& initial_velocity) {
   this->initial_velocity = initial_velocity;
 };
 
-Eigen::Vector3d Trajectory::getPosition(double const& t) {
+Vector3 Trajectory::getPosition(Scalar const& t) {
   return 0.5*acceleration*t*t + initial_velocity*t;
 };
 
-Eigen::Vector3d Trajectory::getVelocity(double const& t) {
+Vector3 Trajectory::getVelocity(Scalar const& t) {
   return acceleration*t + initial_velocity;
 };
 
-Eigen::Matrix3d Trajectory::getCovariance(double const& t) {
-  Eigen::Vector3d covariances = initial_velocity*t*t;
-  return covariances.asDiagonal();
+Matrix3 Trajectory::getCovariance(Scalar const& t) {
+  //Vector3 covariances = initial_velocity*t*t;
+  //return covariances.asDiagonal();
+  return Matrix3::Identity();
 };
