@@ -12,21 +12,21 @@ void TrajectoryLibrary::Initialize2DLibrary() {
 
 	// Make next 8 trajectories sample around maximum horizontal acceleration
 	for (double i = 1; i < 9; i++) {
-		double theta = (i-1)*M_PI/8.0;
+		double theta = (i-1)*2*M_PI/8.0;
 		acceleration << cos(theta)*a_max_horizontal, sin(theta)*a_max_horizontal, 0;
 		trajectories.push_back(Trajectory( acceleration, zero_initial_velocity ));
 	}
 
 	// Make next 8 trajectories sample around 0.6 * maximum horizontal acceleration
 	for (double i = 9; i < 17; i++) {
-		double theta = (i-1)*M_PI/8.0;
+		double theta = (i-1)*2*M_PI/8.0;
 		acceleration << cos(theta)*0.6*a_max_horizontal, sin(theta)*0.6*a_max_horizontal, 0;
 		trajectories.push_back(Trajectory( acceleration, zero_initial_velocity ));
 	}
 
 	// Make next 8 trajectories sample around 0.3 * maximum horizontal acceleration
 	for (double i = 17; i < 25; i++) {
-		double theta = (i-1)*M_PI/8.0;
+		double theta = (i-1)*2*M_PI/8.0;
 		acceleration << cos(theta)*0.3*a_max_horizontal, sin(theta)*0.3*a_max_horizontal, 0;
 		trajectories.push_back(Trajectory( acceleration, zero_initial_velocity ));
 	}

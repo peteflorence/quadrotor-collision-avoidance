@@ -92,14 +92,12 @@ public:
 			for (size_t sample = 0; sample < num_samples; sample++) {
 				poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample)));
 				sigma = trajectory_selector.getSigmaAtTime(sampling_time_vector(sample));
-				if (trajectory_index = 0) {
+				if (trajectory_index == 0) {
 					drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
 				}
 			}
 			mutex.unlock();
 			poly_samples_pubs.at(trajectory_index).publish(poly_samples_msg);
-			
-
 		}
 	}
 
