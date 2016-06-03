@@ -12,6 +12,7 @@ public:
   
   void InitializeLibrary();
   void setInitialVelocity(Vector3 const& initialVelocity);
+  size_t getNumTrajectories();
   Vector3 computeAccelerationDesiredFromBestTrajectory();
 
   Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sampleTrajectoryForDrawing(size_t trajectory_index, double start_time, double final_time, size_t num_samples);

@@ -2,11 +2,9 @@
 #include <iostream>
 
 void TrajectorySelector::Test() {
-
   std::cout << "Printing from inside TrajectorySelector " << std::endl;  
   trajectory_library.TestLibrary();
   trajectory_evaluator.TestEvaluator();
-
 }
 
 void TrajectorySelector::InitializeLibrary() {
@@ -14,15 +12,16 @@ void TrajectorySelector::InitializeLibrary() {
 };
 
 void TrajectorySelector::setInitialVelocity(Vector3 const& initialVelocity) {
-  trajectory_library.setInitialVelocityJustOneTrajectory(initialVelocity);
+  trajectory_library.setInitialVelocityAllTrajectories(initialVelocity);
 };
 
-
+size_t TrajectorySelector::getNumTrajectories() {
+  return trajectory_library.getNumTrajectories();
+};
 
 Vector3 TrajectorySelector::computeAccelerationDesiredFromBestTrajectory() {
   this->EvalAllTrajectories();
   return Vector3(0,0,0);
-
 };
 
 

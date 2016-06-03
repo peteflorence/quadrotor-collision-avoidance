@@ -51,6 +51,33 @@ public:
 		poly_samples_pub.publish(poly_samples_msg);
 	}
 
+	void drawTrajectoriesDebug() {
+		
+		size_t num_trajectories = trajectory_selector.getNumTrajectories(); 
+
+		size_t num_samples = 100;
+		size_t trajectory_index = 0;
+		double start_time = 0.0;
+		double final_time = 0.5;
+
+		nav_msgs::Path poly_samples_msg;
+		poly_samples_msg.header.frame_id = "world";
+		poly_samples_msg.header.stamp = ros::Time::now();
+
+		Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time;
+		for (size_t trajectory_index = 0; trajectory_index < num_trajectories; trajectory_index++) {
+			sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, start_time, final_time, num_samples);
+
+			mutex.lock();
+			for (size_t sample = 0; sample < num_samples; sample++) {
+				poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample)));
+			}
+			mutex.unlock();
+			poly_samples_pub.publish(poly_samples_msg);
+		}
+
+	}
+
 private:
 
 	geometry_msgs::PoseStamped PoseFromVector3(Vector3 const& position) {
@@ -155,7 +182,7 @@ int main(int argc, char* argv[]) {
 
 
 	while (ros::ok()) {
-		trajectory_selector_node.drawTrajectoryDebug();
+		trajectory_selector_node.drawTrajectoriesDebug();
 		ros::spinOnce();
 	}
 }

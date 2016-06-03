@@ -8,10 +8,11 @@ public:
 
   void Initialize2DLibrary();
 
-  void setInitialVelocity(Vector3 const& initialVelocity);
+  void setInitialVelocityAllTrajectories(Vector3 const& initialVelocity);
   void setInitialVelocityJustOneTrajectory(Vector3 const& initialVelocity);
 
   Trajectory getTrajectoryFromIndex(size_t index);
+  size_t getNumTrajectories();
 
   std::vector<Trajectory>::const_iterator GetTrajectoryIteratorBegin() const {
 	return trajectories.begin(); 
