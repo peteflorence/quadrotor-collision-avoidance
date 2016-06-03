@@ -34,10 +34,30 @@ void TrajectoryLibrary::Initialize2DLibrary() {
 };
 
 void TrajectoryLibrary::setInitialVelocity(Vector3 const& initialVelocity) {
+	std::cout << "I'm setting initial velocities for each trajectory " << std::endl;
+	std::cout << "With this velocity " << initialVelocity << std::endl;
+	int times = 0;
 	for (auto trajectory: trajectories) {
+		std::cout << "This number of times " << times << std::endl;
+		std::cout << "Before setting " << trajectory.getInitialVelocity() << std::endl;
 		trajectory.setInitialVelocity(initialVelocity);
+		std::cout << "After setting " << trajectory.getInitialVelocity() << std::endl;
+		times++;
 	}
+
+	// std::cout << "Let's see if my trajectory velocities were actually changed" << std::endl;
+
+	// for (auto trajectory: trajectories) {
+	// 	std::cout << trajectory.getInitialVelocity() << std::endl;
+	// }
 };
+
+void TrajectoryLibrary::setInitialVelocityJustOneTrajectory(Vector3 const& initialVelocity) {
+	std::cout << "Getting it before " << trajectories.at(0).getInitialVelocity() << std::endl;
+	trajectories.at(0).setInitialVelocity(initialVelocity);
+	std::cout << "Getting it after " << trajectories.at(0).getInitialVelocity() << std::endl;
+};
+
 
 Trajectory TrajectoryLibrary::getTrajectoryFromIndex(size_t index) {
 	return trajectories.at(index);

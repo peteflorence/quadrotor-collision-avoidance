@@ -19,10 +19,12 @@ public:
   Trajectory(Vector3 acceleration, Vector3 initial_velocity) {
   	this->acceleration = acceleration;
   	this->initial_velocity = initial_velocity; 
+  	std::cout << "I'm initializing trajecotories " << std::endl;
   };
   
   void setAcceleration(Vector3 const& acceleration);
   void setInitialVelocity(Vector3 const& initial_velocity);
+  Vector3 getInitialVelocity() const;
 
   Vector3 getPosition(Scalar const& t) const;
   Vector3 getVelocity(Scalar const& t) const;

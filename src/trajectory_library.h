@@ -9,6 +9,7 @@ public:
   void Initialize2DLibrary();
 
   void setInitialVelocity(Vector3 const& initialVelocity);
+  void setInitialVelocityJustOneTrajectory(Vector3 const& initialVelocity);
 
   Trajectory getTrajectoryFromIndex(size_t index);
 

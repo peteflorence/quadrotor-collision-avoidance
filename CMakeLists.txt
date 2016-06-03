@@ -7,12 +7,19 @@ project(trajectory_selector)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
+  nav_msgs
   roscpp
   std_msgs
+  std_srvs
   tf
   cv_bridge
   image_transport
+  acl_fsw
+  message_generation
 )
+
+add_message_files( DIRECTORY msg FILES Coeff.msg State.msg )
+generate_messages( DEPENDENCIES std_msgs nav_msgs)
 
 find_package( Eigen3 REQUIRED )
 find_package(OpenCV 2.4.8 REQUIRED)
@@ -40,6 +47,10 @@ target_link_libraries( trajectory_selector trajectory_evaluator )
 
 add_library( trajectory src/trajectory.cpp )
 target_link_libraries( trajectory_library trajectory )
+
+add_executable( trajectory_selector_node src/trajectory_selector_node.cpp )
+target_link_libraries( trajectory_selector_node trajectory_selector )
+target_link_libraries( trajectory_selector_node ${catkin_LIBRARIES} )
 
 
 

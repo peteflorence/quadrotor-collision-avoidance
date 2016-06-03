@@ -1,13 +1,14 @@
 #include "trajectory.h"
 
 void Trajectory::TestTrajectory() {
-
   std::cout << "Printing from inside Trajectory " << std::endl;  
-
 }
 
-void Trajectory::setInitialVelocity(Vector3 const& initial_velocity) {
-  this->initial_velocity = initial_velocity;
+void Trajectory::setInitialVelocity(Vector3 const& initial_velocity_to_set) {
+  //std::cout << "I'm going to set velocity to " << initial_velocity_to_set << std::endl;
+  //std::cout << "before setting velocity " << initial_velocity << std::endl;
+  initial_velocity = initial_velocity_to_set;
+  //std::cout << "after setting velocity " << initial_velocity << std::endl;
 };
 
 void Trajectory::setAcceleration(Vector3 const& acceleration) {
@@ -15,8 +16,16 @@ void Trajectory::setAcceleration(Vector3 const& acceleration) {
 };
 
 Vector3 Trajectory::getPosition(Scalar const& t) const {
+  //std::cout << "My initial velocity is " << initial_velocity << std::endl;
+  //std::cout << "My acceleration is " << acceleration << std::endl;
   return 0.5*acceleration*t*t + initial_velocity*t;
 };
+
+Vector3 Trajectory::getInitialVelocity() const {
+  return initial_velocity;
+};
+
+
 
 Vector3 Trajectory::getVelocity(Scalar const& t) const {
   return acceleration*t + initial_velocity;

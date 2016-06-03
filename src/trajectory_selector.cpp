@@ -14,7 +14,7 @@ void TrajectorySelector::InitializeLibrary() {
 };
 
 void TrajectorySelector::setInitialVelocity(Vector3 const& initialVelocity) {
-  trajectory_library.setInitialVelocity(initialVelocity);
+  trajectory_library.setInitialVelocityJustOneTrajectory(initialVelocity);
 };
 
 
@@ -51,8 +51,10 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryFor
   double sampling_time = 0;
   double sampling_interval = (final_time - start_time) / num_samples;
   
+
   for (size_t sample_index = 0; sample_index < num_samples; sample_index++) {
     sampling_time = start_time + sampling_interval*sample_index;
+    //std::cout << "the position I sample is " << trajectory_to_sample.getPosition(sampling_time) << std::endl;
     sample_points_xyz_over_time.row(sample_index) = trajectory_to_sample.getPosition(sampling_time);
   }
 
