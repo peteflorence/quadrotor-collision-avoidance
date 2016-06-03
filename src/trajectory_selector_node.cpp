@@ -43,7 +43,7 @@ public:
 		Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, sampling_time_vector, num_samples);
 
 		nav_msgs::Path poly_samples_msg;
-		poly_samples_msg.header.frame_id = "world";
+		poly_samples_msg.header.frame_id = "body";
 		poly_samples_msg.header.stamp = ros::Time::now();
 		mutex.lock();
 		Vector3 sigma;
@@ -58,7 +58,7 @@ public:
 
 	void drawGaussianPropagationDebug(int id, Vector3 position, Vector3 sigma) {
 		visualization_msgs::Marker marker;
-		marker.header.frame_id = "world";
+		marker.header.frame_id = "body";
 		marker.header.stamp = ros::Time();
 		marker.ns = "my_namespace";
 		marker.id = id;
@@ -85,7 +85,7 @@ public:
 			Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, sampling_time_vector, num_samples);
 
 			nav_msgs::Path poly_samples_msg;
-			poly_samples_msg.header.frame_id = "world";
+			poly_samples_msg.header.frame_id = "body";
 			poly_samples_msg.header.stamp = ros::Time::now();
 			mutex.lock();
 			Vector3 sigma;
@@ -149,7 +149,7 @@ private:
 		pose.pose.position.x = position(0);
 		pose.pose.position.y = position(1);
 		pose.pose.position.z = position(2);
-		pose.header.frame_id = "world";
+		pose.header.frame_id = "body";
 		pose.header.stamp = ros::Time::now();
 		return pose;
 	}
@@ -163,6 +163,13 @@ private:
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
 		//ROS_INFO("GOT VELOCITY");
+		
+		// in world frame
+		//twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z
+
+		// how to get into body frame?
+
+
 		mutex.lock();
 		trajectory_selector.setInitialVelocity(Vector3(twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z));
 		mutex.unlock();
