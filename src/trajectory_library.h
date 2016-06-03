@@ -13,6 +13,7 @@ public:
 
   Trajectory getTrajectoryFromIndex(size_t index);
   size_t getNumTrajectories();
+  Vector3 getSigmaAtTime(double const& t);
 
   std::vector<Trajectory>::const_iterator GetTrajectoryIteratorBegin() const {
 	return trajectories.begin(); 
@@ -30,6 +31,8 @@ private:
 
   std::vector<Trajectory> trajectories;
   Trajectory trajectory1;
+
+  Vector3 initial_velocity = Vector3(0,0,0);
  
 };
 

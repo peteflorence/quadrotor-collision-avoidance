@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
+#include <visualization_msgs/Marker.h>
 #include <std_msgs/String.h>
 #include "acl_fsw/QuadGoal.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -10,6 +11,7 @@
 #include <thread>
 #include <std_srvs/Empty.h>
 #include "trajectory_selector.h"
+#include <cmath>
 
 
 class TrajectorySelectorNode {
@@ -24,61 +26,95 @@ public:
 
 		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 1);
 		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 1);
+		vis_pub = nh.advertise<visualization_msgs::Marker>( "visualization_marker", 0 );
 
 		trajectory_selector.InitializeLibrary();
+		createSamplingTimeVector();
 
 		ROS_INFO("Finished constructing the trajectory selector node, waiting for waypoints");
 	}
 
-
 	void drawTrajectoryDebug() {
-		size_t num_samples = 100;
 		size_t trajectory_index = 0;
-		double start_time = 0.0;
-		double final_time = 0.5;
-
-		Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, start_time, final_time, num_samples);
-		//std::cout << "sample_points " << sample_points_xyz_over_time << std::endl;
+		Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, sampling_time_vector, num_samples);
 
 		nav_msgs::Path poly_samples_msg;
 		poly_samples_msg.header.frame_id = "world";
 		poly_samples_msg.header.stamp = ros::Time::now();
 		mutex.lock();
+		Vector3 sigma;
 		for (size_t sample = 0; sample < num_samples; sample++) {
 			poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample)));
+			sigma = trajectory_selector.getSigmaAtTime(sampling_time_vector(sample));
+		 	drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
 		}
 		mutex.unlock();
 		poly_samples_pub.publish(poly_samples_msg);
 	}
 
-	void drawTrajectoriesDebug() {
-		
-		size_t num_trajectories = trajectory_selector.getNumTrajectories(); 
+	void drawGaussianPropagationDebug(int id, Vector3 position, Vector3 sigma) {
+		visualization_msgs::Marker marker;
+		marker.header.frame_id = "world";
+		marker.header.stamp = ros::Time();
+		marker.ns = "my_namespace";
+		marker.id = id;
+		marker.type = visualization_msgs::Marker::SPHERE;
+		marker.action = visualization_msgs::Marker::ADD;
+		marker.pose.position.x = position(0);
+		marker.pose.position.y = position(1);
+		marker.pose.position.z = position(2);
+		marker.scale.x = 0.1 + std::abs(position(0));
+		marker.scale.y = 0.1 + std::abs(position(1));
+		marker.scale.z = 0.1 + std::abs(position(2));
+		marker.color.a = 0.15; // Don't forget to set the alpha!
+		marker.color.r = 0.1;
+		marker.color.g = 0.1;
+		marker.color.b = 0.1;
+		vis_pub.publish( marker );
+	}
 
-		size_t num_samples = 100;
-		size_t trajectory_index = 0;
+	// void drawTrajectoriesDebug() {
+		
+	// 	size_t num_trajectories = trajectory_selector.getNumTrajectories(); 
+
+	// 	num_samples = 10;
+	// 	size_t trajectory_index = 0;
+	// 	double start_time = 0.0;
+	// 	double final_time = 0.5;
+
+	// 	nav_msgs::Path poly_samples_msg;
+	// 	poly_samples_msg.header.frame_id = "world";
+	// 	poly_samples_msg.header.stamp = ros::Time::now();
+
+	// 	Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time;
+	// 	for (size_t trajectory_index = 0; trajectory_index < num_trajectories; trajectory_index++) {
+	// 		sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, start_time, final_time, num_samples);
+
+	// 		mutex.lock();
+	// 		for (size_t sample = 0; sample < num_samples; sample++) {
+	// 			poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample)));
+	// 		}
+	// 		mutex.unlock();
+	// 		poly_samples_pub.publish(poly_samples_msg);
+	// 	}
+
+	// }
+
+private:
+
+	void createSamplingTimeVector() {
+		num_samples = 10;
+		sampling_time_vector.resize(num_samples, 1);
 		double start_time = 0.0;
 		double final_time = 0.5;
 
-		nav_msgs::Path poly_samples_msg;
-		poly_samples_msg.header.frame_id = "world";
-		poly_samples_msg.header.stamp = ros::Time::now();
-
-		Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time;
-		for (size_t trajectory_index = 0; trajectory_index < num_trajectories; trajectory_index++) {
-			sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, start_time, final_time, num_samples);
-
-			mutex.lock();
-			for (size_t sample = 0; sample < num_samples; sample++) {
-				poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample)));
-			}
-			mutex.unlock();
-			poly_samples_pub.publish(poly_samples_msg);
-		}
-
-	}
-
-private:
+		double sampling_time = 0;
+		double sampling_interval = (final_time - start_time) / num_samples;
+		for (size_t sample_index = 0; sample_index < num_samples; sample_index++) {
+    		sampling_time = start_time + sampling_interval*(sample_index+1);
+    		sampling_time_vector(sample_index) = sampling_time;
+    	}
+  	}
 
 	geometry_msgs::PoseStamped PoseFromVector3(Vector3 const& position) {
 		geometry_msgs::PoseStamped pose;
@@ -152,6 +188,7 @@ private:
 	ros::Subscriber velocity_sub;
 	ros::Publisher local_goal_pub;
 	ros::Publisher poly_samples_pub;
+	ros::Publisher vis_pub;
 
 	nav_msgs::Path waypoints;
 	nav_msgs::Path previous_waypoints;
@@ -160,6 +197,9 @@ private:
 
 	Eigen::Vector4d pose_x_y_z_yaw;
 	Eigen::Matrix<double, 4, Eigen::Dynamic> waypoints_matrix;
+
+	Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector;
+	size_t num_samples;
 
 	std::mutex mutex;
 
@@ -182,7 +222,7 @@ int main(int argc, char* argv[]) {
 
 
 	while (ros::ok()) {
-		trajectory_selector_node.drawTrajectoriesDebug();
+		trajectory_selector_node.drawTrajectoryDebug();
 		ros::spinOnce();
 	}
 }

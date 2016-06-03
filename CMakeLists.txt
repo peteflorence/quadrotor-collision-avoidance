@@ -7,6 +7,7 @@ project(trajectory_selector)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
+  visualization_msgs
   nav_msgs
   roscpp
   std_msgs

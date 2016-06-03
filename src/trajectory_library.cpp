@@ -37,6 +37,7 @@ void TrajectoryLibrary::setInitialVelocityAllTrajectories(Vector3 const& initial
 	for (size_t index = 0; index < trajectories.size(); index++) {
 		trajectories.at(index).setInitialVelocity(initialVelocity);
 	}
+	initial_velocity = initialVelocity;
 };
 
 void TrajectoryLibrary::setInitialVelocityJustOneTrajectory(Vector3 const& initialVelocity) {
@@ -50,6 +51,10 @@ Trajectory TrajectoryLibrary::getTrajectoryFromIndex(size_t index) {
 
 size_t TrajectoryLibrary::getNumTrajectories() {
 	return trajectories.size();
+};
+
+Vector3 TrajectoryLibrary::getSigmaAtTime(double const& t) {
+	return t*(Vector3(1.5,1.5,1.5) + 0.1*(initial_velocity.array().abs()).matrix());
 };
 
 

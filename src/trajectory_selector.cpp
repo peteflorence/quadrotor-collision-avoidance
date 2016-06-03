@@ -19,6 +19,10 @@ size_t TrajectorySelector::getNumTrajectories() {
   return trajectory_library.getNumTrajectories();
 };
 
+Vector3 TrajectorySelector::getSigmaAtTime(double const & t) {
+  return trajectory_library.getSigmaAtTime(t);
+};
+
 Vector3 TrajectorySelector::computeAccelerationDesiredFromBestTrajectory() {
   this->EvalAllTrajectories();
   return Vector3(0,0,0);
@@ -44,17 +48,15 @@ void TrajectorySelector::EvalAllTrajectories() {
 };
 
 
-Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryForDrawing(size_t trajectory_index, double start_time, double final_time, size_t num_samples) {
+Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryForDrawing(size_t trajectory_index, Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector, size_t num_samples) {
   Trajectory trajectory_to_sample = trajectory_library.getTrajectoryFromIndex(trajectory_index);
-  Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time(num_samples, 3);
-  double sampling_time = 0;
-  double sampling_interval = (final_time - start_time) / num_samples;
-  
+  double sampling_time;
+  Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time(num_samples,3);
 
-  for (size_t sample_index = 0; sample_index < num_samples; sample_index++) {
-    sampling_time = start_time + sampling_interval*sample_index;
+  for (size_t time_index = 0; time_index < num_samples; time_index++) {
     //std::cout << "the position I sample is " << trajectory_to_sample.getPosition(sampling_time) << std::endl;
-    sample_points_xyz_over_time.row(sample_index) = trajectory_to_sample.getPosition(sampling_time);
+    sampling_time = sampling_time_vector(time_index);
+    sample_points_xyz_over_time.row(time_index) = trajectory_to_sample.getPosition(sampling_time);
   }
 
   return sample_points_xyz_over_time;
