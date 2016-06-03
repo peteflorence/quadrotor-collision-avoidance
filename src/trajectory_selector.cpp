@@ -17,18 +17,33 @@ void TrajectorySelector::setInitialVelocity(Vector3 const& initialVelocity) {
   trajectory_library.setInitialVelocity(initialVelocity);
 };
 
-void TrajectorySelector::EvalTrajectories() {
-  
+
+
+Vector3 TrajectorySelector::computeAccelerationDesiredFromBestTrajectory() {
+  this->EvalAllTrajectories();
+  return Vector3(0,0,0);
+
+};
+
+
+void TrajectorySelector::EvalAllTrajectories() {
+
   // for each traj in trajectory_library.trajectories
   std::vector<Trajectory>::const_iterator trajectory_iterator_begin = trajectory_library.GetTrajectoryIteratorBegin();
   std::vector<Trajectory>::const_iterator trajectory_iterator_end = trajectory_library.GetTrajectoryIteratorEnd();
 
-  for (auto iterator = trajectory_iterator_begin; iterator != trajectory_iterator_end; iterator++) {
-    std::cout << iterator->getPosition(10.0) << std::endl;
+  // evaluate the probability of collision for all trajectories at final time
+
+
+  for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
+    std::cout << trajectory->getPosition(10.0) << std::endl;
   }
 
+  // evaluate the probability of 
 
-}
+
+};
+
 
 Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryForDrawing(size_t trajectory_index, double start_time, double final_time, size_t num_samples) {
   Trajectory trajectory_to_sample = trajectory_library.getTrajectoryFromIndex(trajectory_index);

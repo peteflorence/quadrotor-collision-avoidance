@@ -6,7 +6,6 @@ int main(int argc, char* argv[]) {
   TrajectorySelector my_trajectory_selector;
   my_trajectory_selector.Test();
   my_trajectory_selector.InitializeLibrary();
-  my_trajectory_selector.EvalTrajectories();
 
   Vector3 initialVelocity = Vector3(13.0, 1.0, 0.3);
 
