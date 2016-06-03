@@ -31,6 +31,10 @@ public:
 		trajectory_selector.InitializeLibrary();
 		createSamplingTimeVector();
 
+		for (int i = 0; i < trajectory_selector.getNumTrajectories(); i++) {
+			poly_samples_pubs.push_back(nh.advertise<nav_msgs::Path>(samples_topic+std::to_string(i), 1));
+		}
+
 		ROS_INFO("Finished constructing the trajectory selector node, waiting for waypoints");
 	}
 
@@ -71,6 +75,32 @@ public:
 		marker.color.g = 0.1;
 		marker.color.b = 0.1;
 		vis_pub.publish( marker );
+	}
+
+	void drawTrajectoriesDebug() {
+		size_t num_trajectories = trajectory_selector.getNumTrajectories(); 
+		
+		for (size_t trajectory_index = 0; trajectory_index < num_trajectories; trajectory_index++) {
+
+			Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, sampling_time_vector, num_samples);
+
+			nav_msgs::Path poly_samples_msg;
+			poly_samples_msg.header.frame_id = "world";
+			poly_samples_msg.header.stamp = ros::Time::now();
+			mutex.lock();
+			Vector3 sigma;
+			for (size_t sample = 0; sample < num_samples; sample++) {
+				poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample)));
+				sigma = trajectory_selector.getSigmaAtTime(sampling_time_vector(sample));
+				if (trajectory_index = 0) {
+					drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
+				}
+			}
+			mutex.unlock();
+			poly_samples_pubs.at(trajectory_index).publish(poly_samples_msg);
+			
+
+		}
 	}
 
 	// void drawTrajectoriesDebug() {
@@ -190,6 +220,8 @@ private:
 	ros::Publisher poly_samples_pub;
 	ros::Publisher vis_pub;
 
+	std::vector<ros::Publisher> poly_samples_pubs;
+
 	nav_msgs::Path waypoints;
 	nav_msgs::Path previous_waypoints;
 	int max_waypoints = 10;
@@ -222,7 +254,7 @@ int main(int argc, char* argv[]) {
 
 
 	while (ros::ok()) {
-		trajectory_selector_node.drawTrajectoryDebug();
+		trajectory_selector_node.drawTrajectoriesDebug();
 		ros::spinOnce();
 	}
 }
