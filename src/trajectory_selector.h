@@ -9,11 +9,11 @@
 class TrajectorySelector {
 public:
   void Test();
+  void EvalTrajectories();
 
 private:
   
   TrajectoryLibrary trajectory_library;
   TrajectoryEvaluator trajectory_evaluator;
-
 
 };
