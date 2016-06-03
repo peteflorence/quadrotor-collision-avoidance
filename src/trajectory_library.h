@@ -10,6 +10,8 @@ public:
 
   void setInitialVelocity(Vector3 const& initialVelocity);
 
+  Trajectory getTrajectoryFromIndex(size_t index);
+
   std::vector<Trajectory>::const_iterator GetTrajectoryIteratorBegin() const {
 	return trajectories.begin(); 
   };

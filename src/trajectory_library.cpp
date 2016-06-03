@@ -39,6 +39,10 @@ void TrajectoryLibrary::setInitialVelocity(Vector3 const& initialVelocity) {
 	}
 };
 
+Trajectory TrajectoryLibrary::getTrajectoryFromIndex(size_t index) {
+	return trajectories.at(index);
+};
+
 
 void TrajectoryLibrary::TestLibrary() {
 

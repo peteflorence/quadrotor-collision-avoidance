@@ -29,3 +29,17 @@ void TrajectorySelector::EvalTrajectories() {
 
 
 }
+
+Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryForDrawing(size_t trajectory_index, double start_time, double final_time, size_t num_samples) {
+  Trajectory trajectory_to_sample = trajectory_library.getTrajectoryFromIndex(trajectory_index);
+  Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time(num_samples, 3);
+  double sampling_time = 0;
+  double sampling_interval = (final_time - start_time) / num_samples;
+  
+  for (size_t sample_index = 0; sample_index < num_samples; sample_index++) {
+    sampling_time = start_time + sampling_interval*sample_index;
+    sample_points_xyz_over_time.row(sample_index) = trajectory_to_sample.getPosition(sampling_time);
+  }
+
+  return sample_points_xyz_over_time;
+}

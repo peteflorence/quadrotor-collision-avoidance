@@ -15,6 +15,8 @@ public:
 
   void EvalTrajectories();
 
+  Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sampleTrajectoryForDrawing(size_t trajectory_index, double start_time, double final_time, size_t num_samples);
+
 
 private:
   
