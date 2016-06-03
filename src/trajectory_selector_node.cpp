@@ -12,6 +12,10 @@
 #include <std_srvs/Empty.h>
 #include "trajectory_selector.h"
 #include <cmath>
+#include <tf2_ros/transform_listener.h>
+  
+std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+tf2_ros::Buffer tf_buffer_;
 
 
 class TrajectorySelectorNode {
@@ -34,6 +38,8 @@ public:
 		for (int i = 0; i < trajectory_selector.getNumTrajectories(); i++) {
 			poly_samples_pubs.push_back(nh.advertise<nav_msgs::Path>(samples_topic+std::to_string(i), 1));
 		}
+
+		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);
 
 		ROS_INFO("Finished constructing the trajectory selector node, waiting for waypoints");
 	}
@@ -164,14 +170,27 @@ private:
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
 		//ROS_INFO("GOT VELOCITY");
 		
-		// in world frame
-		//twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z
+		geometry_msgs::TransformStamped tf;
+	    try {
+	      // Need to remove leading "/" if it exists.
+	      std::string twist_frame_id = twist.header.frame_id;
+	      if (twist_frame_id[0] == '/') {
+	        twist_frame_id = twist_frame_id.substr(1, twist_frame_id.size()-1);
+	      }
 
-		// how to get into body frame?
+	      tf = tf_buffer_.lookupTransform("body", twist_frame_id, 
+	                                    ros::Time(twist.header.stamp),
+	                                    ros::Duration(1.0/30));
+	    } catch (tf2::TransformException &ex) {
+	      ROS_ERROR("%s", ex.what());
+	      return;
+	    }
 
+	    Eigen::Quaternion<Scalar> quat(tf.transform.rotation.w, tf.transform.rotation.x, tf.transform.rotation.y, tf.transform.rotation.z);
+	    Matrix3 R = quat.toRotationMatrix();
 
 		mutex.lock();
-		trajectory_selector.setInitialVelocity(Vector3(twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z));
+		trajectory_selector.setInitialVelocity(R*Vector3(twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z));
 		mutex.unlock();
 	}
 

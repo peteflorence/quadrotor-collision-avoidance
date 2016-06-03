@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   std_srvs
   tf
+  tf2
   cv_bridge
   image_transport
   acl_fsw
