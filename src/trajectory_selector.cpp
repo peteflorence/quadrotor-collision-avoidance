@@ -9,8 +9,16 @@ void TrajectorySelector::Test() {
 
 }
 
-void TrajectorySelector::EvalTrajectories() {
+void TrajectorySelector::InitializeLibrary() {
   trajectory_library.Initialize2DLibrary();
+};
+
+void TrajectorySelector::setInitialVelocity(Vector3 const& initialVelocity) {
+  trajectory_library.setInitialVelocity(initialVelocity);
+};
+
+void TrajectorySelector::EvalTrajectories() {
+  
   // for each traj in trajectory_library.trajectories
   std::vector<Trajectory>::const_iterator trajectory_iterator_begin = trajectory_library.GetTrajectoryIteratorBegin();
   std::vector<Trajectory>::const_iterator trajectory_iterator_end = trajectory_library.GetTrajectoryIteratorEnd();

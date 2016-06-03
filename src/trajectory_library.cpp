@@ -1,15 +1,41 @@
 #include "trajectory_library.h"
 #include <chrono>
-
-typedef double Scalar;
-typedef Eigen::Matrix<Scalar, 3, 1> Vector3;
-typedef Eigen::Matrix<Scalar, 3, 3> Matrix3;
-typedef Eigen::Matrix<Scalar, 1, 1> Vector1;
-
+#include <math.h>
 
 void TrajectoryLibrary::Initialize2DLibrary() {
-	for (double i = 0; i < 10; i++) {
-		trajectories.push_back(Trajectory( Vector3(i,i,i), Vector3(i,i,i) ));
+	double a_max_horizontal = sqrt(a_max*a_max - 9.8*9.8);
+	Vector3 zero_initial_velocity = Vector3(0,0,0);
+
+	// Make first trajectory be zero accelerations
+	Vector3 acceleration = Vector3(0,0,0);
+	trajectories.push_back(Trajectory( acceleration, zero_initial_velocity ));
+
+	// Make next 8 trajectories sample around maximum horizontal acceleration
+	for (double i = 1; i < 9; i++) {
+		double theta = (i-1)*M_PI/8.0;
+		acceleration << cos(theta)*a_max_horizontal, sin(theta)*a_max_horizontal, 0;
+		trajectories.push_back(Trajectory( acceleration, zero_initial_velocity ));
+	}
+
+	// Make next 8 trajectories sample around 0.6 * maximum horizontal acceleration
+	for (double i = 9; i < 17; i++) {
+		double theta = (i-1)*M_PI/8.0;
+		acceleration << cos(theta)*0.6*a_max_horizontal, sin(theta)*0.6*a_max_horizontal, 0;
+		trajectories.push_back(Trajectory( acceleration, zero_initial_velocity ));
+	}
+
+	// Make next 8 trajectories sample around 0.3 * maximum horizontal acceleration
+	for (double i = 17; i < 25; i++) {
+		double theta = (i-1)*M_PI/8.0;
+		acceleration << cos(theta)*0.3*a_max_horizontal, sin(theta)*0.3*a_max_horizontal, 0;
+		trajectories.push_back(Trajectory( acceleration, zero_initial_velocity ));
+	}
+
+};
+
+void TrajectoryLibrary::setInitialVelocity(Vector3 const& initialVelocity) {
+	for (auto trajectory: trajectories) {
+		trajectory.setInitialVelocity(initialVelocity);
 	}
 };
 

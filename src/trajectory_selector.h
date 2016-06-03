@@ -9,7 +9,12 @@
 class TrajectorySelector {
 public:
   void Test();
+  
+  void InitializeLibrary();
+  void setInitialVelocity(Vector3 const& initialVelocity);
+
   void EvalTrajectories();
+
 
 private:
   
