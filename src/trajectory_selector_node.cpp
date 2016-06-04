@@ -236,7 +236,13 @@ private:
   // 		sor.setLeafSize (0.1, 0.1, 0.1);
   // 		sor.filter (cloud_filtered);
 
-  		pcl::PointXYZ first_point = xyz_cloud->at(50,50);
+    	//edges are:
+    	// 0,0
+    	// 159, 0
+    	// 0, 119
+    	// 159,119
+
+  		pcl::PointXYZ first_point = xyz_cloud->at(0,119);
   		std::cout << Vector3(first_point.x, first_point.y, first_point.z) << " is x" << std::endl;
 	}
 
