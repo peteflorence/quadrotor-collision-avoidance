@@ -213,24 +213,7 @@ private:
 			}
 		}
 		carrot_world_frame << waypoints_matrix(0, i), waypoints_matrix(1, i), waypoints_matrix(2, i); 
-		visualization_msgs::Marker marker;
-		marker.header.frame_id = "world";
-		marker.header.stamp = ros::Time();
-		marker.ns = "my_namespace";
-		marker.id = 0;
-		marker.type = visualization_msgs::Marker::SPHERE;
-		marker.action = visualization_msgs::Marker::ADD;
-		marker.pose.position.x = carrot_world_frame(0);
-		marker.pose.position.y = carrot_world_frame(1);
-		marker.pose.position.z = carrot_world_frame(2);
-		marker.scale.x = 1;
-		marker.scale.y = 1;
-		marker.scale.z = 1;
-		marker.color.a = 0.5; // Don't forget to set the alpha!
-		marker.color.r = 0.9;
-		marker.color.g = 0.4;
-		marker.color.b = 0.0;
-		vis_pub.publish( marker );
+		
 
 
 		geometry_msgs::TransformStamped tf;
@@ -251,8 +234,27 @@ private:
 
 	    Eigen::Quaternion<Scalar> quat(tf.transform.rotation.w, tf.transform.rotation.x, tf.transform.rotation.y, tf.transform.rotation.z);
 	    Matrix3 R = quat.toRotationMatrix();
-	    // this transform needs to be tested
+	    // this transform doesn't work yet!!
 	    carrot_body_frame = R*(carrot_world_frame + Vector3(tf.transform.translation.x, tf.transform.translation.y, tf.transform.translation.z));
+
+	    visualization_msgs::Marker marker;
+		marker.header.frame_id = "body";
+		marker.header.stamp = ros::Time();
+		marker.ns = "my_namespace";
+		marker.id = 0;
+		marker.type = visualization_msgs::Marker::SPHERE;
+		marker.action = visualization_msgs::Marker::ADD;
+		marker.pose.position.x = carrot_body_frame(0);
+		marker.pose.position.y = carrot_body_frame(1);
+		marker.pose.position.z = carrot_body_frame(2);
+		marker.scale.x = 1;
+		marker.scale.y = 1;
+		marker.scale.z = 1;
+		marker.color.a = 0.5; // Don't forget to set the alpha!
+		marker.color.r = 0.9;
+		marker.color.g = 0.4;
+		marker.color.b = 0.0;
+		vis_pub.publish( marker );
 
 	}
 
