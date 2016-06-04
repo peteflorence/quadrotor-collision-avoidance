@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   acl_fsw
   message_generation
+  sensor_msgs
 )
 
 add_message_files( DIRECTORY msg FILES Coeff.msg State.msg )

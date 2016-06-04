@@ -13,6 +13,8 @@
 #include "trajectory_selector.h"
 #include <cmath>
 #include <tf2_ros/transform_listener.h>
+#include <sensor_msgs/PointCloud2.h>
+
   
 std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 tf2_ros::Buffer tf_buffer_;
@@ -27,6 +29,7 @@ public:
 		pose_sub = nh.subscribe(pose_topic, 1, &TrajectorySelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe(velocity_topic, 1, &TrajectorySelectorNode::OnVelocity, this);
 		waypoints_sub = nh.subscribe(waypoint_topic, 1, &TrajectorySelectorNode::OnWaypoints, this);
+  	    point_cloud_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnPointCloud, this);
 
 		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 1);
 		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 1);
@@ -77,9 +80,9 @@ public:
 		marker.scale.y = 0.1 + std::abs(position(1));
 		marker.scale.z = 0.1 + std::abs(position(2));
 		marker.color.a = 0.15; // Don't forget to set the alpha!
-		marker.color.r = 0.1;
+		marker.color.r = 0.9;
 		marker.color.g = 0.1;
-		marker.color.b = 0.1;
+		marker.color.b = 0.9;
 		vis_pub.publish( marker );
 	}
 
@@ -106,33 +109,6 @@ public:
 			poly_samples_pubs.at(trajectory_index).publish(poly_samples_msg);
 		}
 	}
-
-	// void drawTrajectoriesDebug() {
-		
-	// 	size_t num_trajectories = trajectory_selector.getNumTrajectories(); 
-
-	// 	num_samples = 10;
-	// 	size_t trajectory_index = 0;
-	// 	double start_time = 0.0;
-	// 	double final_time = 0.5;
-
-	// 	nav_msgs::Path poly_samples_msg;
-	// 	poly_samples_msg.header.frame_id = "world";
-	// 	poly_samples_msg.header.stamp = ros::Time::now();
-
-	// 	Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time;
-	// 	for (size_t trajectory_index = 0; trajectory_index < num_trajectories; trajectory_index++) {
-	// 		sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, start_time, final_time, num_samples);
-
-	// 		mutex.lock();
-	// 		for (size_t sample = 0; sample < num_samples; sample++) {
-	// 			poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample)));
-	// 		}
-	// 		mutex.unlock();
-	// 		poly_samples_pub.publish(poly_samples_msg);
-	// 	}
-
-	// }
 
 private:
 
@@ -235,11 +211,20 @@ private:
 	}
 
 
+
+	void OnPointCloud(const sensor_msgs::PointCloud2ConstPtr& point_cloud) {
+		ROS_INFO("GOT POINT CLOUD");
+		//*point_cloud to access the point cloud (deref the ptr)
+	}
+
+
 	acl_fsw::QuadGoal local_goal_msg;
 
 	ros::Subscriber waypoints_sub;
 	ros::Subscriber pose_sub;
 	ros::Subscriber velocity_sub;
+	ros::Subscriber point_cloud_sub;
+
 	ros::Publisher local_goal_pub;
 	ros::Publisher poly_samples_pub;
 	ros::Publisher vis_pub;
