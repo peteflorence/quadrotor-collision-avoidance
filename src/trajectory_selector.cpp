@@ -39,7 +39,7 @@ void TrajectorySelector::EvalAllTrajectories(Eigen::Matrix<Scalar, 100, 3> const
 
 
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-    std::cout << trajectory->getPosition(10.0) << std::endl;
+    //std::cout << trajectory->getPosition(10.0) << std::endl;
   }
 
   // evaluate the probability of 

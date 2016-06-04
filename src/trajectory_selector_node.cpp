@@ -183,8 +183,7 @@ private:
 	}
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
-
-		//ROS_INFO("GOT WAYPOINTS");
+		ROS_INFO("GOT WAYPOINTS");
 		int waypoints_to_check = std::min((int) waypoints.poses.size(), max_waypoints);
 
 		waypoints_matrix.resize(4, waypoints_to_check);
@@ -213,15 +212,14 @@ private:
 
 			}
 		}
-
 		waypoints_matrix.conservativeResize(4, i+1);
-
+		carrot_world_frame = Vector3(waypoints_matrix(0, i+1), waypoints_matrix(1, i+1), waypoints_matrix(3, i+1)); 
 	}
 
 
 
 	void OnPointCloud(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
-		//ROS_INFO("GOT POINT CLOUD");
+		ROS_INFO("GOT POINT CLOUD");
 
 		pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
 		pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
@@ -242,7 +240,15 @@ private:
   			pcl::PointXYZ first_point = xyz_cloud->at(x_rand_index,y_rand_index);
   			point_cloud_xyz_samples.row(i) << first_point.x, first_point.y, first_point.z;
   		}
+
+  		ReactToSampledPointCloud();
 	
+	}
+
+	void ReactToSampledPointCloud() {
+		Vector3 desired_acceleration = trajectory_selector.computeAccelerationDesiredFromBestTrajectory(point_cloud_xyz_samples);
+		
+		//attitude_desired = attitude_generator.generateDesiredAttitude(desired_acceleration);
 	}
 
 
@@ -261,7 +267,7 @@ private:
 
 	nav_msgs::Path waypoints;
 	nav_msgs::Path previous_waypoints;
-	int max_waypoints = 10;
+	int max_waypoints = 2;
 	double path_horizon_distance = 10.0;
 
 	Eigen::Vector4d pose_x_y_z_yaw;
@@ -273,6 +279,8 @@ private:
 	Eigen::Matrix<Scalar, 100, 3> point_cloud_xyz_samples;
 
 	std::mutex mutex;
+
+	Vector3 carrot_world_frame;
 
 	TrajectorySelector trajectory_selector;
 	AttitudeGenerator attitude_generator;
@@ -291,14 +299,9 @@ int main(int argc, char* argv[]) {
 	TrajectorySelectorNode trajectory_selector_node(nh, "/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
 
 	std::cout << "Got through to here" << std::endl;
-	Vector3 desired_acceleration;
 
 	while (ros::ok()) {
 		trajectory_selector_node.drawTrajectoriesDebug();
-
-		//desired_acceleration = trajectory_selector_node.computeAccelerationDesiredFromBestTrajectory(point_cloud_xyz_samples);
-		//attitude_desired = attitude_generator.generateDesiredAttitude(desired_acceleration);
-
 		ros::spinOnce();
 	}
 }
