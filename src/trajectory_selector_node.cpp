@@ -67,7 +67,7 @@ public:
 		for (size_t sample = 0; sample < num_samples; sample++) {
 			poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample)));
 			sigma = trajectory_selector.getSigmaAtTime(sampling_time_vector(sample));
-		 	drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
+		 	//drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
 		}
 		mutex.unlock();
 		poly_samples_pub.publish(poly_samples_msg);
@@ -110,7 +110,7 @@ public:
 				poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample)));
 				sigma = trajectory_selector.getSigmaAtTime(sampling_time_vector(sample));
 				if (trajectory_index == 0) {
-					drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
+					//drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
 				}
 			}
 			mutex.unlock();
@@ -183,7 +183,7 @@ private:
 	}
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
-		ROS_INFO("GOT WAYPOINTS");
+		//ROS_INFO("GOT WAYPOINTS");
 		int waypoints_to_check = std::min((int) waypoints.poses.size(), max_waypoints);
 
 		waypoints_matrix.resize(4, waypoints_to_check);
@@ -198,12 +198,12 @@ private:
 			p1 = VectorFromPose(waypoints.poses[i]);
 			p2 = VectorFromPose(waypoints.poses[i+1]);
 			distance_to_add = (p2-p1).norm();
-			if ((distance_to_add + distance_so_far) < path_horizon_distance) {
+			if ((distance_to_add + distance_so_far) < carrot_distance) {
 				distance_so_far += distance_to_add;
 				waypoints_matrix.col(i + 1) << p2, 0.0; // yaw is currently hard set to be 0
 			}
 			else {
-				distance_left = path_horizon_distance - distance_so_far;
+				distance_left = carrot_distance - distance_so_far;
 				truncated_waypoint = p1 + (p2-p1) / distance_to_add * distance_left;
 				distance_so_far = distance_so_far + distance_left;
 				waypoints_matrix.col(i + 1) << truncated_waypoint, 0.0; // yaw is currently hard set to be 0
@@ -212,14 +212,54 @@ private:
 
 			}
 		}
-		waypoints_matrix.conservativeResize(4, i+1);
-		carrot_world_frame = Vector3(waypoints_matrix(0, i+1), waypoints_matrix(1, i+1), waypoints_matrix(3, i+1)); 
+		carrot_world_frame << waypoints_matrix(0, i), waypoints_matrix(1, i), waypoints_matrix(2, i); 
+		visualization_msgs::Marker marker;
+		marker.header.frame_id = "world";
+		marker.header.stamp = ros::Time();
+		marker.ns = "my_namespace";
+		marker.id = 0;
+		marker.type = visualization_msgs::Marker::SPHERE;
+		marker.action = visualization_msgs::Marker::ADD;
+		marker.pose.position.x = carrot_world_frame(0);
+		marker.pose.position.y = carrot_world_frame(1);
+		marker.pose.position.z = carrot_world_frame(2);
+		marker.scale.x = 1;
+		marker.scale.y = 1;
+		marker.scale.z = 1;
+		marker.color.a = 0.5; // Don't forget to set the alpha!
+		marker.color.r = 0.9;
+		marker.color.g = 0.4;
+		marker.color.b = 0.0;
+		vis_pub.publish( marker );
+
+
+		geometry_msgs::TransformStamped tf;
+	    try {
+	      // Need to remove leading "/" if it exists.
+	      std::string pose_frame_id = waypoints.poses[0].header.frame_id;
+	      if (pose_frame_id[0] == '/') {
+	        pose_frame_id = pose_frame_id.substr(1, pose_frame_id.size()-1);
+	      }
+
+	      tf = tf_buffer_.lookupTransform("body", pose_frame_id, 
+	                                    ros::Time(waypoints.poses[0].header.stamp),
+	                                    ros::Duration(1.0/30));
+	    } catch (tf2::TransformException &ex) {
+	      ROS_ERROR("%s", ex.what());
+	      return;
+	    }
+
+	    Eigen::Quaternion<Scalar> quat(tf.transform.rotation.w, tf.transform.rotation.x, tf.transform.rotation.y, tf.transform.rotation.z);
+	    Matrix3 R = quat.toRotationMatrix();
+	    // this transform needs to be tested
+	    carrot_body_frame = R*(carrot_world_frame + Vector3(tf.transform.translation.x, tf.transform.translation.y, tf.transform.translation.z));
+
 	}
 
 
 
 	void OnPointCloud(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
-		ROS_INFO("GOT POINT CLOUD");
+		//ROS_INFO("GOT POINT CLOUD");
 
 		pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
 		pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
@@ -267,8 +307,8 @@ private:
 
 	nav_msgs::Path waypoints;
 	nav_msgs::Path previous_waypoints;
-	int max_waypoints = 2;
-	double path_horizon_distance = 10.0;
+	int max_waypoints = 6;
+	double carrot_distance = 5.0;
 
 	Eigen::Vector4d pose_x_y_z_yaw;
 	Eigen::Matrix<double, 4, Eigen::Dynamic> waypoints_matrix;
@@ -281,6 +321,7 @@ private:
 	std::mutex mutex;
 
 	Vector3 carrot_world_frame;
+	Vector3 carrot_body_frame;
 
 	TrajectorySelector trajectory_selector;
 	AttitudeGenerator attitude_generator;
