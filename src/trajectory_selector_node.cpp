@@ -15,6 +15,9 @@
 #include <tf2_ros/transform_listener.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl/filters/voxel_grid.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
   
 std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
@@ -213,11 +216,28 @@ private:
 
 
 
-	void OnPointCloud(const sensor_msgs::PointCloud2ConstPtr& point_cloud) {
+	void OnPointCloud(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
 		ROS_INFO("GOT POINT CLOUD");
-		//*point_cloud to access the point cloud (deref the ptr)
-		pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
-		//sor.setInputCloud (*point_cloud);
+
+		// Container for original & filtered data
+		pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
+		pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
+		
+    	pcl_conversions::toPCL(*point_cloud_msg, *cloud);
+    	pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    	pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
+
+		//pcl::PCLPointCloud2 cloud_filtered;
+		
+
+		// // Perform the actual filtering
+  // 		pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
+  // 		sor.setInputCloud (cloudPtr);
+  // 		sor.setLeafSize (0.1, 0.1, 0.1);
+  // 		sor.filter (cloud_filtered);
+
+  		pcl::PointXYZ first_point = xyz_cloud->at(50,50);
+  		std::cout << Vector3(first_point.x, first_point.y, first_point.z) << " is x" << std::endl;
 	}
 
 
