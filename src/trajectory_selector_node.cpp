@@ -50,6 +50,7 @@ public:
 
 		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);
 
+		srand ( time(NULL) ); //initialize the random seed
 		ROS_INFO("Finished constructing the trajectory selector node, waiting for waypoints");
 	}
 
@@ -219,7 +220,7 @@ private:
 
 
 	void OnPointCloud(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
-		ROS_INFO("GOT POINT CLOUD");
+		//ROS_INFO("GOT POINT CLOUD");
 
 		// Container for original & filtered data
 		pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
@@ -243,15 +244,13 @@ private:
     	// 0, 119
     	// 159,119
 
-    	srand ( time(NULL) ); //initialize the random seed
   		for (size_t i = 0; i < 100; i++) {
   			int x_rand_index = rand() % 160;
   			int y_rand_index = rand() % 120;
   			pcl::PointXYZ first_point = xyz_cloud->at(x_rand_index,y_rand_index);
-  			std::cout << Vector3(first_point.x, first_point.y, first_point.z) << " is # " << i << std::endl;
+  			point_cloud_xyz_samples.row(i) << first_point.x, first_point.y, first_point.z;
   		}
-
-  		
+	
 	}
 
 
@@ -278,6 +277,8 @@ private:
 
 	Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector;
 	size_t num_samples;
+
+	Eigen::Matrix<Scalar, 100, 3> point_cloud_xyz_samples;
 
 	std::mutex mutex;
 
