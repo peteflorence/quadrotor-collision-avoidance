@@ -18,6 +18,8 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <time.h>
+#include <stdlib.h>
 
   
 std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
@@ -229,7 +231,6 @@ private:
 
 		//pcl::PCLPointCloud2 cloud_filtered;
 		
-
 		// // Perform the actual filtering
   // 		pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
   // 		sor.setInputCloud (cloudPtr);
@@ -242,8 +243,15 @@ private:
     	// 0, 119
     	// 159,119
 
-  		pcl::PointXYZ first_point = xyz_cloud->at(0,119);
-  		std::cout << Vector3(first_point.x, first_point.y, first_point.z) << " is x" << std::endl;
+    	srand ( time(NULL) ); //initialize the random seed
+  		for (size_t i = 0; i < 100; i++) {
+  			int x_rand_index = rand() % 160;
+  			int y_rand_index = rand() % 120;
+  			pcl::PointXYZ first_point = xyz_cloud->at(x_rand_index,y_rand_index);
+  			std::cout << Vector3(first_point.x, first_point.y, first_point.z) << " is # " << i << std::endl;
+  		}
+
+  		
 	}
 
 
