@@ -54,10 +54,14 @@ target_link_libraries( trajectory_selector trajectory_evaluator )
 add_library( trajectory src/trajectory.cpp )
 target_link_libraries( trajectory_library trajectory )
 
+add_library( attitude_generator src/attitude_generator.cpp )
+
+
 add_executable( trajectory_selector_node src/trajectory_selector_node.cpp )
 target_link_libraries( trajectory_selector_node trajectory_selector )
 target_link_libraries( trajectory_selector_node ${catkin_LIBRARIES} )
 target_link_libraries( trajectory_selector_node ${PCL_LIBRARIES})
+target_link_libraries( trajectory_selector_node attitude_generator )
 
 
 

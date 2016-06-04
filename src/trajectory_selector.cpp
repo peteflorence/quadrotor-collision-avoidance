@@ -23,13 +23,13 @@ Vector3 TrajectorySelector::getSigmaAtTime(double const & t) {
   return trajectory_library.getSigmaAtTime(t);
 };
 
-Vector3 TrajectorySelector::computeAccelerationDesiredFromBestTrajectory() {
-  this->EvalAllTrajectories();
+Vector3 TrajectorySelector::computeAccelerationDesiredFromBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples) {
+  this->EvalAllTrajectories(point_cloud_xyz_samples);
   return Vector3(0,0,0);
 };
 
 
-void TrajectorySelector::EvalAllTrajectories() {
+void TrajectorySelector::EvalAllTrajectories(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples) {
 
   // for each traj in trajectory_library.trajectories
   std::vector<Trajectory>::const_iterator trajectory_iterator_begin = trajectory_library.GetTrajectoryIteratorBegin();

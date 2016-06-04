@@ -20,6 +20,7 @@
 #include <pcl/point_types.h>
 #include <time.h>
 #include <stdlib.h>
+#include "attitude_generator.h"
 
   
 std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
@@ -222,7 +223,6 @@ private:
 	void OnPointCloud(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
 		//ROS_INFO("GOT POINT CLOUD");
 
-		// Container for original & filtered data
 		pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
 		pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
 		
@@ -230,15 +230,7 @@ private:
     	pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud(new pcl::PointCloud<pcl::PointXYZ>);
     	pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
 
-		//pcl::PCLPointCloud2 cloud_filtered;
-		
-		// // Perform the actual filtering
-  // 		pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
-  // 		sor.setInputCloud (cloudPtr);
-  // 		sor.setLeafSize (0.1, 0.1, 0.1);
-  // 		sor.filter (cloud_filtered);
-
-    	//edges are:
+    	// edges are:
     	// 0,0
     	// 159, 0
     	// 0, 119
@@ -283,6 +275,7 @@ private:
 	std::mutex mutex;
 
 	TrajectorySelector trajectory_selector;
+	AttitudeGenerator attitude_generator;
 
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -298,10 +291,14 @@ int main(int argc, char* argv[]) {
 	TrajectorySelectorNode trajectory_selector_node(nh, "/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
 
 	std::cout << "Got through to here" << std::endl;
-
+	Vector3 desired_acceleration;
 
 	while (ros::ok()) {
 		trajectory_selector_node.drawTrajectoriesDebug();
+
+		//desired_acceleration = trajectory_selector_node.computeAccelerationDesiredFromBestTrajectory(point_cloud_xyz_samples);
+		//attitude_desired = attitude_generator.generateDesiredAttitude(desired_acceleration);
+
 		ros::spinOnce();
 	}
 }
