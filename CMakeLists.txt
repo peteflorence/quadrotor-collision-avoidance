@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   acl_fsw
   message_generation
   sensor_msgs
+  PCL REQUIRED
 )
 
 add_message_files( DIRECTORY msg FILES Coeff.msg State.msg )
@@ -29,6 +30,8 @@ find_package(OpenCV 2.4.8 REQUIRED)
 
 include_directories ( src )
 include_directories( ${EIGEN3_INCLUDE_DIR} )
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
 
 catkin_package(
 
@@ -54,6 +57,7 @@ target_link_libraries( trajectory_library trajectory )
 add_executable( trajectory_selector_node src/trajectory_selector_node.cpp )
 target_link_libraries( trajectory_selector_node trajectory_selector )
 target_link_libraries( trajectory_selector_node ${catkin_LIBRARIES} )
+target_link_libraries( trajectory_selector_node ${PCL_LIBRARIES})
 
 
 

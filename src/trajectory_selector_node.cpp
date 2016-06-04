@@ -14,6 +14,7 @@
 #include <cmath>
 #include <tf2_ros/transform_listener.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <pcl/filters/voxel_grid.h>
 
   
 std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
@@ -215,6 +216,8 @@ private:
 	void OnPointCloud(const sensor_msgs::PointCloud2ConstPtr& point_cloud) {
 		ROS_INFO("GOT POINT CLOUD");
 		//*point_cloud to access the point cloud (deref the ptr)
+		pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
+		//sor.setInputCloud (*point_cloud);
 	}
 
 
