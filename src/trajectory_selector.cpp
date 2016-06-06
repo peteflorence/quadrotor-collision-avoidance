@@ -36,8 +36,12 @@ Vector3 TrajectorySelector::getSigmaAtTime(double const & t) {
   return trajectory_library.getSigmaAtTime(t);
 };
 
+Vector3 TrajectorySelector::getInverseSigmaAtTime(double const & t) {
+  return trajectory_library.getInverseSigmaAtTime(t);
+};
+
 size_t TrajectorySelector::computeBestTrajectoryIndex(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame) {
-  //EvaluateCollisionProbabilities(point_cloud_xyz_samples);
+  EvaluateCollisionProbabilities(point_cloud_xyz_samples);
   EvaluateGoalProgress(carrot_body_frame);
 
   size_t best_traj_index = 0;
@@ -74,50 +78,54 @@ void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) 
 
 
 void TrajectorySelector::EvaluateCollisionProbabilities(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples) {
-
-  Eigen::Matrix<Scalar, 25, 1> CollisionProbabilities;
   
   // for each traj in trajectory_library.trajectories
   std::vector<Trajectory>::const_iterator trajectory_iterator_begin = trajectory_library.GetTrajectoryIteratorBegin();
   std::vector<Trajectory>::const_iterator trajectory_iterator_end = trajectory_library.GetTrajectoryIteratorEnd();
 
-
   size_t i = 0;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-    computeProbabilityOfCollisionOneTrajectory(*trajectory, point_cloud_xyz_samples); 
+    CollisionProbabilities(i) = computeProbabilityOfCollisionOneTrajectory(*trajectory, point_cloud_xyz_samples); 
     i++;
   }
 };
 
-void TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory trajectory, Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples) {
-  float probability_no_collision = 1;
-  float probability_of_collision_one_step_one_obstacle;
-  float probability_no_collision_one_step_one_obstacle;
+double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory trajectory, Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples) {
+  double probability_no_collision = 1;
+  double probability_of_collision_one_step_one_obstacle;
+  double probability_no_collision_one_step_one_obstacle;
   Vector3 trajectory_position;
   Vector3 point;
 
+  Vector3 sigma_sensor;
+  sigma_sensor << 0.3, 0.3, 0.3;
+  Vector3 sigma_at_time;
+  Vector3 total_sigma;
+  Vector3 inverse_total_sigma;
+
   for (size_t time_step_index = 0; time_step_index < 10; time_step_index++) {
+    sigma_at_time = getSigmaAtTime(sampling_time_vector(time_step_index)); 
+    total_sigma = sigma_at_time + sigma_at_time; 
+    inverse_total_sigma << 1.0/sigma_at_time(0), 1.0/sigma_at_time(1), 1.0/sigma_at_time(2);
     for (size_t point_index = 0; point_index < 100; point_index++) {
       trajectory_position = trajectory.getPosition(sampling_time_vector(time_step_index));
       point = point_cloud_xyz_samples.row(point_index);
-      
 
-      probability_of_collision_one_step_one_obstacle = computeProbabilityOfCollisionOneStepOneObstacle(trajectory_position, point);
+      probability_of_collision_one_step_one_obstacle = computeProbabilityOfCollisionOneStepOneObstacle(trajectory_position, point, inverse_total_sigma);
       probability_no_collision_one_step_one_obstacle = 1.0 - probability_no_collision_one_step_one_obstacle;
       probability_no_collision = probability_no_collision * probability_no_collision_one_step_one_obstacle;
     }
   }
-  return;
+  return 1 - probability_no_collision;
 };
 
-float TrajectorySelector::computeProbabilityOfCollisionOneStepOneObstacle(Vector3 const& trajectory_position, Vector3 const& point) {
-  float volume = 4.18;
-  Vector3 SigmaSensor;
-  SigmaSensor << 0.3, 0.3, 0.3;
+double TrajectorySelector::computeProbabilityOfCollisionOneStepOneObstacle(Vector3 const& robot_position, Vector3 const& depth_position, Vector3 const& inverse_total_sigma) {
+  double volume = 4.18;
+  
+  double denominator = std::sqrt( 2*2*2*M_PI*M_PI*M_PI*(1.0/inverse_total_sigma(0))*(1.0/inverse_total_sigma(1))*(1.0/inverse_total_sigma(2)) );
+  double exponent = -0.5*(robot_position - depth_position).transpose() * inverse_total_sigma.cwiseProduct(robot_position - depth_position);
 
-
-
-  return 0;
+  return volume / denominator * std::exp(exponent);
 };
 
 

@@ -59,6 +59,10 @@ Vector3 TrajectoryLibrary::getSigmaAtTime(double const& t) {
 	return t*(Vector3(1.5,1.5,1.5) + 0.1*(initial_velocity.array().abs()).matrix());
 };
 
+Vector3 TrajectoryLibrary::getInverseSigmaAtTime(double const& t) {
+	Vector3 sigma = getSigmaAtTime(t);
+	return Vector3(1.0/sigma(0), 1.0/sigma(1), 1.0/sigma(2));
+};
 
 void TrajectoryLibrary::TestLibrary() {
 

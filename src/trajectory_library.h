@@ -14,6 +14,7 @@ public:
   Trajectory getTrajectoryFromIndex(size_t index);
   size_t getNumTrajectories();
   Vector3 getSigmaAtTime(double const& t);
+  Vector3 getInverseSigmaAtTime(double const& t);
 
   std::vector<Trajectory>::const_iterator GetTrajectoryIteratorBegin() const {
 	return trajectories.begin(); 
