@@ -88,6 +88,7 @@ void TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory t
     for (size_t point_index = 0; point_index < 100; point_index++) {
       trajectory_position = trajectory.getPosition(sampling_time_vector(time_step_index));
       point = point_cloud_xyz_samples.row(point_index);
+      
 
       probability_of_collision_one_step_one_obstacle = computeProbabilityOfCollisionOneStepOneObstacle(trajectory_position, point);
       probability_no_collision_one_step_one_obstacle = 1.0 - probability_no_collision_one_step_one_obstacle;
@@ -98,6 +99,12 @@ void TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory t
 };
 
 float TrajectorySelector::computeProbabilityOfCollisionOneStepOneObstacle(Vector3 const& trajectory_position, Vector3 const& point) {
+  float volume = 4.18;
+  Vector3 SigmaSensor;
+  SigmaSensor << 0.3, 0.3, 0.3;
+
+
+
   return 0;
 };
 
