@@ -12,11 +12,10 @@ public:
   
   void InitializeLibrary(double const& final_time);
   void setInitialVelocity(Vector3 const& initialVelocity);
-  void setRollPitch(double const& roll, double const& pitch);
   size_t getNumTrajectories();
   
   Vector3 getSigmaAtTime(double const& t);
-  Vector3 computeAccelerationDesiredFromBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame);
+  size_t computeBestTrajectoryIndex(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame);
 
   Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sampleTrajectoryForDrawing(size_t trajectory_index, Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector, size_t num_samples);
 
@@ -35,7 +34,7 @@ private:
   double start_time = 0.0;
 
   Eigen::Matrix<Scalar, 10, 1> sampling_time_vector;
-  double roll;
-  double pitch;
+
+  Eigen::Matrix<Scalar, 25, 1> GoalProgressEvaluations;
 
 };

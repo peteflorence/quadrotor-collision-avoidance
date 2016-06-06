@@ -27,9 +27,6 @@ void TrajectorySelector::setInitialVelocity(Vector3 const& initialVelocity) {
   trajectory_library.setInitialVelocityAllTrajectories(Vector3(initialVelocity(0), initialVelocity(1), 0.0));
 };
 
-void TrajectorySelector::setRollPitch(double const& roll, double const& pitch) {
-  return;
-}
 
 size_t TrajectorySelector::getNumTrajectories() {
   return trajectory_library.getNumTrajectories();
@@ -39,20 +36,30 @@ Vector3 TrajectorySelector::getSigmaAtTime(double const & t) {
   return trajectory_library.getSigmaAtTime(t);
 };
 
-Vector3 TrajectorySelector::computeAccelerationDesiredFromBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame) {
-  EvaluateCollisionProbabilities(point_cloud_xyz_samples);
+size_t TrajectorySelector::computeBestTrajectoryIndex(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame) {
+  //EvaluateCollisionProbabilities(point_cloud_xyz_samples);
   EvaluateGoalProgress(carrot_body_frame);
-  return Vector3(0,0,0);
+
+  size_t best_traj_index = 0;
+  float best_traj_objective_value = 0;
+  for (size_t traj_index = 0; traj_index < 25; traj_index++) {
+    if (GoalProgressEvaluations(traj_index) > best_traj_objective_value) {
+      best_traj_index = traj_index;
+      best_traj_objective_value = GoalProgressEvaluations(traj_index);
+    }
+  }
+  std::cout << best_traj_index << " was my best traj" << std::endl;
+  return best_traj_index;
 };
 
 
 void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) {
 
-  Eigen::Matrix<Scalar, 25, 1> GoalProgressEvaluations;
-
   // for each traj in trajectory_library.trajectories
   std::vector<Trajectory>::const_iterator trajectory_iterator_begin = trajectory_library.GetTrajectoryIteratorBegin();
   std::vector<Trajectory>::const_iterator trajectory_iterator_end = trajectory_library.GetTrajectoryIteratorEnd();
+
+  double initial_distance = carrot_body_frame.norm();
 
   size_t i = 0;
   Vector3 final_trajectory_position;
@@ -60,7 +67,7 @@ void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) 
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
     final_trajectory_position = trajectory->getPosition(final_time);
     distance = (final_trajectory_position - carrot_body_frame).norm();
-    GoalProgressEvaluations(i) = distance; 
+    GoalProgressEvaluations(i) = initial_distance - distance; 
     i++;
   }
 };

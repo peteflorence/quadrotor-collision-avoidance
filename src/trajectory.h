@@ -26,6 +26,7 @@ public:
   void setInitialVelocity(Vector3 const& initial_velocity);
   Vector3 getInitialVelocity() const;
 
+  Vector3 getAcceleration() const;
   Vector3 getPosition(Scalar const& t) const;
   Vector3 getVelocity(Scalar const& t) const;
   Matrix3 getCovariance(Scalar const& t) const;

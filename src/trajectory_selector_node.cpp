@@ -43,6 +43,7 @@ public:
 		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 1);
 		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 1);
 		vis_pub = nh.advertise<visualization_msgs::Marker>( "visualization_marker", 0 );
+		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
 
 		trajectory_selector.InitializeLibrary(final_time);
 		createSamplingTimeVector();
@@ -86,14 +87,14 @@ public:
 		marker.pose.position.x = position(0);
 		marker.pose.position.y = position(1);
 		marker.pose.position.z = position(2);
-		marker.scale.x = 0.1 + std::abs(position(0));
-		marker.scale.y = 0.1 + std::abs(position(1));
-		marker.scale.z = 0.1 + std::abs(position(2));
+		marker.scale.x = sigma(0);
+		marker.scale.y = sigma(1);
+		marker.scale.z = sigma(2);
 		marker.color.a = 0.15; // Don't forget to set the alpha!
 		marker.color.r = 0.9;
 		marker.color.g = 0.1;
 		marker.color.b = 0.9;
-		vis_pub.publish( marker );
+		gaussian_pub.publish( marker );
 	}
 
 	void drawTrajectoriesDebug() {
@@ -111,8 +112,8 @@ public:
 			for (size_t sample = 0; sample < num_samples; sample++) {
 				poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), "ortho_body"));
 				sigma = trajectory_selector.getSigmaAtTime(sampling_time_vector(sample));
-				if (trajectory_index == 0) {
-					//drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
+				if (trajectory_index == best_traj_index) {
+					drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
 				}
 			}
 			mutex.unlock();
@@ -367,7 +368,7 @@ private:
 	}
 
 	void ReactToSampledPointCloud() {
-		Vector3 desired_acceleration = trajectory_selector.computeAccelerationDesiredFromBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame);
+		best_traj_index = trajectory_selector.computeBestTrajectoryIndex(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame);
 		
 		//attitude_desired = attitude_generator.generateDesiredAttitude(desired_acceleration);
 	}
@@ -383,6 +384,7 @@ private:
 	ros::Publisher local_goal_pub;
 	ros::Publisher poly_samples_pub;
 	ros::Publisher vis_pub;
+	ros::Publisher gaussian_pub;
 
 	std::vector<ros::Publisher> poly_samples_pubs;
 
@@ -392,7 +394,7 @@ private:
 	double carrot_distance = 5.0;
 
 	double start_time = 0.0;
-	double final_time = 0.5;
+	double final_time = 0.7;
 
 	Eigen::Vector4d pose_x_y_z_yaw;
 	double roll, pitch, yaw;
@@ -407,6 +409,8 @@ private:
 
 	Vector3 carrot_world_frame;
 	Vector3 carrot_ortho_body_frame;
+
+	size_t best_traj_index = 0;
 
 	TrajectorySelector trajectory_selector;
 	AttitudeGenerator attitude_generator;
