@@ -41,6 +41,10 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+find_package(orocos_kdl REQUIRED)
+find_library(OROCOS_KDL orocos-kdl)
+set(orocos_kdl_LIBRARIES ${OROCOS_KDL})
+
 add_library( trajectory_selector src/trajectory_selector.cpp )
 add_executable( test_trajectory_selector src/test_trajectory_selector.cpp )
 target_link_libraries( test_trajectory_selector trajectory_selector )
@@ -62,6 +66,7 @@ target_link_libraries( trajectory_selector_node trajectory_selector )
 target_link_libraries( trajectory_selector_node ${catkin_LIBRARIES} )
 target_link_libraries( trajectory_selector_node ${PCL_LIBRARIES})
 target_link_libraries( trajectory_selector_node attitude_generator )
+target_link_libraries( trajectory_selector_node orocos-kdl )
 
 
 

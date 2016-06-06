@@ -13,6 +13,7 @@
 #include "trajectory_selector.h"
 #include <cmath>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl_conversions/pcl_conversions.h>
@@ -137,6 +138,10 @@ private:
 		pose.pose.position.x = position(0);
 		pose.pose.position.y = position(1);
 		pose.pose.position.z = position(2);
+		// pose.pose.orientation.x = 1;
+		// pose.pose.orientation.y = 1;
+		// pose.pose.orientation.z = 1;
+		// pose.pose.orientation.w = 1;
 		pose.header.frame_id = "body";
 		pose.header.stamp = ros::Time::now();
 		return pose;
@@ -230,21 +235,24 @@ private:
 	      return;
 	    }
 
-	    Eigen::Quaternion<Scalar> quat(tf.transform.rotation.w, tf.transform.rotation.x, tf.transform.rotation.y, tf.transform.rotation.z);
-	    Matrix3 R = quat.toRotationMatrix();
-	    // this transform doesn't work yet!!
-	    carrot_body_frame = R*(carrot_world_frame + Vector3(tf.transform.translation.x, tf.transform.translation.y, tf.transform.translation.z));
+	    geometry_msgs::PoseStamped pose_carrot_world_frame = PoseFromVector3(carrot_world_frame);
+	    geometry_msgs::PoseStamped pose_carrot_body_frame = PoseFromVector3(carrot_body_frame);
+	   
+	    tf2::doTransform(pose_carrot_world_frame, pose_carrot_body_frame, tf);
+
+	    carrot_body_frame = VectorFromPose(pose_carrot_body_frame);
+
 
 	    visualization_msgs::Marker marker;
-		marker.header.frame_id = "world";
+		marker.header.frame_id = "body";
 		marker.header.stamp = ros::Time();
 		marker.ns = "my_namespace";
 		marker.id = 0;
 		marker.type = visualization_msgs::Marker::SPHERE;
 		marker.action = visualization_msgs::Marker::ADD;
-		marker.pose.position.x = carrot_world_frame(0);
-		marker.pose.position.y = carrot_world_frame(1);
-		marker.pose.position.z = carrot_world_frame(2);
+		marker.pose.position.x = carrot_body_frame(0);
+		marker.pose.position.y = carrot_body_frame(1);
+		marker.pose.position.z = carrot_body_frame(2);
 		marker.scale.x = 1;
 		marker.scale.y = 1;
 		marker.scale.z = 1;
