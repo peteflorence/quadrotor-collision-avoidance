@@ -62,12 +62,12 @@ public:
 		Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, sampling_time_vector, num_samples);
 
 		nav_msgs::Path poly_samples_msg;
-		poly_samples_msg.header.frame_id = "body";
+		poly_samples_msg.header.frame_id = "ortho_body";
 		poly_samples_msg.header.stamp = ros::Time::now();
 		mutex.lock();
 		Vector3 sigma;
 		for (size_t sample = 0; sample < num_samples; sample++) {
-			poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample)));
+			poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), "ortho_body"));
 			sigma = trajectory_selector.getSigmaAtTime(sampling_time_vector(sample));
 		 	//drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
 		}
@@ -77,7 +77,7 @@ public:
 
 	void drawGaussianPropagationDebug(int id, Vector3 position, Vector3 sigma) {
 		visualization_msgs::Marker marker;
-		marker.header.frame_id = "body";
+		marker.header.frame_id = "ortho_body";
 		marker.header.stamp = ros::Time();
 		marker.ns = "my_namespace";
 		marker.id = id;
@@ -104,12 +104,12 @@ public:
 			Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, sampling_time_vector, num_samples);
 
 			nav_msgs::Path poly_samples_msg;
-			poly_samples_msg.header.frame_id = "body";
+			poly_samples_msg.header.frame_id = "ortho_body";
 			poly_samples_msg.header.stamp = ros::Time::now();
 			mutex.lock();
 			Vector3 sigma;
 			for (size_t sample = 0; sample < num_samples; sample++) {
-				poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample)));
+				poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), "ortho_body"));
 				sigma = trajectory_selector.getSigmaAtTime(sampling_time_vector(sample));
 				if (trajectory_index == 0) {
 					//drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
@@ -134,12 +134,12 @@ private:
     	}
   	}
 
-	geometry_msgs::PoseStamped PoseFromVector3(Vector3 const& position) {
+	geometry_msgs::PoseStamped PoseFromVector3(Vector3 const& position, std::string const& frame) {
 		geometry_msgs::PoseStamped pose;
 		pose.pose.position.x = position(0);
 		pose.pose.position.y = position(1);
 		pose.pose.position.z = position(2);
-		pose.header.frame_id = "body";
+		pose.header.frame_id = frame;
 		pose.header.stamp = ros::Time::now();
 		return pose;
 	}
@@ -168,6 +168,19 @@ private:
 	    transformStamped.transform.rotation.y = q_ortho.y();
 	    transformStamped.transform.rotation.z = q_ortho.z();
 	    transformStamped.transform.rotation.w = q_ortho.w();
+
+	    // transformStamped.header.stamp = ros::Time::now();
+	    // transformStamped.header.frame_id = "world";
+	    // transformStamped.child_frame_id = "ortho_body";
+	    // transformStamped.transform.translation.x = pose.pose.position.x;
+	    // transformStamped.transform.translation.y = pose.pose.position.y;
+	    // transformStamped.transform.translation.z = pose.pose.position.z;
+	    // tf2::Quaternion q_ortho;
+	    // q_ortho.setRPY(0, 0, tf::getYaw(q));
+	    // transformStamped.transform.rotation.x = q_ortho.x();
+	    // transformStamped.transform.rotation.y = q_ortho.y();
+	    // transformStamped.transform.rotation.z = q_ortho.z();
+	    // transformStamped.transform.rotation.w = q_ortho.w();
 
 	    br.sendTransform(transformStamped);
 	}
@@ -253,8 +266,8 @@ private:
 	      return;
 	    }
 
-	    geometry_msgs::PoseStamped pose_carrot_world_frame = PoseFromVector3(carrot_world_frame);
-	    geometry_msgs::PoseStamped pose_carrot_body_frame = PoseFromVector3(carrot_body_frame);
+	    geometry_msgs::PoseStamped pose_carrot_world_frame = PoseFromVector3(carrot_world_frame, "world");
+	    geometry_msgs::PoseStamped pose_carrot_body_frame = PoseFromVector3(carrot_body_frame, "body");
 	   
 	    tf2::doTransform(pose_carrot_world_frame, pose_carrot_body_frame, tf);
 

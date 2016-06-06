@@ -23,7 +23,8 @@ void TrajectorySelector::InitializeLibrary(double const& final_time) {
 };
 
 void TrajectorySelector::setInitialVelocity(Vector3 const& initialVelocity) {
-  trajectory_library.setInitialVelocityAllTrajectories(initialVelocity);
+  // THIS MUST CHANGE FOR 3D FLIGHT
+  trajectory_library.setInitialVelocityAllTrajectories(Vector3(initialVelocity(0), initialVelocity(1), 0.0));
 };
 
 void TrajectorySelector::setRollPitch(double const& roll, double const& pitch) {
