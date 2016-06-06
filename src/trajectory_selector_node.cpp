@@ -138,10 +138,6 @@ private:
 		pose.pose.position.x = position(0);
 		pose.pose.position.y = position(1);
 		pose.pose.position.z = position(2);
-		// pose.pose.orientation.x = 1;
-		// pose.pose.orientation.y = 1;
-		// pose.pose.orientation.z = 1;
-		// pose.pose.orientation.w = 1;
 		pose.header.frame_id = "body";
 		pose.header.stamp = ros::Time::now();
 		return pose;
@@ -149,9 +145,12 @@ private:
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
 		//ROS_INFO("GOT POSE");
+		
+		tf::Quaternion q(pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w);
 		mutex.lock();
-		pose_x_y_z_yaw << pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, tf::getYaw(pose.pose.orientation);
+		tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
 		mutex.unlock();
+		//std::cout << "Roll: " << roll << ", Pitch: " << pitch << ", Yaw: " << yaw << std::endl;
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
@@ -322,6 +321,7 @@ private:
 	double final_time = 0.5;
 
 	Eigen::Vector4d pose_x_y_z_yaw;
+	double roll, pitch, yaw;
 	Eigen::Matrix<double, 4, Eigen::Dynamic> waypoints_matrix;
 
 	Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector;
