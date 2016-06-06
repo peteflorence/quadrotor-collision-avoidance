@@ -6,7 +6,7 @@ class TrajectoryLibrary {
 public:
   void TestLibrary();
 
-  void Initialize2DLibrary();
+  void Initialize2DLibrary(double const& final_time);
 
   void setInitialVelocityAllTrajectories(Vector3 const& initialVelocity);
   void setInitialVelocityJustOneTrajectory(Vector3 const& initialVelocity);
@@ -33,6 +33,8 @@ private:
   Trajectory trajectory1;
 
   Vector3 initial_velocity = Vector3(0,0,0);
+
+  double final_time;
  
 };
 

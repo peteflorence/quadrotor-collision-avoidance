@@ -42,7 +42,7 @@ public:
 		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 1);
 		vis_pub = nh.advertise<visualization_msgs::Marker>( "visualization_marker", 0 );
 
-		trajectory_selector.InitializeLibrary();
+		trajectory_selector.InitializeLibrary(final_time);
 		createSamplingTimeVector();
 
 		for (int i = 0; i < trajectory_selector.getNumTrajectories(); i++) {
@@ -123,8 +123,6 @@ private:
 	void createSamplingTimeVector() {
 		num_samples = 10;
 		sampling_time_vector.resize(num_samples, 1);
-		double start_time = 0.0;
-		double final_time = 0.5;
 
 		double sampling_time = 0;
 		double sampling_interval = (final_time - start_time) / num_samples;
@@ -238,15 +236,15 @@ private:
 	    carrot_body_frame = R*(carrot_world_frame + Vector3(tf.transform.translation.x, tf.transform.translation.y, tf.transform.translation.z));
 
 	    visualization_msgs::Marker marker;
-		marker.header.frame_id = "body";
+		marker.header.frame_id = "world";
 		marker.header.stamp = ros::Time();
 		marker.ns = "my_namespace";
 		marker.id = 0;
 		marker.type = visualization_msgs::Marker::SPHERE;
 		marker.action = visualization_msgs::Marker::ADD;
-		marker.pose.position.x = carrot_body_frame(0);
-		marker.pose.position.y = carrot_body_frame(1);
-		marker.pose.position.z = carrot_body_frame(2);
+		marker.pose.position.x = carrot_world_frame(0);
+		marker.pose.position.y = carrot_world_frame(1);
+		marker.pose.position.z = carrot_world_frame(2);
 		marker.scale.x = 1;
 		marker.scale.y = 1;
 		marker.scale.z = 1;
@@ -288,7 +286,7 @@ private:
 	}
 
 	void ReactToSampledPointCloud() {
-		Vector3 desired_acceleration = trajectory_selector.computeAccelerationDesiredFromBestTrajectory(point_cloud_xyz_samples);
+		Vector3 desired_acceleration = trajectory_selector.computeAccelerationDesiredFromBestTrajectory(point_cloud_xyz_samples, carrot_body_frame);
 		
 		//attitude_desired = attitude_generator.generateDesiredAttitude(desired_acceleration);
 	}
@@ -311,6 +309,9 @@ private:
 	nav_msgs::Path previous_waypoints;
 	int max_waypoints = 6;
 	double carrot_distance = 5.0;
+
+	double start_time = 0.0;
+	double final_time = 0.5;
 
 	Eigen::Vector4d pose_x_y_z_yaw;
 	Eigen::Matrix<double, 4, Eigen::Dynamic> waypoints_matrix;

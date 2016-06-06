@@ -7,8 +7,10 @@ void TrajectorySelector::Test() {
   trajectory_evaluator.TestEvaluator();
 }
 
-void TrajectorySelector::InitializeLibrary() {
-  trajectory_library.Initialize2DLibrary();
+void TrajectorySelector::InitializeLibrary(double const& final_time) {
+  trajectory_library.Initialize2DLibrary(final_time);
+  //num_trajectories = getNumTrajectories();
+  this->final_time = final_time;
 };
 
 void TrajectorySelector::setInitialVelocity(Vector3 const& initialVelocity) {
@@ -23,13 +25,34 @@ Vector3 TrajectorySelector::getSigmaAtTime(double const & t) {
   return trajectory_library.getSigmaAtTime(t);
 };
 
-Vector3 TrajectorySelector::computeAccelerationDesiredFromBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples) {
-  this->EvalAllTrajectories(point_cloud_xyz_samples);
+Vector3 TrajectorySelector::computeAccelerationDesiredFromBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame) {
+  EvaluateCollisionProbabilities(point_cloud_xyz_samples);
+  EvaluateGoalProgress(carrot_body_frame);
   return Vector3(0,0,0);
 };
 
 
-void TrajectorySelector::EvalAllTrajectories(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples) {
+void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) {
+
+  Eigen::Matrix<Scalar, 25, 1> GoalProgressEvaluations;
+
+  // for each traj in trajectory_library.trajectories
+  std::vector<Trajectory>::const_iterator trajectory_iterator_begin = trajectory_library.GetTrajectoryIteratorBegin();
+  std::vector<Trajectory>::const_iterator trajectory_iterator_end = trajectory_library.GetTrajectoryIteratorEnd();
+
+  size_t i = 0;
+  Vector3 final_trajectory_position;
+  double distance;
+  for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
+    final_trajectory_position = trajectory->getPosition(final_time);
+    distance = (final_trajectory_position - carrot_body_frame).norm();
+    GoalProgressEvaluations(i) = distance; 
+    i++;
+  }
+};
+
+
+void TrajectorySelector::EvaluateCollisionProbabilities(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples) {
 
   // for each traj in trajectory_library.trajectories
   std::vector<Trajectory>::const_iterator trajectory_iterator_begin = trajectory_library.GetTrajectoryIteratorBegin();
@@ -37,15 +60,13 @@ void TrajectorySelector::EvalAllTrajectories(Eigen::Matrix<Scalar, 100, 3> const
 
   // evaluate the probability of collision for all trajectories at final time
 
-
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
     //std::cout << trajectory->getPosition(10.0) << std::endl;
   }
 
   // evaluate the probability of 
-
-
 };
+
 
 
 Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryForDrawing(size_t trajectory_index, Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector, size_t num_samples) {
