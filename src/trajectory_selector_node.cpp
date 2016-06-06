@@ -258,7 +258,7 @@ private:
 	        pose_frame_id = pose_frame_id.substr(1, pose_frame_id.size()-1);
 	      }
 
-	      tf = tf_buffer_.lookupTransform("body", pose_frame_id, 
+	      tf = tf_buffer_.lookupTransform("ortho_body", pose_frame_id, 
 	                                    ros::Time(waypoints.poses[0].header.stamp),
 	                                    ros::Duration(1.0/30));
 	    } catch (tf2::TransformException &ex) {
@@ -267,23 +267,23 @@ private:
 	    }
 
 	    geometry_msgs::PoseStamped pose_carrot_world_frame = PoseFromVector3(carrot_world_frame, "world");
-	    geometry_msgs::PoseStamped pose_carrot_body_frame = PoseFromVector3(carrot_body_frame, "body");
+	    geometry_msgs::PoseStamped pose_carrot_ortho_body_frame = PoseFromVector3(carrot_ortho_body_frame, "ortho_body");
 	   
-	    tf2::doTransform(pose_carrot_world_frame, pose_carrot_body_frame, tf);
+	    tf2::doTransform(pose_carrot_world_frame, pose_carrot_ortho_body_frame, tf);
 
-	    carrot_body_frame = VectorFromPose(pose_carrot_body_frame);
+	    carrot_ortho_body_frame = VectorFromPose(pose_carrot_ortho_body_frame);
 
 
 	    visualization_msgs::Marker marker;
-		marker.header.frame_id = "body";
+		marker.header.frame_id = "ortho_body";
 		marker.header.stamp = ros::Time();
 		marker.ns = "my_namespace";
 		marker.id = 0;
 		marker.type = visualization_msgs::Marker::SPHERE;
 		marker.action = visualization_msgs::Marker::ADD;
-		marker.pose.position.x = carrot_body_frame(0);
-		marker.pose.position.y = carrot_body_frame(1);
-		marker.pose.position.z = carrot_body_frame(2);
+		marker.pose.position.x = carrot_ortho_body_frame(0);
+		marker.pose.position.y = carrot_ortho_body_frame(1);
+		marker.pose.position.z = carrot_ortho_body_frame(2);
 		marker.scale.x = 1;
 		marker.scale.y = 1;
 		marker.scale.z = 1;
@@ -300,6 +300,16 @@ private:
 	void OnPointCloud(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
 		//ROS_INFO("GOT POINT CLOUD");
 
+		geometry_msgs::TransformStamped tf;
+	    try {
+	      tf = tf_buffer_.lookupTransform("ortho_body", "body", 
+	                                    ros::Time(),
+	                                    ros::Duration(1.0/30));
+	    } catch (tf2::TransformException &ex) {
+	      ROS_ERROR("%s", ex.what());
+	      return;
+	    }
+
 		pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
 		pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
 		
@@ -312,12 +322,16 @@ private:
     	// 159, 0
     	// 0, 119
     	// 159,119
+    	Vector3 blank;
 
   		for (size_t i = 0; i < 100; i++) {
   			int x_rand_index = rand() % 160;
   			int y_rand_index = rand() % 120;
   			pcl::PointXYZ first_point = xyz_cloud->at(x_rand_index,y_rand_index);
-  			point_cloud_xyz_samples.row(i) << first_point.x, first_point.y, first_point.z;
+  			geometry_msgs::PoseStamped point_cloud_xyz_body = PoseFromVector3(Vector3(first_point.x, first_point.y, first_point.z), "world");
+	    	geometry_msgs::PoseStamped point_cloud_xyz_ortho_body = PoseFromVector3(blank, "ortho_body");
+	    	tf2::doTransform(point_cloud_xyz_body, point_cloud_xyz_ortho_body, tf);
+  			point_cloud_xyz_samples_ortho_body.row(i) << VectorFromPose(point_cloud_xyz_ortho_body);
   		}
 
   		ReactToSampledPointCloud();
@@ -325,7 +339,7 @@ private:
 	}
 
 	void ReactToSampledPointCloud() {
-		Vector3 desired_acceleration = trajectory_selector.computeAccelerationDesiredFromBestTrajectory(point_cloud_xyz_samples, carrot_body_frame);
+		Vector3 desired_acceleration = trajectory_selector.computeAccelerationDesiredFromBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame);
 		
 		//attitude_desired = attitude_generator.generateDesiredAttitude(desired_acceleration);
 	}
@@ -359,12 +373,12 @@ private:
 	Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector;
 	size_t num_samples;
 
-	Eigen::Matrix<Scalar, 100, 3> point_cloud_xyz_samples;
+	Eigen::Matrix<Scalar, 100, 3> point_cloud_xyz_samples_ortho_body;
 
 	std::mutex mutex;
 
 	Vector3 carrot_world_frame;
-	Vector3 carrot_body_frame;
+	Vector3 carrot_ortho_body_frame;
 
 	TrajectorySelector trajectory_selector;
 	AttitudeGenerator attitude_generator;
