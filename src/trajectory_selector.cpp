@@ -26,6 +26,10 @@ void TrajectorySelector::setInitialVelocity(Vector3 const& initialVelocity) {
   trajectory_library.setInitialVelocityAllTrajectories(initialVelocity);
 };
 
+void TrajectorySelector::setRollPitch(double const& roll, double const& pitch) {
+  return;
+}
+
 size_t TrajectorySelector::getNumTrajectories() {
   return trajectory_library.getNumTrajectories();
 };

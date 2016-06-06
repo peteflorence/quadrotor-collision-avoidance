@@ -13,6 +13,7 @@
 #include "trajectory_selector.h"
 #include <cmath>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl/filters/voxel_grid.h>
@@ -151,6 +152,24 @@ private:
 		tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
 		mutex.unlock();
 		//std::cout << "Roll: " << roll << ", Pitch: " << pitch << ", Yaw: " << yaw << std::endl;
+
+		static tf2_ros::TransformBroadcaster br;
+  		geometry_msgs::TransformStamped transformStamped;
+  
+	    transformStamped.header.stamp = ros::Time::now();
+	    transformStamped.header.frame_id = "body";
+	    transformStamped.child_frame_id = "ortho_body";
+	    transformStamped.transform.translation.x = 0.0;
+	    transformStamped.transform.translation.y = 0.0;
+	    transformStamped.transform.translation.z = 0.0;
+	    tf2::Quaternion q_ortho;
+	    q_ortho.setRPY(-roll, -pitch, 0);
+	    transformStamped.transform.rotation.x = q_ortho.x();
+	    transformStamped.transform.rotation.y = q_ortho.y();
+	    transformStamped.transform.rotation.z = q_ortho.z();
+	    transformStamped.transform.rotation.w = q_ortho.w();
+
+	    br.sendTransform(transformStamped);
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {

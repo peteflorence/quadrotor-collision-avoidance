@@ -19,6 +19,8 @@ Vector3 Trajectory::getPosition(Scalar const& t) const {
   //std::cout << "My initial velocity is " << initial_velocity << std::endl;
   //std::cout << "My acceleration is " << acceleration << std::endl;
   return 0.5*acceleration*t*t + initial_velocity*t;
+
+  // do rotation by roll and pitch here
 };
 
 Vector3 Trajectory::getInitialVelocity() const {

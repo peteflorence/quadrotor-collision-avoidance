@@ -12,6 +12,7 @@ public:
   
   void InitializeLibrary(double const& final_time);
   void setInitialVelocity(Vector3 const& initialVelocity);
+  void setRollPitch(double const& roll, double const& pitch);
   size_t getNumTrajectories();
   
   Vector3 getSigmaAtTime(double const& t);
@@ -34,5 +35,7 @@ private:
   double start_time = 0.0;
 
   Eigen::Matrix<Scalar, 10, 1> sampling_time_vector;
+  double roll;
+  double pitch;
 
 };
