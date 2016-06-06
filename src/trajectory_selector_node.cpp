@@ -274,24 +274,24 @@ private:
 	    carrot_ortho_body_frame = VectorFromPose(pose_carrot_ortho_body_frame);
 
 
-	 //    visualization_msgs::Marker marker;
-		// marker.header.frame_id = "ortho_body";
-		// marker.header.stamp = ros::Time();
-		// marker.ns = "my_namespace";
-		// marker.id = 0;
-		// marker.type = visualization_msgs::Marker::SPHERE;
-		// marker.action = visualization_msgs::Marker::ADD;
-		// marker.pose.position.x = carrot_ortho_body_frame(0);
-		// marker.pose.position.y = carrot_ortho_body_frame(1);
-		// marker.pose.position.z = carrot_ortho_body_frame(2);
-		// marker.scale.x = 1;
-		// marker.scale.y = 1;
-		// marker.scale.z = 1;
-		// marker.color.a = 0.5; // Don't forget to set the alpha!
-		// marker.color.r = 0.9;
-		// marker.color.g = 0.4;
-		// marker.color.b = 0.0;
-		// vis_pub.publish( marker );
+	    visualization_msgs::Marker marker;
+		marker.header.frame_id = "ortho_body";
+		marker.header.stamp = ros::Time();
+		marker.ns = "my_namespace";
+		marker.id = 0;
+		marker.type = visualization_msgs::Marker::SPHERE;
+		marker.action = visualization_msgs::Marker::ADD;
+		marker.pose.position.x = carrot_ortho_body_frame(0);
+		marker.pose.position.y = carrot_ortho_body_frame(1);
+		marker.pose.position.z = carrot_ortho_body_frame(2);
+		marker.scale.x = 0.5;
+		marker.scale.y = 0.5;
+		marker.scale.z = 0.5;
+		marker.color.a = 0.5; // Don't forget to set the alpha!
+		marker.color.r = 0.9;
+		marker.color.g = 0.4;
+		marker.color.b = 0.0;
+		vis_pub.publish( marker );
 
 	}
 
@@ -335,34 +335,31 @@ private:
   			point_cloud_xyz_samples_ortho_body.row(i) = VectorFromPose(point_cloud_xyz_ortho_body);
   		}
 
-  		for (int i = 0; i < 100; i++) {
-
-	  		if (isnan(point_cloud_xyz_samples_ortho_body(i,0))) {
-	  			continue;
-	  		}
-
-  			visualization_msgs::Marker marker;
-			marker.header.frame_id = "ortho_body";
-			marker.header.stamp = ros::Time();
-			marker.ns = "my_namespace";
-			marker.id = 0;
-			marker.type = visualization_msgs::Marker::SPHERE;
-			marker.action = visualization_msgs::Marker::ADD;
-			marker.pose.position.x = point_cloud_xyz_samples_ortho_body(0,0);
-			marker.pose.position.y = point_cloud_xyz_samples_ortho_body(0,1);
-			marker.pose.position.z = point_cloud_xyz_samples_ortho_body(0,2);
-			//std::cout << "Trying to plot this point " << point_cloud_xyz_samples_ortho_body << std::endl;
-			marker.scale.x = 0.3;
-			marker.scale.y = 0.3;
-			marker.scale.z = 0.3;
-			marker.color.a = 0.5; // Don't forget to set the alpha!
-			marker.color.r = 0.9;
-			marker.color.g = 0.1;
-			marker.color.b = 0.9;
-			vis_pub.publish( marker );
-			break;
-
-  		}
+  	// 	for (int i = 0; i < 100; i++) {
+	  // 		if (isnan(point_cloud_xyz_samples_ortho_body(i,0))) {
+	  // 			continue;
+	  // 		}
+  	// 		visualization_msgs::Marker marker;
+			// marker.header.frame_id = "ortho_body";
+			// marker.header.stamp = ros::Time();
+			// marker.ns = "my_namespace";
+			// marker.id = 0;
+			// marker.type = visualization_msgs::Marker::SPHERE;
+			// marker.action = visualization_msgs::Marker::ADD;
+			// marker.pose.position.x = point_cloud_xyz_samples_ortho_body(0,0);
+			// marker.pose.position.y = point_cloud_xyz_samples_ortho_body(0,1);
+			// marker.pose.position.z = point_cloud_xyz_samples_ortho_body(0,2);
+			// //std::cout << "Trying to plot this point " << point_cloud_xyz_samples_ortho_body << std::endl;
+			// marker.scale.x = 0.3;
+			// marker.scale.y = 0.3;
+			// marker.scale.z = 0.3;
+			// marker.color.a = 0.5; // Don't forget to set the alpha!
+			// marker.color.r = 0.9;
+			// marker.color.g = 0.1;
+			// marker.color.b = 0.9;
+			// vis_pub.publish( marker );
+			// break;
+  	// 	}
   		
 
   		ReactToSampledPointCloud();
