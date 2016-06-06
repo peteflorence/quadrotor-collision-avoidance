@@ -11,6 +11,15 @@ void TrajectorySelector::InitializeLibrary(double const& final_time) {
   trajectory_library.Initialize2DLibrary(final_time);
   //num_trajectories = getNumTrajectories();
   this->final_time = final_time;
+
+  size_t num_samples = 10;
+  double sampling_time = 0;
+  double sampling_interval = (final_time - start_time) / num_samples;
+  for (size_t sample_index = 0; sample_index < num_samples; sample_index++) {
+      sampling_time = start_time + sampling_interval*(sample_index+1);
+      sampling_time_vector(sample_index) = sampling_time;
+  }
+
 };
 
 void TrajectorySelector::setInitialVelocity(Vector3 const& initialVelocity) {
@@ -54,17 +63,42 @@ void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) 
 
 void TrajectorySelector::EvaluateCollisionProbabilities(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples) {
 
+  Eigen::Matrix<Scalar, 25, 1> CollisionProbabilities;
+  
   // for each traj in trajectory_library.trajectories
   std::vector<Trajectory>::const_iterator trajectory_iterator_begin = trajectory_library.GetTrajectoryIteratorBegin();
   std::vector<Trajectory>::const_iterator trajectory_iterator_end = trajectory_library.GetTrajectoryIteratorEnd();
 
-  // evaluate the probability of collision for all trajectories at final time
 
+  size_t i = 0;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-    //std::cout << trajectory->getPosition(10.0) << std::endl;
+    computeProbabilityOfCollisionOneTrajectory(*trajectory, point_cloud_xyz_samples); 
+    i++;
   }
+};
 
-  // evaluate the probability of 
+void TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory trajectory, Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples) {
+  float probability_no_collision = 1;
+  float probability_of_collision_one_step_one_obstacle;
+  float probability_no_collision_one_step_one_obstacle;
+  Vector3 trajectory_position;
+  Vector3 point;
+
+  for (size_t time_step_index = 0; time_step_index < 10; time_step_index++) {
+    for (size_t point_index = 0; point_index < 100; point_index++) {
+      trajectory_position = trajectory.getPosition(sampling_time_vector(time_step_index));
+      point = point_cloud_xyz_samples.row(point_index);
+
+      probability_of_collision_one_step_one_obstacle = computeProbabilityOfCollisionOneStepOneObstacle(trajectory_position, point);
+      probability_no_collision_one_step_one_obstacle = 1.0 - probability_no_collision_one_step_one_obstacle;
+      probability_no_collision = probability_no_collision * probability_no_collision_one_step_one_obstacle;
+    }
+  }
+  return;
+};
+
+float TrajectorySelector::computeProbabilityOfCollisionOneStepOneObstacle(Vector3 const& trajectory_position, Vector3 const& point) {
+  return 0;
 };
 
 

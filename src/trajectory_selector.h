@@ -27,7 +27,12 @@ private:
 
   void EvaluateGoalProgress(Vector3 const& carrot_body_frame);
   void EvaluateCollisionProbabilities(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples);
+  void computeProbabilityOfCollisionOneTrajectory(Trajectory trajectory, Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples);
+  float computeProbabilityOfCollisionOneStepOneObstacle(Vector3 const& trajectory_position, Vector3 const& point);
 
   double final_time;
+  double start_time = 0.0;
+
+  Eigen::Matrix<Scalar, 10, 1> sampling_time_vector;
 
 };
