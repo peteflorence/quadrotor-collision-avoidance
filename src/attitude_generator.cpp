@@ -29,7 +29,14 @@ Vector3 AttitudeGenerator::generateDesiredAttitudeThrust(Vector3 const& desired_
 	return Vector3(roll, pitch, thrust);
 };
 
+void AttitudeGenerator::setGains(Vector3 const& pid) {
+	_Kp = pid(0);
+	_Ki = pid(1);
+	_Kd = pid(2);
+}
+
 double AttitudeGenerator::zPID() {
+
 	// Proportional term
 	double error = z_setpoint - z;
 	double Pout = _Kp * error;

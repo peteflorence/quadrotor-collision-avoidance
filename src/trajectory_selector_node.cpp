@@ -33,7 +33,7 @@ tf2_ros::Buffer tf_buffer_;
 class TrajectorySelectorNode {
 public:
 
-	TrajectorySelectorNode(ros::NodeHandle & nh, std::string const& waypoint_topic, std::string const& pose_topic, std::string const& velocity_topic, std::string const& local_goal_topic, std::string const& samples_topic) {
+	TrajectorySelectorNode(std::string const& waypoint_topic, std::string const& pose_topic, std::string const& velocity_topic, std::string const& local_goal_topic, std::string const& samples_topic) {
 		//nh.getParam("max_waypoints", max_waypoints);
 
 		pose_sub = nh.subscribe(pose_topic, 1, &TrajectorySelectorNode::OnPose, this);
@@ -386,6 +386,13 @@ private:
 
 	void PublishAttitudeSetpoint(Vector3 const& roll_pitch_thrust) { 
 
+		Vector3 pid;
+		nh.param("z_p", pid(0), 0.5);
+		nh.param("z_i", pid(1), 0.01);
+		nh.param("z_d", pid(2), 0.5);
+
+		attitude_generator.setGains(pid);
+
 		mavros_msgs::AttitudeTarget setpoint_msg;
 		setpoint_msg.header.stamp = ros::Time::now();
 		setpoint_msg.type_mask = mavros_msgs::AttitudeTarget::IGNORE_ROLL_RATE 
@@ -395,12 +402,15 @@ private:
 
 		//convert from rpy to quat
 		tf::Quaternion q;
-		q.setEuler(0.0, roll_pitch_thrust(1), roll_pitch_thrust(0));
+		q.setEuler(roll_pitch_thrust(1), 0.0, 0.0);
+		//q.setEuler(0,0,0);
 
 		setpoint_msg.orientation.w = q.getW();
 		setpoint_msg.orientation.x = q.getX();
 		setpoint_msg.orientation.y = q.getY();
 		setpoint_msg.orientation.z = q.getZ();
+
+
 		setpoint_msg.thrust = roll_pitch_thrust(2);
 
 		//std::cout << "Desired roll, pitch, thrust: " << roll_pitch_thrust << std::endl;
@@ -452,6 +462,8 @@ private:
 	TrajectorySelector trajectory_selector;
 	AttitudeGenerator attitude_generator;
 
+	ros::NodeHandle nh;
+
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
@@ -461,9 +473,8 @@ int main(int argc, char* argv[]) {
 	std::cout << "Initializing trajectory_selector_node" << std::endl;
 
 	ros::init(argc, argv, "TrajectorySelectorNode");
-	ros::NodeHandle nh;
 
-	TrajectorySelectorNode trajectory_selector_node(nh, "/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
+	TrajectorySelectorNode trajectory_selector_node("/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
 
 	std::cout << "Got through to here" << std::endl;
 

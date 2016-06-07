@@ -7,6 +7,7 @@ public:
   void TestAttitudeGenerator();
   void setZ(double z);
   void setZsetpoint(double z_setpoint);
+  void setGains(Vector3 const& pid);
   double zPID();
 
   Vector3 generateDesiredAttitudeThrust(Vector3 const& desired_acceleration);
