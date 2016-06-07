@@ -54,7 +54,7 @@ void TrajectorySelector::computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> con
     }
   }
 
-  *desired_acceleration = trajectory_library.getTrajectoryFromIndex(best_traj_index).getAcceleration();
+  *desired_acceleration = trajectory_library.getTrajectoryFromIndex(*best_traj_index).getAcceleration();
 
 };
 

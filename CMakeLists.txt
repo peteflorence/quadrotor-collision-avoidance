@@ -59,6 +59,7 @@ add_library( trajectory src/trajectory.cpp )
 target_link_libraries( trajectory_library trajectory )
 
 add_library( attitude_generator src/attitude_generator.cpp )
+target_link_libraries( attitude_generator trajectory )
 
 
 add_executable( trajectory_selector_node src/trajectory_selector_node.cpp )

@@ -372,7 +372,7 @@ private:
 
 		trajectory_selector.computeBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame, &best_traj_index, &desired_acceleration);
 
-		//attitude_desired = attitude_generator.generateDesiredAttitude(desired_acceleration);
+		Vector3 attitude_desired = attitude_generator.generateDesiredAttitude(desired_acceleration);
 	}
 
 
