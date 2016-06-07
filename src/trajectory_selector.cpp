@@ -112,7 +112,7 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
       point = point_cloud_xyz_samples.row(point_index);
 
       probability_of_collision_one_step_one_obstacle = computeProbabilityOfCollisionOneStepOneObstacle(trajectory_position, point, inverse_total_sigma);
-      probability_no_collision_one_step_one_obstacle = 1.0 - probability_no_collision_one_step_one_obstacle;
+      probability_no_collision_one_step_one_obstacle = 1.0 - probability_of_collision_one_step_one_obstacle;
       probability_no_collision = probability_no_collision * probability_no_collision_one_step_one_obstacle;
     }
   }
