@@ -16,7 +16,7 @@ public:
   
   Vector3 getSigmaAtTime(double const& t);
   Vector3 getInverseSigmaAtTime(double const & t);
-  size_t computeBestTrajectoryIndex(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame);
+  void computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame, size_t *best_traj_index, Vector3 *desired_acceleration);
 
   Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sampleTrajectoryForDrawing(size_t trajectory_index, Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector, size_t num_samples);
 
