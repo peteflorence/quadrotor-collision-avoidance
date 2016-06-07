@@ -41,7 +41,7 @@ Vector3 TrajectorySelector::getInverseSigmaAtTime(double const & t) {
 };
 
 void TrajectorySelector::computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame, size_t *best_traj_index, Vector3 *desired_acceleration) {
-  EvaluateCollisionProbabilities(point_cloud_xyz_samples);
+  //EvaluateCollisionProbabilities(point_cloud_xyz_samples);
   EvaluateGoalProgress(carrot_body_frame);
 
   *desired_acceleration << 0,0,0;

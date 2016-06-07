@@ -147,6 +147,8 @@ private:
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
 		//ROS_INFO("GOT POSE");
+
+		attitude_generator.setZ(pose.pose.position.z);
 		
 		tf::Quaternion q(pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w);
 		mutex.lock();
@@ -248,6 +250,7 @@ private:
 			}
 		}
 		carrot_world_frame << waypoints_matrix(0, i), waypoints_matrix(1, i), waypoints_matrix(2, i); 
+		attitude_generator.setZsetpoint(carrot_world_frame(2));
 		
 
 
@@ -372,7 +375,11 @@ private:
 
 		trajectory_selector.computeBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame, &best_traj_index, &desired_acceleration);
 
-		Vector3 attitude_desired = attitude_generator.generateDesiredAttitude(desired_acceleration);
+		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
+
+		double desired_roll = attitude_thrust_desired(0);
+		double desired_pitch = attitude_thrust_desired(1);
+
 	}
 
 
