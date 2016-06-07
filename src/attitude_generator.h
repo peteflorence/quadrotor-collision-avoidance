@@ -17,8 +17,8 @@ private:
   double z_setpoint;
 
   double _dt = 1/30.0;
-  double _max = 100;
-  double _min = 100;
+  double _max = 1;
+  double _min = 0;
   double _Kp = 10;
   double _Kd = 1;
   double _Ki = 1;

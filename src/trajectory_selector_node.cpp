@@ -23,6 +23,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include "attitude_generator.h"
+#include <mavros_msgs/AttitudeTarget.h>
 
   
 std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
@@ -44,6 +45,7 @@ public:
 		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 1);
 		vis_pub = nh.advertise<visualization_msgs::Marker>( "visualization_marker", 0 );
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
+		attitude_thrust_pub = nh.advertise<mavros_msgs::AttitudeTarget>("/mavros/setpoint_raw/attitude", 1);
 
 		trajectory_selector.InitializeLibrary(final_time);
 		createSamplingTimeVector();
@@ -119,6 +121,16 @@ public:
 			mutex.unlock();
 			poly_samples_pubs.at(trajectory_index).publish(poly_samples_msg);
 		}
+	}
+
+	void ReactToSampledPointCloud() {
+		Vector3 desired_acceleration;
+
+		trajectory_selector.computeBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+
+		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
+
+		PublishAttitudeSetpoint(attitude_thrust_desired);
 	}
 
 private:
@@ -370,15 +382,30 @@ private:
 	
 	}
 
-	void ReactToSampledPointCloud() {
-		Vector3 desired_acceleration;
+	
 
-		trajectory_selector.computeBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame, &best_traj_index, &desired_acceleration);
+	void PublishAttitudeSetpoint(Vector3 const& roll_pitch_thrust) { 
 
-		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
+		mavros_msgs::AttitudeTarget setpoint_msg;
+		setpoint_msg.header.stamp = ros::Time::now();
+		setpoint_msg.type_mask = mavros_msgs::AttitudeTarget::IGNORE_ROLL_RATE 
+			| mavros_msgs::AttitudeTarget::IGNORE_PITCH_RATE
+			| mavros_msgs::AttitudeTarget::IGNORE_YAW_RATE
+			;
 
-		double desired_roll = attitude_thrust_desired(0);
-		double desired_pitch = attitude_thrust_desired(1);
+		//convert from rpy to quat
+		tf::Quaternion q;
+		q.setEuler(0.0, roll_pitch_thrust(1), roll_pitch_thrust(0));
+
+		setpoint_msg.orientation.w = q.getW();
+		setpoint_msg.orientation.x = q.getX();
+		setpoint_msg.orientation.y = q.getY();
+		setpoint_msg.orientation.z = q.getZ();
+		setpoint_msg.thrust = roll_pitch_thrust(2);
+
+		//std::cout << "Desired roll, pitch, thrust: " << roll_pitch_thrust << std::endl;
+
+		attitude_thrust_pub.publish(setpoint_msg);
 
 	}
 
@@ -394,6 +421,7 @@ private:
 	ros::Publisher poly_samples_pub;
 	ros::Publisher vis_pub;
 	ros::Publisher gaussian_pub;
+	ros::Publisher attitude_thrust_pub;
 
 	std::vector<ros::Publisher> poly_samples_pubs;
 
@@ -441,6 +469,7 @@ int main(int argc, char* argv[]) {
 
 	while (ros::ok()) {
 		trajectory_selector_node.drawTrajectoriesDebug();
+		trajectory_selector_node.ReactToSampledPointCloud();
 		ros::spinOnce();
 	}
 }
