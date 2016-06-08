@@ -3,7 +3,7 @@
 #include <math.h>
 
 void TrajectoryLibrary::Initialize2DLibrary(double const& final_time) {
-	double a_max_horizontal = sqrt(a_max*a_max - 9.8*9.8)*0.1;
+	double a_max_horizontal = sqrt(a_max*a_max - 9.8*9.8)*0.5;
 	Vector3 zero_initial_velocity = Vector3(0,0,0);
 
 	// Make first trajectory be zero accelerations

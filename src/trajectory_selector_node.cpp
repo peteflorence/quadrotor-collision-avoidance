@@ -264,6 +264,7 @@ private:
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
 		//ROS_INFO("GOT WAYPOINTS");
 		int waypoints_to_check = std::min((int) waypoints.poses.size(), max_waypoints);
+		nh.param("carrot_distance", carrot_distance, 0.5);
 
 		waypoints_matrix.resize(4, waypoints_to_check);
 		waypoints_matrix.col(0) << VectorFromPose(waypoints.poses[0]), 0.0;  // yaw is currently hard set to be 0
@@ -489,7 +490,7 @@ private:
 	nav_msgs::Path waypoints;
 	nav_msgs::Path previous_waypoints;
 	int max_waypoints = 6;
-	double carrot_distance = 5.0;
+	double carrot_distance;
 
 	double start_time = 0.0;
 	double final_time = 0.7;
