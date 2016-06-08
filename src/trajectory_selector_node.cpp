@@ -56,6 +56,23 @@ public:
 
 		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);
 
+
+		local_goal_msg.pos.x = 0.0;
+		local_goal_msg.pos.y = 0.0;
+		local_goal_msg.yaw   = 0.0;
+
+		local_goal_msg.vel.x = 0.0;
+		local_goal_msg.vel.y = 0.0;
+		local_goal_msg.vel.z = 0.0;
+		local_goal_msg.dyaw  = 0.0;
+
+		local_goal_msg.jerk.x = 0.0;
+		local_goal_msg.jerk.y = 0.0;
+
+		local_goal_msg.waypointType = 1;
+
+
+
 		srand ( time(NULL) ); //initialize the random seed
 		ROS_INFO("Finished constructing the trajectory selector node, waiting for waypoints");
 	}
@@ -106,20 +123,20 @@ public:
 
 			Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, sampling_time_vector, num_samples);
 
-			nav_msgs::Path poly_samples_msg;
-			poly_samples_msg.header.frame_id = "ortho_body";
-			poly_samples_msg.header.stamp = ros::Time::now();
-			mutex.lock();
+			//nav_msgs::Path poly_samples_msg;
+			//poly_samples_msg.header.frame_id = "ortho_body";
+			//poly_samples_msg.header.stamp = ros::Time::now();
+			//mutex.lock();
 			Vector3 sigma;
 			for (size_t sample = 0; sample < num_samples; sample++) {
-				poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), "ortho_body"));
+				//poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), "ortho_body"));
 				sigma = trajectory_selector.getSigmaAtTime(sampling_time_vector(sample));
 				if (trajectory_index == best_traj_index) {
 					drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
 				}
 			}
-			mutex.unlock();
-			poly_samples_pubs.at(trajectory_index).publish(poly_samples_msg);
+			//mutex.unlock();
+			//poly_samples_pubs.at(trajectory_index).publish(poly_samples_msg);
 		}
 	}
 
@@ -128,12 +145,25 @@ public:
 
 		trajectory_selector.computeBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 
-		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
+		//Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 
-		PublishAttitudeSetpoint(attitude_thrust_desired);
+		//PublishAttitudeSetpoint(attitude_thrust_desired);
+
+		PublishDesiredAcceleration(desired_acceleration);
 	}
 
 private:
+
+	void PublishDesiredAcceleration(Vector3 desired_acceleration) {
+		
+		local_goal_msg.pos.z = carrot_world_frame(2);
+		local_goal_msg.accel.x = desired_acceleration(0);
+		local_goal_msg.accel.y = desired_acceleration(1);
+
+		local_goal_pub.publish(local_goal_msg);
+
+	}
+
 
 	void createSamplingTimeVector() {
 		num_samples = 10;
@@ -160,7 +190,7 @@ private:
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
 		//ROS_INFO("GOT POSE");
 
-		attitude_generator.setZ(pose.pose.position.z);
+		//attitude_generator.setZ(pose.pose.position.z);
 		
 		tf::Quaternion q(pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w);
 		mutex.lock();
@@ -262,7 +292,7 @@ private:
 			}
 		}
 		carrot_world_frame << waypoints_matrix(0, i), waypoints_matrix(1, i), waypoints_matrix(2, i); 
-		attitude_generator.setZsetpoint(carrot_world_frame(2));
+		//attitude_generator.setZsetpoint(carrot_world_frame(2));
 		
 
 
@@ -386,6 +416,8 @@ private:
 
 	void PublishAttitudeSetpoint(Vector3 const& roll_pitch_thrust) { 
 
+		using namespace Eigen;
+
 		Vector3 pid;
 		nh.param("z_p", pid(0), 0.5);
 		nh.param("z_i", pid(1), 0.01);
@@ -401,19 +433,38 @@ private:
 			;
 
 		//convert from rpy to quat
-		tf::Quaternion q;
-		q.setEuler(roll_pitch_thrust(1), 0.0, 0.0);
+		//tf::Quaternion q;
+		//q.setEuler(roll_pitch_thrust(1)*0.1, 0.0, 0.0);
 		//q.setEuler(0,0,0);
 
-		setpoint_msg.orientation.w = q.getW();
-		setpoint_msg.orientation.x = q.getX();
-		setpoint_msg.orientation.y = q.getY();
-		setpoint_msg.orientation.z = q.getZ();
+		// float roll = roll_pitch_thrust(0);
+		// float pitch = roll_pitch_thrust(1);
+
+		// float roll = 0.0;
+		// float pitch = 5 * (M_PI / 180.0);
+
+		double pitch;
+		double roll;
+
+		nh.param("pitch", pitch, 0.0);
+		nh.param("roll", roll, 0.0);
+
+		Matrix3f m;
+		m =AngleAxisf(0.0, Vector3f::UnitZ())
+		* AngleAxisf(pitch, Vector3f::UnitY())
+		* AngleAxisf(roll, Vector3f::UnitX());
+
+		Quaternionf q(m);
+
+		setpoint_msg.orientation.w = q.w();
+		setpoint_msg.orientation.x = q.x();
+		setpoint_msg.orientation.y = q.y();
+		setpoint_msg.orientation.z = q.z();
 
 
 		setpoint_msg.thrust = roll_pitch_thrust(2);
 
-		//std::cout << "Desired roll, pitch, thrust: " << roll_pitch_thrust << std::endl;
+		std::cout << "Desired roll, pitch, thrust: " << roll_pitch_thrust << std::endl;
 
 		attitude_thrust_pub.publish(setpoint_msg);
 
@@ -474,13 +525,15 @@ int main(int argc, char* argv[]) {
 
 	ros::init(argc, argv, "TrajectorySelectorNode");
 
-	TrajectorySelectorNode trajectory_selector_node("/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
+	TrajectorySelectorNode trajectory_selector_node("/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/FLA_ACL02/goal", "/poly_samples");
 
 	std::cout << "Got through to here" << std::endl;
+	ros::Rate spin_rate(100);
 
 	while (ros::ok()) {
 		trajectory_selector_node.drawTrajectoriesDebug();
 		trajectory_selector_node.ReactToSampledPointCloud();
 		ros::spinOnce();
+		spin_rate.sleep();
 	}
 }

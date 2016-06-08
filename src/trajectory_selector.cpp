@@ -46,13 +46,16 @@ void TrajectorySelector::computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> con
 
   desired_acceleration << 0,0,0;
   best_traj_index = 0;
-  float best_traj_objective_value = 0;
+  float best_traj_objective_value = -9999;
   for (size_t traj_index = 0; traj_index < 25; traj_index++) {
     if (GoalProgressEvaluations(traj_index) > best_traj_objective_value) {
       best_traj_index = traj_index;
       best_traj_objective_value = GoalProgressEvaluations(traj_index);
     }
   }
+
+  std::cout << "best_traj_index was " << best_traj_index << std::endl;
+  std::cout << "best_traj_objective_value " << best_traj_objective_value << std::endl; 
 
   desired_acceleration = trajectory_library.getTrajectoryFromIndex(best_traj_index).getAcceleration();
 
@@ -66,6 +69,8 @@ void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) 
   std::vector<Trajectory>::const_iterator trajectory_iterator_end = trajectory_library.GetTrajectoryIteratorEnd();
 
   double initial_distance = carrot_body_frame.norm();
+
+  std::cout << "initial_distance is " << initial_distance << std::endl;
 
   size_t i = 0;
   Vector3 final_trajectory_position;
