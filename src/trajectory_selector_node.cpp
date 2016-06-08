@@ -123,20 +123,18 @@ public:
 
 			Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, sampling_time_vector, num_samples);
 
-			//nav_msgs::Path poly_samples_msg;
-			//poly_samples_msg.header.frame_id = "ortho_body";
-			//poly_samples_msg.header.stamp = ros::Time::now();
-			//mutex.lock();
+			nav_msgs::Path poly_samples_msg;
+			poly_samples_msg.header.frame_id = "ortho_body";
+			poly_samples_msg.header.stamp = ros::Time::now();
 			Vector3 sigma;
 			for (size_t sample = 0; sample < num_samples; sample++) {
-				//poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), "ortho_body"));
+				poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), "ortho_body"));
 				sigma = trajectory_selector.getSigmaAtTime(sampling_time_vector(sample));
 				if (trajectory_index == best_traj_index) {
 					drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
 				}
 			}
-			//mutex.unlock();
-			//poly_samples_pubs.at(trajectory_index).publish(poly_samples_msg);
+			poly_samples_pubs.at(trajectory_index).publish(poly_samples_msg);
 		}
 	}
 
@@ -529,7 +527,7 @@ int main(int argc, char* argv[]) {
 	TrajectorySelectorNode trajectory_selector_node("/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/FLA_ACL02/goal", "/poly_samples");
 
 	std::cout << "Got through to here" << std::endl;
-	ros::Rate spin_rate(100);
+	ros::Rate spin_rate(30);
 
 	while (ros::ok()) {
 		trajectory_selector_node.drawTrajectoriesDebug();
