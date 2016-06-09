@@ -45,7 +45,12 @@ private:
   Vector3 acceleration;
   Vector3 initial_velocity;
   Vector3 initial_acceleration;
+  Vector3 jerk;
+  Vector3 position_end_of_jerk_time;
+  Vector3 velocity_end_of_jerk_time;
+
   double a_max_horizontal;
+  double jerk_time = 0.100;
 
 };
 

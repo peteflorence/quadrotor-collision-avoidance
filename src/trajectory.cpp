@@ -14,6 +14,9 @@ void Trajectory::setInitialVelocity(Vector3 const& initial_velocity_to_set) {
 
 void Trajectory::setInitialAcceleration(Vector3 const& initial_acceleration_to_set) {
   initial_acceleration = initial_acceleration_to_set;
+  jerk = (acceleration - initial_acceleration) / jerk_time;
+  position_end_of_jerk_time = 0.1666*jerk*jerk_time*jerk_time*jerk_time + 0.5*initial_acceleration*jerk_time*jerk_time + initial_velocity*jerk_time;
+  velocity_end_of_jerk_time = 0.5*jerk*jerk_time*jerk_time + initial_acceleration*jerk_time + initial_velocity;
 };
 
 void Trajectory::setAcceleration(Vector3 const& acceleration) {
@@ -25,7 +28,13 @@ Vector3 Trajectory::getAcceleration() const{
 }
 
 Vector3 Trajectory::getPosition(Scalar const& t) const {
-  return 0.5*acceleration*t*t + initial_velocity*t;
+  if (t < jerk_time) {
+    return 0.1666*jerk*t*t*t + 0.5*initial_acceleration*t*t + initial_velocity*t;
+  }
+  else {
+    double t_left = t - jerk_time;
+    return position_end_of_jerk_time + 0.5*acceleration*t_left*t_left + initial_velocity*t_left;
+  }
 };
 
 Vector3 Trajectory::getTerminalStopPosition(Scalar const& t) const {
@@ -35,7 +44,7 @@ Vector3 Trajectory::getTerminalStopPosition(Scalar const& t) const {
   double speed = velocity_end_of_trajectory.norm();
   double stop_t = speed / a_max_horizontal;
 
-  return 0.5*a_max_horizontal*(velocity_end_of_trajectory)/speed*stop_t*stop_t + velocity_end_of_trajectory*stop_t + position_end_of_trajectory;
+  return 0.5*a_max_horizontal*-(velocity_end_of_trajectory)/speed*stop_t*stop_t + velocity_end_of_trajectory*stop_t + position_end_of_trajectory;
 
 }
 
@@ -46,7 +55,13 @@ Vector3 Trajectory::getInitialVelocity() const {
 
 
 Vector3 Trajectory::getVelocity(Scalar const& t) const {
-  return acceleration*t + initial_velocity;
+  if (t < jerk_time) {
+    return 0.5*jerk*t*t + initial_acceleration*t + initial_velocity; 
+  }
+  else {
+    double t_left = t - jerk_time;
+    return velocity_end_of_jerk_time + acceleration*t_left + initial_velocity;
+  }
 };
 
 Matrix3 Trajectory::getCovariance(Scalar const& t) const {
