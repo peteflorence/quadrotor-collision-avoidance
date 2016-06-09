@@ -48,17 +48,17 @@ void TrajectorySelector::computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> con
   desired_acceleration << 0,0,0;
   best_traj_index = 0;
   float current_objective_value;
-  float best_traj_objective_value = GoalProgressEvaluations(0);// + 1.0*TerminalVelocityEvaluations(0);
-  for (size_t traj_index = 0; traj_index < 25; traj_index++) {
-    current_objective_value = GoalProgressEvaluations(traj_index) + 10.0*TerminalVelocityEvaluations(traj_index);
+  float best_traj_objective_value = GoalProgressEvaluations(0) + 1.0*TerminalVelocityEvaluations(0);
+  for (size_t traj_index = 1; traj_index < 25; traj_index++) {
+    current_objective_value = GoalProgressEvaluations(traj_index) + 1.0*TerminalVelocityEvaluations(traj_index);
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
       best_traj_objective_value = GoalProgressEvaluations(traj_index);
     }
   }
 
-  std::cout << "best_traj_index was " << best_traj_index << std::endl;
-  std::cout << "best_traj_objective_value " << best_traj_objective_value << std::endl; 
+  //std::cout << "## best_traj_index was " << best_traj_index << std::endl;
+  //std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
 
   desired_acceleration = trajectory_library.getTrajectoryFromIndex(best_traj_index).getAcceleration();
 
@@ -73,7 +73,7 @@ void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) 
 
   double initial_distance = carrot_body_frame.norm();
 
-  std::cout << "initial_distance is " << initial_distance << std::endl;
+  //std::cout << "initial_distance is " << initial_distance << std::endl;
 
   size_t i = 0;
   Vector3 final_trajectory_position;
@@ -103,8 +103,8 @@ void TrajectorySelector::EvaluateTerminalVelocityCost(Vector3 const& carrot_body
     TerminalVelocityEvaluations(i) = 0;
     
     // cost on going too fast
-    if (final_trajectory_speed > 5.0) {
-      TerminalVelocityEvaluations(i) -= (5.0 - final_trajectory_speed)*(5.0 - final_trajectory_speed);
+    if (final_trajectory_speed > 8.0) {
+      //TerminalVelocityEvaluations(i) -= (5.0 - final_trajectory_speed)*(5.0 - final_trajectory_speed);
     }
 
     i++;

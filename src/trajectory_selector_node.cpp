@@ -1,8 +1,6 @@
 #include <ros/ros.h>
-#include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <visualization_msgs/Marker.h>
-#include <std_msgs/String.h>
 #include "acl_fsw/QuadGoal.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
@@ -76,8 +74,6 @@ public:
 		local_goal_msg.jerk.y = 0.0;
 
 		local_goal_msg.waypointType = 1;
-
-
 
 		srand ( time(NULL) ); //initialize the random seed
 		ROS_INFO("Finished constructing the trajectory selector node, waiting for waypoints");
@@ -529,7 +525,7 @@ private:
 
 		//std::cout << "Desired roll, pitch, thrust: " << roll_pitch_thrust << std::endl;
 		//std::cout << "Quat w,x,y,z: " << setpoint_msg.orientation.w << " " << setpoint_msg.orientation.x << " " << setpoint_msg.orientation.y << " " << setpoint_msg.orientation.z <<std::endl;
-		std::cout << "initial_acceleration_estimated:" << initial_acceleration << std::endl;
+		//std::cout << "initial_acceleration_estimated:" << initial_acceleration << std::endl;
 
 		attitude_thrust_pub.publish(setpoint_msg);
 

@@ -21,6 +21,9 @@ public:
 
   void updateInitialAcceleration();
   Vector3 getInitialAcceleration() const{
+    if (initial_acceleration(0) == 0) {
+      std::cout << "I had initial acceleration of 0 and r,p,t were " << roll << " " << pitch << " " << thrust << std::endl; 
+    }
     return initial_acceleration;
   }
 
