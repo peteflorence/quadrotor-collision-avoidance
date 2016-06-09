@@ -145,11 +145,11 @@ public:
 
 		trajectory_selector.computeBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 
-		//Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
+		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 
-		//PublishAttitudeSetpoint(attitude_thrust_desired);
+		PublishAttitudeSetpoint(attitude_thrust_desired);
 
-		PublishDesiredAcceleration(desired_acceleration);
+		//PublishDesiredAcceleration(desired_acceleration);
 	}
 
 private:
@@ -190,7 +190,7 @@ private:
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
 		//ROS_INFO("GOT POSE");
 
-		//attitude_generator.setZ(pose.pose.position.z);
+		attitude_generator.setZ(pose.pose.position.z);
 		
 		tf::Quaternion q(pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w);
 		mutex.lock();
@@ -286,6 +286,7 @@ private:
 		//ROS_INFO("GOT WAYPOINTS");
 
 		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.5; 
+		attitude_generator.setZsetpoint(global_goal.pose.position.z + 1.5);
 		
 
 		geometry_msgs::TransformStamped tf;
@@ -340,7 +341,7 @@ private:
 			}
 		}
 		carrot_world_frame << waypoints_matrix(0, i), waypoints_matrix(1, i), waypoints_matrix(2, i); 
-		//attitude_generator.setZsetpoint(carrot_world_frame(2));
+		attitude_generator.setZsetpoint(carrot_world_frame(2));
 		
 
 
