@@ -38,8 +38,10 @@ public:
 
 		pose_sub = nh.subscribe(pose_topic, 1, &TrajectorySelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe(velocity_topic, 1, &TrajectorySelectorNode::OnVelocity, this);
-		waypoints_sub = nh.subscribe(waypoint_topic, 1, &TrajectorySelectorNode::OnWaypoints, this);
+		//waypoints_sub = nh.subscribe(waypoint_topic, 1, &TrajectorySelectorNode::OnWaypoints, this);
   	    point_cloud_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnPointCloud, this);
+  	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
+
 
 		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 1);
 		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 1);
@@ -226,6 +228,26 @@ private:
 	    // transformStamped.transform.rotation.w = q_ortho.w();
 
 	    br.sendTransform(transformStamped);
+
+
+
+	    geometry_msgs::TransformStamped tf;
+	    try {
+
+	      tf = tf_buffer_.lookupTransform("ortho_body", "world", 
+	                                    ros::Time(),
+	                                    ros::Duration(1.0/30));
+	    } catch (tf2::TransformException &ex) {
+	      ROS_ERROR("%s", ex.what());
+	      return;
+	    }
+
+	    geometry_msgs::PoseStamped pose_global_goal_world_frame = PoseFromVector3(carrot_world_frame, "world");
+	    geometry_msgs::PoseStamped pose_global_goal_ortho_body_frame = PoseFromVector3(Vector3(0,0,0), "ortho_body");
+	   
+	    tf2::doTransform(pose_global_goal_world_frame, pose_global_goal_ortho_body_frame, tf);
+
+	    carrot_ortho_body_frame = VectorFromPose(pose_global_goal_ortho_body_frame);
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
@@ -258,6 +280,33 @@ private:
 	Eigen::Vector3d VectorFromPose(geometry_msgs::PoseStamped const& pose) {
 		return Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
 	}
+
+	
+	void OnGlobalGoal(geometry_msgs::PoseStamped const& global_goal) {
+		//ROS_INFO("GOT WAYPOINTS");
+
+		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.5; 
+		
+
+		geometry_msgs::TransformStamped tf;
+	    try {
+
+	      tf = tf_buffer_.lookupTransform("ortho_body", "world", 
+	                                    ros::Time(),
+	                                    ros::Duration(1.0/30));
+	    } catch (tf2::TransformException &ex) {
+	      ROS_ERROR("%s", ex.what());
+	      return;
+	    }
+
+	    geometry_msgs::PoseStamped pose_carrot_world_frame = PoseFromVector3(carrot_world_frame, "world");
+	    geometry_msgs::PoseStamped pose_carrot_ortho_body_frame = PoseFromVector3(carrot_ortho_body_frame, "ortho_body");
+	   
+	    tf2::doTransform(pose_carrot_world_frame, pose_carrot_ortho_body_frame, tf);
+
+	    carrot_ortho_body_frame = VectorFromPose(pose_carrot_ortho_body_frame);
+	}
+
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
 		//ROS_INFO("GOT WAYPOINTS");
@@ -476,6 +525,7 @@ private:
 	ros::Subscriber pose_sub;
 	ros::Subscriber velocity_sub;
 	ros::Subscriber point_cloud_sub;
+	ros::Subscriber global_goal_sub;
 
 	ros::Publisher local_goal_pub;
 	ros::Publisher poly_samples_pub;
