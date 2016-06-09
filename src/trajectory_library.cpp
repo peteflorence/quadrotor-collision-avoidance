@@ -4,7 +4,7 @@
 
 void TrajectoryLibrary::Initialize2DLibrary(double const& final_time) {
 	//double a_max_horizontal = sqrt(a_max*a_max - 9.8*9.8);
-	double a_max_horizontal = 9.8*0.3;
+	double a_max_horizontal = 9.8*0.7;
 	Vector3 zero_initial_velocity = Vector3(0,0,0);
 
 	// Make first trajectory be zero accelerations
@@ -28,7 +28,7 @@ void TrajectoryLibrary::Initialize2DLibrary(double const& final_time) {
 	// Make next 8 trajectories sample around 0.3 * maximum horizontal acceleration
 	for (double i = 17; i < 25; i++) {
 		double theta = (i-1)*2*M_PI/8.0;
-		acceleration << cos(theta)*0.3*a_max_horizontal, sin(theta)*0.3*a_max_horizontal, 0;
+		acceleration << cos(theta)*0.15*a_max_horizontal, sin(theta)*0.15*a_max_horizontal, 0;
 		trajectories.push_back(Trajectory( acceleration, zero_initial_velocity ));
 	}
 

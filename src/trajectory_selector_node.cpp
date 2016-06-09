@@ -49,6 +49,10 @@ public:
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
 		attitude_thrust_pub = nh.advertise<mavros_msgs::AttitudeTarget>("/mavros/setpoint_raw/attitude", 1);
 
+		attitude_setpoint_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
+
+
+
 		trajectory_selector.InitializeLibrary(final_time);
 		createSamplingTimeVector();
 
@@ -286,7 +290,7 @@ private:
 		//ROS_INFO("GOT WAYPOINTS");
 
 		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.5; 
-		attitude_generator.setZsetpoint(global_goal.pose.position.z + 1.5);
+		attitude_generator.setZsetpoint(global_goal.pose.position.z + 2.5);
 		
 
 		geometry_msgs::TransformStamped tf;
@@ -492,16 +496,14 @@ private:
 		// float roll = 0.0;
 		// float pitch = 5 * (M_PI / 180.0);
 
-		double pitch;
-		double roll;
+		double pitch = roll_pitch_thrust(1);
+		double roll = roll_pitch_thrust(0);
 
-		nh.param("pitch", pitch, 0.0);
-		nh.param("roll", roll, 0.0);
-
+		// Eigen attempt
 		Matrix3f m;
 		m =AngleAxisf(0.0, Vector3f::UnitZ())
 		* AngleAxisf(pitch, Vector3f::UnitY())
-		* AngleAxisf(roll, Vector3f::UnitX());
+		* AngleAxisf(-roll, Vector3f::UnitX());
 
 		Quaternionf q(m);
 
@@ -510,10 +512,20 @@ private:
 		setpoint_msg.orientation.y = q.y();
 		setpoint_msg.orientation.z = q.z();
 
-
 		setpoint_msg.thrust = roll_pitch_thrust(2);
 
+
+		geometry_msgs::PoseStamped attitude_setpoint;
+		attitude_setpoint.header.frame_id = "ortho_body";
+		attitude_setpoint.header.stamp = ros::Time();
+		attitude_setpoint.pose.position.x = 0;
+		attitude_setpoint.pose.position.y = 0;
+		attitude_setpoint.pose.position.z = 5;
+		attitude_setpoint.pose.orientation = setpoint_msg.orientation;
+		attitude_setpoint_pub.publish( attitude_setpoint );
+
 		std::cout << "Desired roll, pitch, thrust: " << roll_pitch_thrust << std::endl;
+		std::cout << "Quat w,x,y,z: " << setpoint_msg.orientation.w << " " << setpoint_msg.orientation.x << " " << setpoint_msg.orientation.y << " " << setpoint_msg.orientation.z <<std::endl;
 
 		attitude_thrust_pub.publish(setpoint_msg);
 
@@ -533,6 +545,7 @@ private:
 	ros::Publisher vis_pub;
 	ros::Publisher gaussian_pub;
 	ros::Publisher attitude_thrust_pub;
+	ros::Publisher attitude_setpoint_pub;
 
 	std::vector<ros::Publisher> poly_samples_pubs;
 

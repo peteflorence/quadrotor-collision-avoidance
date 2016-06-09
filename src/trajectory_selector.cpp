@@ -43,12 +43,15 @@ Vector3 TrajectorySelector::getInverseSigmaAtTime(double const & t) {
 void TrajectorySelector::computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
   //EvaluateCollisionProbabilities(point_cloud_xyz_samples);
   EvaluateGoalProgress(carrot_body_frame);
+  EvaluateTerminalVelocityCost(carrot_body_frame);
 
   desired_acceleration << 0,0,0;
   best_traj_index = 0;
+  float current_objective_value;
   float best_traj_objective_value = -9999;
   for (size_t traj_index = 0; traj_index < 25; traj_index++) {
-    if (GoalProgressEvaluations(traj_index) > best_traj_objective_value) {
+    current_objective_value = GoalProgressEvaluations(traj_index) + 0.1*TerminalVelocityEvaluations(traj_index);
+    if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
       best_traj_objective_value = GoalProgressEvaluations(traj_index);
     }
@@ -82,6 +85,29 @@ void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) 
     i++;
   }
 };
+
+
+void TrajectorySelector::EvaluateTerminalVelocityCost(Vector3 const& carrot_body_frame) {
+
+  // for each traj in trajectory_library.trajectories
+  std::vector<Trajectory>::const_iterator trajectory_iterator_begin = trajectory_library.GetTrajectoryIteratorBegin();
+  std::vector<Trajectory>::const_iterator trajectory_iterator_end = trajectory_library.GetTrajectoryIteratorEnd();
+
+  double initial_distance = carrot_body_frame.norm();
+
+  size_t i = 0;
+  double final_trajectory_speed;
+  double distance;
+  for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
+    final_trajectory_speed = trajectory->getVelocity(final_time).norm();
+    TerminalVelocityEvaluations(i) = 0;
+    if (final_trajectory_speed > 5.0) {
+      TerminalVelocityEvaluations(i) -= (final_trajectory_speed*final_trajectory_speed);
+    }
+    i++;
+  }
+};
+
 
 
 void TrajectorySelector::EvaluateCollisionProbabilities(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples) {
