@@ -21,13 +21,17 @@ public:
   	this->initial_velocity = initial_velocity; 
   	std::cout << "I'm initializing trajecotories " << std::endl;
   };
-  
+
+
+  void setAccelerationMax(double const& acceleration_max);
   void setAcceleration(Vector3 const& acceleration);
   void setInitialVelocity(Vector3 const& initial_velocity);
+  void setInitialAcceleration(Vector3 const& initial_acceleration);
   Vector3 getInitialVelocity() const;
 
   Vector3 getAcceleration() const;
   Vector3 getPosition(Scalar const& t) const;
+  Vector3 getTerminalStopPosition(Scalar const& t) const;
   Vector3 getVelocity(Scalar const& t) const;
   Matrix3 getCovariance(Scalar const& t) const;
   //Vector1 MatrixSpeedTest(Vector3 const& robot_position, Vector3 const& depth_position, Matrix3 const covariance) const;
@@ -40,6 +44,8 @@ private:
   
   Vector3 acceleration;
   Vector3 initial_velocity;
+  Vector3 initial_acceleration;
+  double a_max_horizontal;
 
 };
 

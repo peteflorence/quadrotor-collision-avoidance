@@ -4,11 +4,16 @@ void Trajectory::TestTrajectory() {
   std::cout << "Printing from inside Trajectory " << std::endl;  
 }
 
+void Trajectory::setAccelerationMax(double const& acceleration_max) {
+  this->a_max_horizontal = acceleration_max;
+};
+
 void Trajectory::setInitialVelocity(Vector3 const& initial_velocity_to_set) {
-  //std::cout << "I'm going to set velocity to " << initial_velocity_to_set << std::endl;
-  //std::cout << "before setting velocity " << initial_velocity << std::endl;
   initial_velocity = initial_velocity_to_set;
-  //std::cout << "after setting velocity " << initial_velocity << std::endl;
+};
+
+void Trajectory::setInitialAcceleration(Vector3 const& initial_acceleration_to_set) {
+  initial_acceleration = initial_acceleration_to_set;
 };
 
 void Trajectory::setAcceleration(Vector3 const& acceleration) {
@@ -20,13 +25,19 @@ Vector3 Trajectory::getAcceleration() const{
 }
 
 Vector3 Trajectory::getPosition(Scalar const& t) const {
-  //std::cout << "My initial velocity is " << initial_velocity << std::endl;
-  //std::cout << "My acceleration is " << acceleration << std::endl;
   return 0.5*acceleration*t*t + initial_velocity*t;
-
-  // do rotation by roll and pitch here
-
 };
+
+Vector3 Trajectory::getTerminalStopPosition(Scalar const& t) const {
+  Vector3 position_end_of_trajectory = getPosition(t);
+  Vector3 velocity_end_of_trajectory = getVelocity(t);
+
+  double speed = velocity_end_of_trajectory.norm();
+  double stop_t = speed / a_max_horizontal;
+
+  return 0.5*a_max_horizontal*(velocity_end_of_trajectory)/speed*stop_t*stop_t + velocity_end_of_trajectory*stop_t + position_end_of_trajectory;
+
+}
 
 Vector3 Trajectory::getInitialVelocity() const {
   return initial_velocity;

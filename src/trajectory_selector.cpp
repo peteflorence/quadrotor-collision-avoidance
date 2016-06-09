@@ -48,9 +48,9 @@ void TrajectorySelector::computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> con
   desired_acceleration << 0,0,0;
   best_traj_index = 0;
   float current_objective_value;
-  float best_traj_objective_value = -9999;
+  float best_traj_objective_value = GoalProgressEvaluations(0);// + 1.0*TerminalVelocityEvaluations(0);
   for (size_t traj_index = 0; traj_index < 25; traj_index++) {
-    current_objective_value = GoalProgressEvaluations(traj_index) + 0.1*TerminalVelocityEvaluations(traj_index);
+    current_objective_value = GoalProgressEvaluations(traj_index) + 10.0*TerminalVelocityEvaluations(traj_index);
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
       best_traj_objective_value = GoalProgressEvaluations(traj_index);
@@ -79,7 +79,7 @@ void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) 
   Vector3 final_trajectory_position;
   double distance;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-    final_trajectory_position = trajectory->getPosition(final_time);
+    final_trajectory_position = trajectory->getTerminalStopPosition(final_time);
     distance = (final_trajectory_position - carrot_body_frame).norm();
     GoalProgressEvaluations(i) = initial_distance - distance; 
     i++;
@@ -101,9 +101,12 @@ void TrajectorySelector::EvaluateTerminalVelocityCost(Vector3 const& carrot_body
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
     final_trajectory_speed = trajectory->getVelocity(final_time).norm();
     TerminalVelocityEvaluations(i) = 0;
+    
+    // cost on going too fast
     if (final_trajectory_speed > 5.0) {
-      TerminalVelocityEvaluations(i) -= (final_trajectory_speed*final_trajectory_speed);
+      TerminalVelocityEvaluations(i) -= (5.0 - final_trajectory_speed)*(5.0 - final_trajectory_speed);
     }
+
     i++;
   }
 };
@@ -171,8 +174,12 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryFor
   for (size_t time_index = 0; time_index < num_samples; time_index++) {
     //std::cout << "the position I sample is " << trajectory_to_sample.getPosition(sampling_time) << std::endl;
     sampling_time = sampling_time_vector(time_index);
-    sample_points_xyz_over_time.row(time_index) = trajectory_to_sample.getPosition(sampling_time);
+    if (time_index < num_samples - 1) {
+      sample_points_xyz_over_time.row(time_index) = trajectory_to_sample.getPosition(sampling_time);
+    }
+    else {
+      sample_points_xyz_over_time.row(time_index) = trajectory_to_sample.getTerminalStopPosition(sampling_time);
+    }
   }
-
   return sample_points_xyz_over_time;
 }

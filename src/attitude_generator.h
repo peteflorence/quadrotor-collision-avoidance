@@ -17,6 +17,10 @@ private:
   double z;
   double z_setpoint;
 
+  double roll;
+  double pitch;
+  double thrust;
+
   double _dt = 1/30.0;
   double _max = 1;
   double _min = 0;

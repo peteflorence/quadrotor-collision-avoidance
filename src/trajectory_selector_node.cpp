@@ -150,6 +150,7 @@ public:
 		trajectory_selector.computeBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
+		trajectory_selector.setThrust(attitude_thrust_desired(2));
 
 		PublishAttitudeSetpoint(attitude_thrust_desired);
 
@@ -199,6 +200,7 @@ private:
 		tf::Quaternion q(pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w);
 		mutex.lock();
 		tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+		trajectory_selector.setRollPitch(roll, pitch);
 		mutex.unlock();
 		//std::cout << "Roll: " << roll << ", Pitch: " << pitch << ", Yaw: " << yaw << std::endl;
 
@@ -516,16 +518,18 @@ private:
 
 
 		geometry_msgs::PoseStamped attitude_setpoint;
-		attitude_setpoint.header.frame_id = "ortho_body";
+		attitude_setpoint.header.frame_id = "world";
 		attitude_setpoint.header.stamp = ros::Time();
-		attitude_setpoint.pose.position.x = 0;
-		attitude_setpoint.pose.position.y = 0;
-		attitude_setpoint.pose.position.z = 5;
+		Vector3 initial_acceleration = trajectory_selector.getInitialAcceleration();
+		attitude_setpoint.pose.position.x = initial_acceleration(0);
+		attitude_setpoint.pose.position.y = initial_acceleration(1);
+		attitude_setpoint.pose.position.z = initial_acceleration(2)+5;
 		attitude_setpoint.pose.orientation = setpoint_msg.orientation;
 		attitude_setpoint_pub.publish( attitude_setpoint );
 
-		std::cout << "Desired roll, pitch, thrust: " << roll_pitch_thrust << std::endl;
-		std::cout << "Quat w,x,y,z: " << setpoint_msg.orientation.w << " " << setpoint_msg.orientation.x << " " << setpoint_msg.orientation.y << " " << setpoint_msg.orientation.z <<std::endl;
+		//std::cout << "Desired roll, pitch, thrust: " << roll_pitch_thrust << std::endl;
+		//std::cout << "Quat w,x,y,z: " << setpoint_msg.orientation.w << " " << setpoint_msg.orientation.x << " " << setpoint_msg.orientation.y << " " << setpoint_msg.orientation.z <<std::endl;
+		std::cout << "initial_acceleration_estimated:" << initial_acceleration << std::endl;
 
 		attitude_thrust_pub.publish(setpoint_msg);
 

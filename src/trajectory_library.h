@@ -11,6 +11,20 @@ public:
   void setInitialVelocityAllTrajectories(Vector3 const& initialVelocity);
   void setInitialVelocityJustOneTrajectory(Vector3 const& initialVelocity);
 
+  void setRollPitch(double const& roll, double const& pitch) {
+    this->roll = roll;
+    this->pitch = pitch;
+  };
+  void setThrust(double const& thrust) {
+    this->thrust = thrust;
+  };
+
+  void updateInitialAcceleration();
+  Vector3 getInitialAcceleration() const{
+    return initial_acceleration;
+  }
+
+
   Trajectory getTrajectoryFromIndex(size_t index);
   size_t getNumTrajectories();
   Vector3 getSigmaAtTime(double const& t);
@@ -34,6 +48,11 @@ private:
   Trajectory trajectory1;
 
   Vector3 initial_velocity = Vector3(0,0,0);
+  Vector3 initial_acceleration = Vector3(0,0,0);
+
+  double roll = 0;
+  double pitch = 0;
+  double thrust = 0;
 
   double final_time;
  

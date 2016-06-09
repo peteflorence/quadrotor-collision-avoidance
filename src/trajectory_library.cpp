@@ -34,7 +34,29 @@ void TrajectoryLibrary::Initialize2DLibrary(double const& final_time) {
 
 	this->final_time = final_time; 
 
+	for (size_t index = 0; index < trajectories.size(); index++) {
+		trajectories.at(index).setAccelerationMax(a_max_horizontal);
+	}
+
 };
+
+void TrajectoryLibrary::updateInitialAcceleration() {
+	double acceleration_from_thrust = thrust * 9.8/0.7;
+	double a_x_initial = acceleration_from_thrust * sin(pitch);
+	double a_y_initial = -acceleration_from_thrust * cos(pitch)*sin(roll);
+	//double a_z_initial = acceleration_from_thrust * cos(pitch) * cos(roll)-9.8;
+	double a_z_initial = 0;
+
+	initial_acceleration = Vector3(a_x_initial, a_y_initial, a_z_initial);
+
+	for (size_t index = 0; index < trajectories.size(); index++) {
+		trajectories.at(index).setInitialAcceleration(initial_acceleration);
+	}
+
+	return;
+};
+
+
 
 void TrajectoryLibrary::setInitialVelocityAllTrajectories(Vector3 const& initialVelocity) {
 	for (size_t index = 0; index < trajectories.size(); index++) {

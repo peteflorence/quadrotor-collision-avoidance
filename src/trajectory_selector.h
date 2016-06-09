@@ -13,6 +13,18 @@ public:
   void InitializeLibrary(double const& final_time);
   void setInitialVelocity(Vector3 const& initialVelocity);
   size_t getNumTrajectories();
+
+  void setRollPitch(double const& roll, double const& pitch) {
+    trajectory_library.setRollPitch(roll, pitch);
+    trajectory_library.updateInitialAcceleration();
+  };
+  void setThrust(double const& thrust) {
+    trajectory_library.setThrust(thrust);
+  };
+
+  Vector3 getInitialAcceleration() const {
+    return trajectory_library.getInitialAcceleration();
+  }
   
   Vector3 getSigmaAtTime(double const& t);
   Vector3 getInverseSigmaAtTime(double const & t);
