@@ -23,6 +23,11 @@ Vector3 AttitudeGenerator::generateDesiredAttitudeThrust(Vector3 const& desired_
 	double pitch = atan2(a_x , std::sqrt(a_y*a_y + a_z*a_z) );
 	
 	//double thrust = a_x / sin(pitch);
+	double roll_degrees = roll * 180/M_PI;
+	double pitch_degrees = pitch * 180/M_PI;
+	if ((abs(roll_degrees) > 30) || (abs(pitch_degrees) > 30)) {
+		std::cout << "I just tried to command a roll, pitch of: " << roll_degrees << " " << pitch_degrees << std::endl;
+	}
 
 	double thrust = zPID();
 
