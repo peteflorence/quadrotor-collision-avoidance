@@ -23,6 +23,7 @@
 
 #include "trajectory_selector.h"
 #include "attitude_generator.h"
+#include "trajectory_selector_utils.h"
 
   
 std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
@@ -130,16 +131,6 @@ private:
     	}
   	}
 
-	geometry_msgs::PoseStamped PoseFromVector3(Vector3 const& position, std::string const& frame) {
-		geometry_msgs::PoseStamped pose;
-		pose.pose.position.x = position(0);
-		pose.pose.position.y = position(1);
-		pose.pose.position.z = position(2);
-		pose.header.frame_id = frame;
-		pose.header.stamp = ros::Time::now();
-		return pose;
-	}
-
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
 		//ROS_INFO("GOT POSE");
 
@@ -208,11 +199,6 @@ private:
 
 		trajectory_selector.setInitialVelocity(R*Vector3(twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z));
 	}
-
-	Eigen::Vector3d VectorFromPose(geometry_msgs::PoseStamped const& pose) {
-		return Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
-	}
-
 	
 	void OnGlobalGoal(geometry_msgs::PoseStamped const& global_goal) {
 		//ROS_INFO("GOT WAYPOINTS");
