@@ -36,12 +36,12 @@ public:
 		// Subscribers
 		pose_sub = nh.subscribe("/samros/pose", 1, &TrajectorySelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/samros/twist", 1, &TrajectorySelectorNode::OnVelocity, this);
-		//waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
+		waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
   	    point_cloud_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnPointCloud, this);
   	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
 
   	    // Publishers
-		//vis_pub = nh.advertise<visualization_msgs::Marker>( "carrot_marker", 0 );
+		carrot_pub = nh.advertise<visualization_msgs::Marker>( "carrot_marker", 0 );
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
 		attitude_thrust_pub = nh.advertise<mavros_msgs::AttitudeTarget>("/mavros/setpoint_raw/attitude", 1);
 		attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
@@ -139,8 +139,8 @@ private:
 	void OnGlobalGoal(geometry_msgs::PoseStamped const& global_goal) {
 		//ROS_INFO("GOT WAYPOINTS");
 
-		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.5; 
-		attitude_generator.setZsetpoint(global_goal.pose.position.z + 2.5);
+		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.0; 
+		attitude_generator.setZsetpoint(global_goal.pose.position.z+1.0);
 		
 
 		geometry_msgs::TransformStamped tf;
@@ -238,7 +238,7 @@ private:
 		marker.color.r = 0.9;
 		marker.color.g = 0.4;
 		marker.color.b = 0.0;
-		vis_pub.publish( marker );
+		carrot_pub.publish( marker );
 
 	}
 
@@ -320,7 +320,7 @@ private:
 
 		Vector3 pid;
 		nh.param("z_p", pid(0), 0.5);
-		nh.param("z_i", pid(1), 0.01);
+		nh.param("z_i", pid(1), 0.05);
 		nh.param("z_d", pid(2), 0.5);
 
 		attitude_generator.setGains(pid);
@@ -387,7 +387,7 @@ private:
 	ros::Subscriber point_cloud_sub;
 	ros::Subscriber global_goal_sub;
 
-	ros::Publisher vis_pub;
+	ros::Publisher carrot_pub;
 	ros::Publisher gaussian_pub;
 	ros::Publisher attitude_thrust_pub;
 	ros::Publisher attitude_setpoint_visualization_pub;

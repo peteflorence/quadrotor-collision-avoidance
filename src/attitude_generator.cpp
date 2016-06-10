@@ -42,7 +42,15 @@ double AttitudeGenerator::zPID() {
 	double Pout = _Kp * error;
 
 	// Integral term
+
 	_integral += error * _dt;
+	if (_integral >_i_max) {
+		_integral = _i_max;
+	}
+	if (_integral < -_i_max ) {
+		_integral = -_i_max;
+	}
+
     double Iout = _Ki * _integral;
 
     // Derivative term
