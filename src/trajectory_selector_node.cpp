@@ -321,13 +321,6 @@ private:
 
 		using namespace Eigen;
 
-		Vector3 pid;
-		nh.param("z_p", pid(0), 0.5);
-		nh.param("z_i", pid(1), 0.05);
-		nh.param("z_d", pid(2), 0.5);
-
-		attitude_generator.setGains(pid);
-
 		mavros_msgs::AttitudeTarget setpoint_msg;
 		setpoint_msg.header.stamp = ros::Time::now();
 		setpoint_msg.type_mask = mavros_msgs::AttitudeTarget::IGNORE_ROLL_RATE 
@@ -335,25 +328,10 @@ private:
 			| mavros_msgs::AttitudeTarget::IGNORE_YAW_RATE
 			;
 
-		//convert from rpy to quat
-		//tf::Quaternion q;
-		//q.setEuler(roll_pitch_thrust(1)*0.1, 0.0, 0.0);
-		//q.setEuler(0,0,0);
-
-		// float roll = roll_pitch_thrust(0);
-		// float pitch = roll_pitch_thrust(1);
-
-		// float roll = 0.0;
-		// float pitch = 5 * (M_PI / 180.0);
-
-		double pitch = roll_pitch_thrust(1);
-		double roll = roll_pitch_thrust(0);
-
-		// Eigen attempt
 		Matrix3f m;
 		m =AngleAxisf(0.0, Vector3f::UnitZ())
-		* AngleAxisf(pitch, Vector3f::UnitY())
-		* AngleAxisf(-roll, Vector3f::UnitX());
+		* AngleAxisf(roll_pitch_thrust(1), Vector3f::UnitY())
+		* AngleAxisf(-roll_pitch_thrust(0), Vector3f::UnitX());
 
 		Quaternionf q(m);
 
@@ -364,22 +342,19 @@ private:
 
 		setpoint_msg.thrust = roll_pitch_thrust(2);
 
-
-		geometry_msgs::PoseStamped attitude_setpoint;
-		attitude_setpoint.header.frame_id = "world";
-		attitude_setpoint.header.stamp = ros::Time::now();
-		Vector3 initial_acceleration = trajectory_selector.getInitialAcceleration();
-		attitude_setpoint.pose.position.x = initial_acceleration(0);
-		attitude_setpoint.pose.position.y = initial_acceleration(1);
-		attitude_setpoint.pose.position.z = initial_acceleration(2)+5;
-		attitude_setpoint.pose.orientation = setpoint_msg.orientation;
-		attitude_setpoint_visualization_pub.publish( attitude_setpoint );
-
-		//std::cout << "Desired roll, pitch, thrust: " << roll_pitch_thrust << std::endl;
-		//std::cout << "Quat w,x,y,z: " << setpoint_msg.orientation.w << " " << setpoint_msg.orientation.x << " " << setpoint_msg.orientation.y << " " << setpoint_msg.orientation.z <<std::endl;
-		//std::cout << "initial_acceleration_estimated:" << initial_acceleration << std::endl;
-
 		attitude_thrust_pub.publish(setpoint_msg);
+
+		// To visualize setpoint
+
+		// geometry_msgs::PoseStamped attitude_setpoint;
+		// attitude_setpoint.header.frame_id = "world";
+		// attitude_setpoint.header.stamp = ros::Time::now();
+		// Vector3 initial_acceleration = trajectory_selector.getInitialAcceleration();
+		// attitude_setpoint.pose.position.x = initial_acceleration(0);
+		// attitude_setpoint.pose.position.y = initial_acceleration(1);
+		// attitude_setpoint.pose.position.z = initial_acceleration(2)+5;
+		// attitude_setpoint.pose.orientation = setpoint_msg.orientation;
+		// attitude_setpoint_visualization_pub.publish( attitude_setpoint );
 
 	}
 

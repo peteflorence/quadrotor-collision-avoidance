@@ -24,9 +24,9 @@ private:
   double _dt = 1/30.0;
   double _max = 1;
   double _min = 0;
-  double _Kp = 10;
-  double _Kd = 1;
-  double _Ki = 1;
+  double _Kp = 0.5;
+  double _Ki = 0.05;
+  double _Kd = 0.5;
   double _pre_error = 0;
   double _integral = 0;
   double _i_max = 10.0;
