@@ -32,18 +32,17 @@ tf2_ros::Buffer tf_buffer_;
 class TrajectorySelectorNode {
 public:
 
-	TrajectorySelectorNode(std::string const& waypoint_topic, std::string const& pose_topic, std::string const& velocity_topic, std::string const& samples_topic) {
+	TrajectorySelectorNode() {
 
 		// Subscribers
-		pose_sub = nh.subscribe(pose_topic, 1, &TrajectorySelectorNode::OnPose, this);
-		velocity_sub = nh.subscribe(velocity_topic, 1, &TrajectorySelectorNode::OnVelocity, this);
-		//waypoints_sub = nh.subscribe(waypoint_topic, 1, &TrajectorySelectorNode::OnWaypoints, this);
+		pose_sub = nh.subscribe("/samros/pose", 1, &TrajectorySelectorNode::OnPose, this);
+		velocity_sub = nh.subscribe("/samros/twist", 1, &TrajectorySelectorNode::OnVelocity, this);
+		//waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
   	    point_cloud_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnPointCloud, this);
   	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
 
   	    // Publishers
-		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 1);
-		//vis_pub = nh.advertise<visualization_msgs::Marker>( "visualization_marker", 0 );
+		//vis_pub = nh.advertise<visualization_msgs::Marker>( "carrot_marker", 0 );
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
 		attitude_thrust_pub = nh.advertise<mavros_msgs::AttitudeTarget>("/mavros/setpoint_raw/attitude", 1);
 		attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
@@ -51,16 +50,16 @@ public:
 		// Initialization
 		trajectory_selector.InitializeLibrary(final_time);
 		createSamplingTimeVector();
-		initializeDrawingPaths(samples_topic);
+		initializeDrawingPaths();
 		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);
 		srand ( time(NULL) ); //initialize the random seed
 
 		ROS_INFO("Finished constructing the trajectory selector node, waiting for waypoints");
 	}
 
-	void initializeDrawingPaths(std::string const& samples_topic) {
+	void initializeDrawingPaths() {
 		for (int i = 0; i < trajectory_selector.getNumTrajectories(); i++) {
-			poly_samples_pubs.push_back(nh.advertise<nav_msgs::Path>(samples_topic+std::to_string(i), 1));
+			action_paths_pubs.push_back(nh.advertise<nav_msgs::Path>("/poly_samples"+std::to_string(i), 1));
 		}
 	}
 
@@ -92,18 +91,18 @@ public:
 
 			Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, sampling_time_vector, num_samples);
 
-			nav_msgs::Path poly_samples_msg;
-			poly_samples_msg.header.frame_id = "ortho_body";
-			poly_samples_msg.header.stamp = ros::Time::now();
+			nav_msgs::Path action_samples_msg;
+			action_samples_msg.header.frame_id = "ortho_body";
+			action_samples_msg.header.stamp = ros::Time::now();
 			Vector3 sigma;
 			for (size_t sample = 0; sample < num_samples; sample++) {
-				poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), "ortho_body"));
+				action_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), "ortho_body"));
 				sigma = trajectory_selector.getSigmaAtTime(sampling_time_vector(sample));
 				if (trajectory_index == best_traj_index) {
 					drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
 				}
 			}
-			poly_samples_pubs.at(trajectory_index).publish(poly_samples_msg);
+			action_paths_pubs.at(trajectory_index).publish(action_samples_msg);
 		}
 	}
 
@@ -466,13 +465,12 @@ private:
 	ros::Subscriber point_cloud_sub;
 	ros::Subscriber global_goal_sub;
 
-	ros::Publisher poly_samples_pub;
 	ros::Publisher vis_pub;
 	ros::Publisher gaussian_pub;
 	ros::Publisher attitude_thrust_pub;
 	ros::Publisher attitude_setpoint_visualization_pub;
 
-	std::vector<ros::Publisher> poly_samples_pubs;
+	std::vector<ros::Publisher> action_paths_pubs;
 
 	nav_msgs::Path waypoints;
 	nav_msgs::Path previous_waypoints;
@@ -513,7 +511,7 @@ int main(int argc, char* argv[]) {
 
 	ros::init(argc, argv, "TrajectorySelectorNode");
 
-	TrajectorySelectorNode trajectory_selector_node("/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/poly_samples");
+	TrajectorySelectorNode trajectory_selector_node;
 
 	std::cout << "Got through to here" << std::endl;
 	ros::Rate spin_rate(30);
