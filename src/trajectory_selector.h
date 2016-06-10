@@ -8,6 +8,8 @@
 
 class TrajectorySelector {
 public:
+  
+
   void Test();
   
   void InitializeLibrary(double const& final_time);
