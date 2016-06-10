@@ -27,9 +27,6 @@
 #include "trajectory_selector_utils.h"
 
   
-std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
-tf2_ros::Buffer tf_buffer_;
-
 
 class TrajectorySelectorNode {
 public:
@@ -396,6 +393,9 @@ private:
 	ros::Publisher attitude_setpoint_visualization_pub;
 
 	std::vector<ros::Publisher> action_paths_pubs;
+
+	std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+	tf2_ros::Buffer tf_buffer_;
 
 	nav_msgs::Path waypoints;
 	nav_msgs::Path previous_waypoints;
