@@ -1,3 +1,6 @@
+#ifndef TRAJECTORY_SELECTOR_UTILS_H
+#define TRAJECTORY_SELECTOR_UTILS_H
+
 #include "trajectory.h"
 #include "geometry_msgs/PoseStamped.h"
 
@@ -14,3 +17,5 @@ geometry_msgs::PoseStamped PoseFromVector3(Vector3 const& position, std::string 
 Eigen::Vector3d VectorFromPose(geometry_msgs::PoseStamped const& pose) {
 	return Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
 }
+
+#endif

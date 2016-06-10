@@ -1,3 +1,6 @@
+#ifndef TRAJECTORY_SELECTOR_H
+#define TRAJECTORY_SELECTOR_H
+
 #include <Eigen/Dense>
 #include <iostream>
 #include <math.h>
@@ -56,3 +59,5 @@ private:
   Eigen::Matrix<Scalar, 25, 1> CollisionProbabilities;
 
 };
+
+#endif

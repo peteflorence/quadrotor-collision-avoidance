@@ -62,12 +62,15 @@ target_link_libraries( trajectory_library trajectory )
 add_library( attitude_generator src/attitude_generator.cpp )
 target_link_libraries( attitude_generator trajectory )
 
+add_library( trajectory_visualizer src/trajectory_visualizer.cpp )
+
 
 add_executable( trajectory_selector_node src/trajectory_selector_node.cpp )
 target_link_libraries( trajectory_selector_node trajectory_selector )
 target_link_libraries( trajectory_selector_node ${catkin_LIBRARIES} )
 target_link_libraries( trajectory_selector_node ${PCL_LIBRARIES})
 target_link_libraries( trajectory_selector_node attitude_generator )
+target_link_libraries( trajectory_selector_node trajectory_visualizer )
 target_link_libraries( trajectory_selector_node orocos-kdl )
 
 
