@@ -71,6 +71,8 @@ public:
 private:
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
+		auto t1 = std::chrono::high_resolution_clock::now();
+		
 		//ROS_INFO("GOT POSE");
 
 		attitude_generator.setZ(pose.pose.position.z);
@@ -113,10 +115,16 @@ private:
 	    tf2::doTransform(pose_global_goal_world_frame, pose_global_goal_ortho_body_frame, tf);
 
 	    carrot_ortho_body_frame = VectorFromPose(pose_global_goal_ortho_body_frame);
+
+	    auto t2 = std::chrono::high_resolution_clock::now();
+  		std::cout << "OnPose took "
+              << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+              << " microseconds\n"; 
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
 		//ROS_INFO("GOT VELOCITY");
+		auto t1 = std::chrono::high_resolution_clock::now();
 		
 		geometry_msgs::TransformStamped tf;
 	    try {
@@ -137,9 +145,14 @@ private:
 	    Matrix3 R = quat.toRotationMatrix();
 
 		trajectory_selector.setInitialVelocity(R*Vector3(twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z));
+		auto t2 = std::chrono::high_resolution_clock::now();
+  		std::cout << "OnVelocity took "
+              << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+              << " microseconds\n";
 	}
 	
 	void OnGlobalGoal(geometry_msgs::PoseStamped const& global_goal) {
+		auto t1 = std::chrono::high_resolution_clock::now();
 		//ROS_INFO("GOT WAYPOINTS");
 
 		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+2.5; 
@@ -162,6 +175,10 @@ private:
 	    tf2::doTransform(pose_carrot_world_frame, pose_carrot_ortho_body_frame, tf);
 
 	    carrot_ortho_body_frame = VectorFromPose(pose_carrot_ortho_body_frame);
+	    auto t2 = std::chrono::high_resolution_clock::now();
+  		std::cout << "OnGlobalGoal took "
+              << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+              << " microseconds\n";
 	}
 
 
@@ -421,23 +438,10 @@ int main(int argc, char* argv[]) {
 	std::cout << "Got through to here" << std::endl;
 	ros::Rate spin_rate(30);
 
-	auto t1 = std::chrono::high_resolution_clock::now();
-	auto t2 = std::chrono::high_resolution_clock::now();
 
 	while (ros::ok()) {
-		t1 = std::chrono::high_resolution_clock::now();
 		trajectory_selector_node.ReactToSampledPointCloud();
-		t2 = std::chrono::high_resolution_clock::now();
-  		std::cout << "ReactToSampledPointCloud took "
-              << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-              << " microseconds\n"; 
-
-		t1 = std::chrono::high_resolution_clock::now();
 		trajectory_selector_node.trajectory_visualizer.drawAll();
-		t2 = std::chrono::high_resolution_clock::now();
-		std::cout << "Drawing took "
-              << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-              << " microseconds\n"; 
 
 		ros::spinOnce();
 		spin_rate.sleep();
