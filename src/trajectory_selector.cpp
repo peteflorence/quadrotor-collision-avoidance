@@ -103,8 +103,8 @@ void TrajectorySelector::EvaluateTerminalVelocityCost(Vector3 const& carrot_body
     TerminalVelocityEvaluations(i) = 0;
     
     // cost on going too fast
-    if (final_trajectory_speed > 8.0) {
-      //TerminalVelocityEvaluations(i) -= (5.0 - final_trajectory_speed)*(5.0 - final_trajectory_speed);
+    if (final_trajectory_speed > 5.0) {
+      TerminalVelocityEvaluations(i) -= (5.0 - final_trajectory_speed)*(5.0 - final_trajectory_speed);
     }
 
     i++;

@@ -1,27 +1,28 @@
 #include <ros/ros.h>
 #include <nav_msgs/Path.h>
 #include <visualization_msgs/Marker.h>
-#include "acl_fsw/QuadGoal.h"
+#include <sensor_msgs/PointCloud2.h>
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
+#include <mavros_msgs/AttitudeTarget.h>
+
 #include "tf/tf.h"
-#include <mutex>
-#include <thread>
-#include <std_srvs/Empty.h>
-#include "trajectory_selector.h"
-#include <cmath>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <sensor_msgs/PointCloud2.h>
+
 #include <pcl/filters/voxel_grid.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+
+#include <mutex>
+#include <cmath>
 #include <time.h>
 #include <stdlib.h>
+
+#include "trajectory_selector.h"
 #include "attitude_generator.h"
-#include <mavros_msgs/AttitudeTarget.h>
 
   
 std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
@@ -31,76 +32,42 @@ tf2_ros::Buffer tf_buffer_;
 class TrajectorySelectorNode {
 public:
 
-	TrajectorySelectorNode(std::string const& waypoint_topic, std::string const& pose_topic, std::string const& velocity_topic, std::string const& local_goal_topic, std::string const& samples_topic) {
-		//nh.getParam("max_waypoints", max_waypoints);
+	TrajectorySelectorNode(std::string const& waypoint_topic, std::string const& pose_topic, std::string const& velocity_topic, std::string const& samples_topic) {
 
+		// Subscribers
 		pose_sub = nh.subscribe(pose_topic, 1, &TrajectorySelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe(velocity_topic, 1, &TrajectorySelectorNode::OnVelocity, this);
 		//waypoints_sub = nh.subscribe(waypoint_topic, 1, &TrajectorySelectorNode::OnWaypoints, this);
   	    point_cloud_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnPointCloud, this);
   	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
 
-
-		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 1);
+  	    // Publishers
 		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 1);
-		vis_pub = nh.advertise<visualization_msgs::Marker>( "visualization_marker", 0 );
+		//vis_pub = nh.advertise<visualization_msgs::Marker>( "visualization_marker", 0 );
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
 		attitude_thrust_pub = nh.advertise<mavros_msgs::AttitudeTarget>("/mavros/setpoint_raw/attitude", 1);
+		attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
 
-		attitude_setpoint_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
-
-
-
+		// Initialization
 		trajectory_selector.InitializeLibrary(final_time);
 		createSamplingTimeVector();
-
-		for (int i = 0; i < trajectory_selector.getNumTrajectories(); i++) {
-			poly_samples_pubs.push_back(nh.advertise<nav_msgs::Path>(samples_topic+std::to_string(i), 1));
-		}
-
+		initializeDrawingPaths(samples_topic);
 		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);
-
-
-		local_goal_msg.pos.x = 0.0;
-		local_goal_msg.pos.y = 0.0;
-		local_goal_msg.yaw   = 0.0;
-
-		local_goal_msg.vel.x = 0.0;
-		local_goal_msg.vel.y = 0.0;
-		local_goal_msg.vel.z = 0.0;
-		local_goal_msg.dyaw  = 0.0;
-
-		local_goal_msg.jerk.x = 0.0;
-		local_goal_msg.jerk.y = 0.0;
-
-		local_goal_msg.waypointType = 1;
-
 		srand ( time(NULL) ); //initialize the random seed
+
 		ROS_INFO("Finished constructing the trajectory selector node, waiting for waypoints");
 	}
 
-	void drawTrajectoryDebug() {
-		size_t trajectory_index = 0;
-		Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, sampling_time_vector, num_samples);
-
-		nav_msgs::Path poly_samples_msg;
-		poly_samples_msg.header.frame_id = "ortho_body";
-		poly_samples_msg.header.stamp = ros::Time::now();
-		mutex.lock();
-		Vector3 sigma;
-		for (size_t sample = 0; sample < num_samples; sample++) {
-			poly_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), "ortho_body"));
-			sigma = trajectory_selector.getSigmaAtTime(sampling_time_vector(sample));
-		 	//drawGaussianPropagationDebug(sample, sample_points_xyz_over_time.row(sample), sigma);
+	void initializeDrawingPaths(std::string const& samples_topic) {
+		for (int i = 0; i < trajectory_selector.getNumTrajectories(); i++) {
+			poly_samples_pubs.push_back(nh.advertise<nav_msgs::Path>(samples_topic+std::to_string(i), 1));
 		}
-		mutex.unlock();
-		poly_samples_pub.publish(poly_samples_msg);
 	}
 
 	void drawGaussianPropagationDebug(int id, Vector3 position, Vector3 sigma) {
 		visualization_msgs::Marker marker;
 		marker.header.frame_id = "ortho_body";
-		marker.header.stamp = ros::Time();
+		marker.header.stamp = ros::Time::now();
 		marker.ns = "my_namespace";
 		marker.id = id;
 		marker.type = visualization_msgs::Marker::SPHERE;
@@ -120,7 +87,7 @@ public:
 
 	void drawTrajectoriesDebug() {
 		size_t num_trajectories = trajectory_selector.getNumTrajectories(); 
-		
+
 		for (size_t trajectory_index = 0; trajectory_index < num_trajectories; trajectory_index++) {
 
 			Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  trajectory_selector.sampleTrajectoryForDrawing(trajectory_index, sampling_time_vector, num_samples);
@@ -150,21 +117,9 @@ public:
 
 		PublishAttitudeSetpoint(attitude_thrust_desired);
 
-		//PublishDesiredAcceleration(desired_acceleration);
 	}
 
 private:
-
-	void PublishDesiredAcceleration(Vector3 desired_acceleration) {
-		
-		local_goal_msg.pos.z = carrot_world_frame(2);
-		local_goal_msg.accel.x = desired_acceleration(0);
-		local_goal_msg.accel.y = desired_acceleration(1);
-
-		local_goal_pub.publish(local_goal_msg);
-
-	}
-
 
 	void createSamplingTimeVector() {
 		num_samples = 10;
@@ -237,8 +192,7 @@ private:
 	    try {
 
 	      tf = tf_buffer_.lookupTransform("ortho_body", "world", 
-	                                    ros::Time(),
-	                                    ros::Duration(1.0/30));
+	                                    ros::Time(0), ros::Duration(1.0/30.0));
 	    } catch (tf2::TransformException &ex) {
 	      ROS_ERROR("%s", ex.what());
 	      return;
@@ -248,6 +202,12 @@ private:
 	    geometry_msgs::PoseStamped pose_global_goal_ortho_body_frame = PoseFromVector3(Vector3(0,0,0), "ortho_body");
 	   
 	    tf2::doTransform(pose_global_goal_world_frame, pose_global_goal_ortho_body_frame, tf);
+
+	    // tf::Transformer transformer;
+
+	    // geometry_msgs::PoseStamped pose_global_goal_world_frame = PoseFromVector3(carrot_world_frame, "world");
+	    // geometry_msgs::PoseStamped pose_global_goal_ortho_body_frame = PoseFromVector3(Vector3(0,0,0), "ortho_body");
+	    // transformer.transformPose("ortho_body", pose_global_goal_world_frame, pose_global_goal_ortho_body_frame)
 
 	    carrot_ortho_body_frame = VectorFromPose(pose_global_goal_ortho_body_frame);
 	}
@@ -264,8 +224,7 @@ private:
 	      }
 
 	      tf = tf_buffer_.lookupTransform("body", twist_frame_id, 
-	                                    ros::Time(twist.header.stamp),
-	                                    ros::Duration(1.0/30));
+	                                    ros::Time(0), ros::Duration(1/30.0));
 	    } catch (tf2::TransformException &ex) {
 	      ROS_ERROR("%s", ex.what());
 	      return;
@@ -295,8 +254,7 @@ private:
 	    try {
 
 	      tf = tf_buffer_.lookupTransform("ortho_body", "world", 
-	                                    ros::Time(),
-	                                    ros::Duration(1.0/30));
+	                                    ros::Time(0), ros::Duration(1/30.0));
 	    } catch (tf2::TransformException &ex) {
 	      ROS_ERROR("%s", ex.what());
 	      return;
@@ -356,8 +314,7 @@ private:
 	      }
 
 	      tf = tf_buffer_.lookupTransform("ortho_body", pose_frame_id, 
-	                                    ros::Time(waypoints.poses[0].header.stamp),
-	                                    ros::Duration(1.0/30));
+	                                    ros::Time(0), ros::Duration(1/30.0));
 	    } catch (tf2::TransformException &ex) {
 	      ROS_ERROR("%s", ex.what());
 	      return;
@@ -373,7 +330,7 @@ private:
 
 	    visualization_msgs::Marker marker;
 		marker.header.frame_id = "ortho_body";
-		marker.header.stamp = ros::Time();
+		marker.header.stamp = ros::Time::now();
 		marker.ns = "my_namespace";
 		marker.id = 0;
 		marker.type = visualization_msgs::Marker::SPHERE;
@@ -400,8 +357,7 @@ private:
 		geometry_msgs::TransformStamped tf;
 	    try {
 	      tf = tf_buffer_.lookupTransform("ortho_body", "xtion_depth_optical_frame", 
-	                                    ros::Time(),
-	                                    ros::Duration(1.0/30));
+	                                    ros::Time(0), ros::Duration(1/30.0));
 	    } catch (tf2::TransformException &ex) {
 	      ROS_ERROR("%s", ex.what());
 	      return;
@@ -515,13 +471,13 @@ private:
 
 		geometry_msgs::PoseStamped attitude_setpoint;
 		attitude_setpoint.header.frame_id = "world";
-		attitude_setpoint.header.stamp = ros::Time();
+		attitude_setpoint.header.stamp = ros::Time::now();
 		Vector3 initial_acceleration = trajectory_selector.getInitialAcceleration();
 		attitude_setpoint.pose.position.x = initial_acceleration(0);
 		attitude_setpoint.pose.position.y = initial_acceleration(1);
 		attitude_setpoint.pose.position.z = initial_acceleration(2)+5;
 		attitude_setpoint.pose.orientation = setpoint_msg.orientation;
-		attitude_setpoint_pub.publish( attitude_setpoint );
+		attitude_setpoint_visualization_pub.publish( attitude_setpoint );
 
 		//std::cout << "Desired roll, pitch, thrust: " << roll_pitch_thrust << std::endl;
 		//std::cout << "Quat w,x,y,z: " << setpoint_msg.orientation.w << " " << setpoint_msg.orientation.x << " " << setpoint_msg.orientation.y << " " << setpoint_msg.orientation.z <<std::endl;
@@ -532,20 +488,17 @@ private:
 	}
 
 
-	acl_fsw::QuadGoal local_goal_msg;
-
 	ros::Subscriber waypoints_sub;
 	ros::Subscriber pose_sub;
 	ros::Subscriber velocity_sub;
 	ros::Subscriber point_cloud_sub;
 	ros::Subscriber global_goal_sub;
 
-	ros::Publisher local_goal_pub;
 	ros::Publisher poly_samples_pub;
 	ros::Publisher vis_pub;
 	ros::Publisher gaussian_pub;
 	ros::Publisher attitude_thrust_pub;
-	ros::Publisher attitude_setpoint_pub;
+	ros::Publisher attitude_setpoint_visualization_pub;
 
 	std::vector<ros::Publisher> poly_samples_pubs;
 
@@ -588,7 +541,7 @@ int main(int argc, char* argv[]) {
 
 	ros::init(argc, argv, "TrajectorySelectorNode");
 
-	TrajectorySelectorNode trajectory_selector_node("/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/FLA_ACL02/goal", "/poly_samples");
+	TrajectorySelectorNode trajectory_selector_node("/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/poly_samples");
 
 	std::cout << "Got through to here" << std::endl;
 	ros::Rate spin_rate(30);
