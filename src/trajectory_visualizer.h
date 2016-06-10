@@ -36,6 +36,7 @@ public:
 
   void drawAll();
   void drawGaussianPropagation(int id, Vector3 position, Vector3 sigma);
+  void drawFinalStoppingPosition(int id, Vector3 position);
   
 
 private:
