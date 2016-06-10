@@ -26,6 +26,9 @@
 #include "trajectory_visualizer.h"
 #include "trajectory_selector_utils.h"
 
+// debug only
+#include <chrono>
+
   
 
 class TrajectorySelectorNode {
@@ -443,9 +446,24 @@ int main(int argc, char* argv[]) {
 	std::cout << "Got through to here" << std::endl;
 	ros::Rate spin_rate(30);
 
+	auto t1 = std::chrono::high_resolution_clock::now();
+	auto t2 = std::chrono::high_resolution_clock::now();
+
 	while (ros::ok()) {
+		t1 = std::chrono::high_resolution_clock::now();
 		trajectory_selector_node.ReactToSampledPointCloud();
+		t2 = std::chrono::high_resolution_clock::now();
+  		std::cout << "ReactToSampledPointCloud took "
+              << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+              << " microseconds\n"; 
+
+		t1 = std::chrono::high_resolution_clock::now();
 		trajectory_selector_node.trajectory_visualizer.drawAll();
+		t2 = std::chrono::high_resolution_clock::now();
+		std::cout << "Drawing took "
+              << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+              << " microseconds\n"; 
+
 		ros::spinOnce();
 		spin_rate.sleep();
 	}
