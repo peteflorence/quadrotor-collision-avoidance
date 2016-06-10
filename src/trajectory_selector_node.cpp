@@ -109,14 +109,12 @@ public:
 
 	void ReactToSampledPointCloud() {
 		Vector3 desired_acceleration;
-
 		trajectory_selector.computeBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 		trajectory_selector.setThrust(attitude_thrust_desired(2));
 
 		PublishAttitudeSetpoint(attitude_thrust_desired);
-
 	}
 
 private:
@@ -149,12 +147,9 @@ private:
 		attitude_generator.setZ(pose.pose.position.z);
 		
 		tf::Quaternion q(pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w);
-		mutex.lock();
 		tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
 		trajectory_selector.setRollPitch(roll, pitch);
-		mutex.unlock();
-		//std::cout << "Roll: " << roll << ", Pitch: " << pitch << ", Yaw: " << yaw << std::endl;
-
+		
 		static tf2_ros::TransformBroadcaster br;
   		geometry_msgs::TransformStamped transformStamped;
   
@@ -171,22 +166,7 @@ private:
 	    transformStamped.transform.rotation.z = q_ortho.z();
 	    transformStamped.transform.rotation.w = q_ortho.w();
 
-	    // transformStamped.header.stamp = ros::Time::now();
-	    // transformStamped.header.frame_id = "world";
-	    // transformStamped.child_frame_id = "ortho_body";
-	    // transformStamped.transform.translation.x = pose.pose.position.x;
-	    // transformStamped.transform.translation.y = pose.pose.position.y;
-	    // transformStamped.transform.translation.z = pose.pose.position.z;
-	    // tf2::Quaternion q_ortho;
-	    // q_ortho.setRPY(0, 0, tf::getYaw(q));
-	    // transformStamped.transform.rotation.x = q_ortho.x();
-	    // transformStamped.transform.rotation.y = q_ortho.y();
-	    // transformStamped.transform.rotation.z = q_ortho.z();
-	    // transformStamped.transform.rotation.w = q_ortho.w();
-
 	    br.sendTransform(transformStamped);
-
-
 
 	    geometry_msgs::TransformStamped tf;
 	    try {
@@ -203,12 +183,6 @@ private:
 	   
 	    tf2::doTransform(pose_global_goal_world_frame, pose_global_goal_ortho_body_frame, tf);
 
-	    // tf::Transformer transformer;
-
-	    // geometry_msgs::PoseStamped pose_global_goal_world_frame = PoseFromVector3(carrot_world_frame, "world");
-	    // geometry_msgs::PoseStamped pose_global_goal_ortho_body_frame = PoseFromVector3(Vector3(0,0,0), "ortho_body");
-	    // transformer.transformPose("ortho_body", pose_global_goal_world_frame, pose_global_goal_ortho_body_frame)
-
 	    carrot_ortho_body_frame = VectorFromPose(pose_global_goal_ortho_body_frame);
 	}
 
@@ -223,7 +197,7 @@ private:
 	        twist_frame_id = twist_frame_id.substr(1, twist_frame_id.size()-1);
 	      }
 
-	      tf = tf_buffer_.lookupTransform("body", twist_frame_id, 
+	      tf = tf_buffer_.lookupTransform("ortho_body", twist_frame_id, 
 	                                    ros::Time(0), ros::Duration(1/30.0));
 	    } catch (tf2::TransformException &ex) {
 	      ROS_ERROR("%s", ex.what());
@@ -233,9 +207,7 @@ private:
 	    Eigen::Quaternion<Scalar> quat(tf.transform.rotation.w, tf.transform.rotation.x, tf.transform.rotation.y, tf.transform.rotation.z);
 	    Matrix3 R = quat.toRotationMatrix();
 
-		mutex.lock();
 		trajectory_selector.setInitialVelocity(R*Vector3(twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z));
-		mutex.unlock();
 	}
 
 	Eigen::Vector3d VectorFromPose(geometry_msgs::PoseStamped const& pose) {
