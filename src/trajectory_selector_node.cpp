@@ -60,7 +60,12 @@ public:
 
 	void ReactToSampledPointCloud() {
 		Vector3 desired_acceleration;
+		auto t1 = std::chrono::high_resolution_clock::now();
 		trajectory_selector.computeBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+		auto t2 = std::chrono::high_resolution_clock::now();
+  		std::cout << "Computing best trajectory and collision checking took "
+              << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+              << " microseconds\n"; 
 
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 		trajectory_selector.setThrust(attitude_thrust_desired(2));
@@ -71,7 +76,6 @@ public:
 private:
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
-		auto t1 = std::chrono::high_resolution_clock::now();
 		
 		//ROS_INFO("GOT POSE");
 
@@ -116,15 +120,10 @@ private:
 
 	    carrot_ortho_body_frame = VectorFromPose(pose_global_goal_ortho_body_frame);
 
-	    auto t2 = std::chrono::high_resolution_clock::now();
-  		std::cout << "OnPose took "
-              << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-              << " microseconds\n"; 
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
 		//ROS_INFO("GOT VELOCITY");
-		auto t1 = std::chrono::high_resolution_clock::now();
 		
 		geometry_msgs::TransformStamped tf;
 	    try {
@@ -145,15 +144,10 @@ private:
 	    Matrix3 R = quat.toRotationMatrix();
 
 		trajectory_selector.setInitialVelocity(R*Vector3(twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z));
-		auto t2 = std::chrono::high_resolution_clock::now();
-  		std::cout << "OnVelocity took "
-              << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-              << " microseconds\n";
 	}
 	
 	void OnGlobalGoal(geometry_msgs::PoseStamped const& global_goal) {
-		auto t1 = std::chrono::high_resolution_clock::now();
-		//ROS_INFO("GOT WAYPOINTS");
+		//ROS_INFO("GOT GLOBAL GOAL");
 
 		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+2.5; 
 		attitude_generator.setZsetpoint(global_goal.pose.position.z+2.5);
@@ -175,10 +169,6 @@ private:
 	    tf2::doTransform(pose_carrot_world_frame, pose_carrot_ortho_body_frame, tf);
 
 	    carrot_ortho_body_frame = VectorFromPose(pose_carrot_ortho_body_frame);
-	    auto t2 = std::chrono::high_resolution_clock::now();
-  		std::cout << "OnGlobalGoal took "
-              << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-              << " microseconds\n";
 	}
 
 
@@ -438,9 +428,18 @@ int main(int argc, char* argv[]) {
 	std::cout << "Got through to here" << std::endl;
 	ros::Rate spin_rate(30);
 
+	auto t1 = std::chrono::high_resolution_clock::now();
+	auto t2 = std::chrono::high_resolution_clock::now();
 
 	while (ros::ok()) {
+		//t1 = std::chrono::high_resolution_clock::now();
 		trajectory_selector_node.ReactToSampledPointCloud();
+		//t2 = std::chrono::high_resolution_clock::now();
+		// std::cout << "ReactToSampledPointCloud took "
+  //     		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+  //     		<< " microseconds\n";
+      	
+
 		trajectory_selector_node.trajectory_visualizer.drawAll();
 
 		ros::spinOnce();
