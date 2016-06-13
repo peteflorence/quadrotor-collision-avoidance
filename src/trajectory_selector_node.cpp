@@ -149,8 +149,8 @@ private:
 	void OnGlobalGoal(geometry_msgs::PoseStamped const& global_goal) {
 		//ROS_INFO("GOT GLOBAL GOAL");
 
-		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+2.5; 
-		attitude_generator.setZsetpoint(global_goal.pose.position.z+2.5);
+		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.0; 
+		attitude_generator.setZsetpoint(global_goal.pose.position.z+1.0);
 		
 
 		geometry_msgs::TransformStamped tf;
