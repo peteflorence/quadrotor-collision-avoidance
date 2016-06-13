@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="trajectory_selector" type="trajectory_selector_node" name="trajectory_selector" output="screen"/>
+</launch>
