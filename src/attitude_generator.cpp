@@ -26,7 +26,7 @@ Vector3 AttitudeGenerator::generateDesiredAttitudeThrust(Vector3 const& desired_
 	double roll_degrees = roll * 180/M_PI;
 	double pitch_degrees = pitch * 180/M_PI;
 	if ((abs(roll_degrees) > 30) || (abs(pitch_degrees) > 30)) {
-		std::cout << "I just tried to command a roll, pitch of: " << roll_degrees << " " << pitch_degrees << std::endl;
+	//	std::cout << "I just tried to command a roll, pitch of: " << roll_degrees << " " << pitch_degrees << std::endl;
 	}
 
 	double thrust = zPID();
@@ -35,7 +35,8 @@ Vector3 AttitudeGenerator::generateDesiredAttitudeThrust(Vector3 const& desired_
 };
 
 void AttitudeGenerator::setGains(Vector3 const& pid) {
-	_Kp = pid(0);
+        if( fabs(pid(1) - _Ki) > 1e-6 ) _integral = 0.0;
+        _Kp = pid(0);
 	_Ki = pid(1);
 	_Kd = pid(2);
 }
@@ -46,9 +47,14 @@ double AttitudeGenerator::zPID() {
 	double error = z_setpoint - z;
 	double Pout = _Kp * error;
 
-	// Integral term
+        std::cout << "dt is " << _dt << std::endl;
+        std::cout << "_integral is " << _integral << std::endl;
+        std::cout << "z setpoint is " << z_setpoint << std::endl;
+        std::cout << "z is          " << z << std::endl;
 
-	_integral += error * _dt;
+
+	// Integral term
+	_integral += _Ki * error * _dt;
 	if (_integral >_i_max) {
 		_integral = _i_max;
 	}
@@ -56,14 +62,13 @@ double AttitudeGenerator::zPID() {
 		_integral = -_i_max;
 	}
 
-    double Iout = _Ki * _integral;
 
     // Derivative term
     double derivative = (error - _pre_error) / _dt;
     double Dout = _Kd * derivative;
 
     // Calculate total output
-    double output = Pout + Iout + Dout;
+    double output = Pout + _integral + Dout;
 
     // Restrict to max/min
     if( output > _max )

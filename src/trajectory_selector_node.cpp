@@ -60,12 +60,7 @@ public:
 
 	void ReactToSampledPointCloud() {
 		Vector3 desired_acceleration;
-		auto t1 = std::chrono::high_resolution_clock::now();
 		trajectory_selector.computeBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame, best_traj_index, desired_acceleration);
-		auto t2 = std::chrono::high_resolution_clock::now();
-  		std::cout << "Computing best trajectory and collision checking took "
-              << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-              << " microseconds\n"; 
 
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 		trajectory_selector.setThrust(attitude_thrust_desired(2));

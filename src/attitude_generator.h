@@ -15,7 +15,7 @@ public:
 private:
   
   double z;
-  double z_setpoint;
+  double z_setpoint=0.0;
 
   double roll;
   double pitch;
@@ -29,6 +29,6 @@ private:
   double _Kd = 0.5;
   double _pre_error = 0;
   double _integral = 0;
-  double _i_max = 10.0;
+  double _i_max = 0.5;
 
 };
