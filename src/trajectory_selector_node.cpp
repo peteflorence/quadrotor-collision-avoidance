@@ -40,7 +40,7 @@ public:
 		pose_sub = nh.subscribe("/samros/pose", 1, &TrajectorySelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/samros/twist", 1, &TrajectorySelectorNode::OnVelocity, this);
 		//waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
-  	    point_cloud_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnPointCloud, this);
+  	    //point_cloud_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnPointCloud, this);
   	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
 
   	    // Publishers
