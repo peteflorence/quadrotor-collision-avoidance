@@ -328,6 +328,13 @@ private:
 
 		using namespace Eigen;
 
+		Vector3 pid;
+		nh.param("z_p", pid(0), 0.5);
+		nh.param("z_i", pid(1), 0.05);
+		nh.param("z_d", pid(2), 0.5);
+
+		attitude_generator.setGains(pid);
+
 		mavros_msgs::AttitudeTarget setpoint_msg;
 		setpoint_msg.header.stamp = ros::Time::now();
 		setpoint_msg.type_mask = mavros_msgs::AttitudeTarget::IGNORE_ROLL_RATE 
