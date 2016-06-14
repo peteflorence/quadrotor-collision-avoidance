@@ -22,12 +22,12 @@ private:
   double thrust;
 
 
-  double _dt = 1/30.0;
+  double _dt = 1/100.0;
   double _max = 1;
   double _min = 0;
-  double _Kp = 0.5;
-  double _Ki = 0.05;
-  double _Kd = 0.5;
+  double _Kp = 8.1;
+  double _Ki = 0.63;
+  double _Kd = 1.89;
   double _pre_error = 0;
   double _integral = 0;
   double _i_max = 0.5;
