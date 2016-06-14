@@ -7,6 +7,7 @@ public:
   void TestAttitudeGenerator();
   void setZ(double z);
   void setZsetpoint(double z_setpoint);
+  void setZvelocity(double const& z_velocity);
   void setGains(Vector3 const& pid, double const& offset);
   double zPID();
 
@@ -15,7 +16,10 @@ public:
 private:
   
   double z;
-  double z_setpoint=0.0;
+  double z_setpoint = 0.0;
+  
+  double z_velocity = 0;
+  double z_velocity_setpoint = 0;
 
   double roll;
   double pitch;

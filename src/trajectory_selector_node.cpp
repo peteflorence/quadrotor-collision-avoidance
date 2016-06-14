@@ -121,6 +121,7 @@ private:
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
 		//ROS_INFO("GOT VELOCITY");
+		attitude_generator.setZvelocity(twist.twist.linear.z);
 		
 		geometry_msgs::TransformStamped tf;
 	    try {

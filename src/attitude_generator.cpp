@@ -14,6 +14,10 @@ void AttitudeGenerator::setZsetpoint(double z_setpoint) {
 	this->z_setpoint = z_setpoint;
 };
 
+void AttitudeGenerator::setZvelocity(double const& z_velocity) {
+	this->z_velocity = z_velocity;
+};
+
 Vector3 AttitudeGenerator::generateDesiredAttitudeThrust(Vector3 const& desired_acceleration) {
 	double a_x = desired_acceleration(0);
 	double a_y = desired_acceleration(1);
@@ -65,8 +69,8 @@ double AttitudeGenerator::zPID() {
 
 
     // Derivative term
-    double derivative = (error - _pre_error) / _dt;
-    double Dout = _Kd * derivative;
+    double velocity_error = z_velocity_setpoint - z_velocity;
+    double Dout = _Kd * velocity_error;
 
     // Calculate total output
     double output = Pout + _integral + Dout + _offset;
