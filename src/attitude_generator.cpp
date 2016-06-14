@@ -34,11 +34,12 @@ Vector3 AttitudeGenerator::generateDesiredAttitudeThrust(Vector3 const& desired_
 	return Vector3(roll, pitch, thrust);
 };
 
-void AttitudeGenerator::setGains(Vector3 const& pid) {
+void AttitudeGenerator::setGains(Vector3 const& pid, double const& offset) {
         if( fabs(pid(1) - _Ki) > 1e-6 ) _integral = 0.0;
         _Kp = pid(0);
 	_Ki = pid(1);
 	_Kd = pid(2);
+	_offset = offset;
 }
 
 double AttitudeGenerator::zPID() {
@@ -68,7 +69,7 @@ double AttitudeGenerator::zPID() {
     double Dout = _Kd * derivative;
 
     // Calculate total output
-    double output = Pout + _integral + Dout;
+    double output = Pout + _integral + Dout + _offset;
 
     // Restrict to max/min
     if( output > _max )

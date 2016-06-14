@@ -324,11 +324,13 @@ private:
 		using namespace Eigen;
 
 		Vector3 pid;
+		double offset;
 		nh.param("z_p", pid(0), 0.5);
 		nh.param("z_i", pid(1), 0.05);
 		nh.param("z_d", pid(2), 0.5);
+		nh.param("z_offset", offset, 0.0);
 
-		attitude_generator.setGains(pid);
+		attitude_generator.setGains(pid, offset);
 
 		mavros_msgs::AttitudeTarget setpoint_msg;
 		setpoint_msg.header.stamp = ros::Time::now();
