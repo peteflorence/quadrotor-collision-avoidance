@@ -39,9 +39,9 @@ public:
 		// Subscribers
 		pose_sub = nh.subscribe("/samros/pose", 1, &TrajectorySelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/samros/twist", 1, &TrajectorySelectorNode::OnVelocity, this);
-		//waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
+		waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
   	    //point_cloud_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnPointCloud, this);
-  	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
+  	    //global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
 
   	    // Publishers
 		carrot_pub = nh.advertise<visualization_msgs::Marker>( "carrot_marker", 0 );
@@ -148,7 +148,7 @@ private:
 		//ROS_INFO("GOT GLOBAL GOAL");
 
 		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.0; 
-		attitude_generator.setZsetpoint(global_goal.pose.position.z+1.0);
+		//attitude_generator.setZsetpoint(global_goal.pose.position.z+1.0);
 		
 
 		geometry_msgs::TransformStamped tf;
@@ -202,7 +202,7 @@ private:
 			}
 		}
 		carrot_world_frame << waypoints_matrix(0, i), waypoints_matrix(1, i), waypoints_matrix(2, i); 
-		attitude_generator.setZsetpoint(carrot_world_frame(2));
+		//attitude_generator.setZsetpoint(carrot_world_frame(2));
 		
 
 
@@ -394,7 +394,7 @@ private:
 	double carrot_distance;
 
 	double start_time = 0.0;
-	double final_time = 0.7;
+	double final_time = 0.5;
 
 	Eigen::Vector4d pose_x_y_z_yaw;
 	double roll, pitch, yaw;
