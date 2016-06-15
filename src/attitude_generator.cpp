@@ -84,7 +84,7 @@ double AttitudeGenerator::zPID() {
     // Save error to previous error
     _pre_error = error;
 
-    return output + _offset;
+    return output;
 
 };
 

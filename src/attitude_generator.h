@@ -27,14 +27,14 @@ private:
 
 
   double _dt = 1/100.0;
-  double _max = 1;
-  double _min = 0;
-  double _Kp = 8.1;
-  double _Ki = 0.63;
-  double _Kd = 1.89;
+  double _max = 0.9;
+  double _min = 0.3;
+  double _Kp = 1.5;
+  double _Ki = 0.6;
+  double _Kd = 0.5;
   double _pre_error = 0;
   double _integral = 0;
-  double _i_max = 0.2;
-  double _offset = 0.2;
+  double _i_max = 0.07;
+  double _offset = 0.69;
 
 };
