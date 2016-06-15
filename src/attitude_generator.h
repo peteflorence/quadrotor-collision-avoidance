@@ -34,7 +34,7 @@ private:
   double _Kd = 1.89;
   double _pre_error = 0;
   double _integral = 0;
-  double _i_max = 0.5;
-  double _offset = 0.0;
+  double _i_max = 0.2;
+  double _offset = 0.2;
 
 };
