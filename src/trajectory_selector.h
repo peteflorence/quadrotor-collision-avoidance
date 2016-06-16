@@ -7,7 +7,7 @@
 #include <opencv2/opencv.hpp>
 #include "trajectory_library.h"
 #include "trajectory_evaluator.h"
-#include "value_grid_parser.h"
+#include "value_grid.h"
 
 #include <nav_msgs/OccupancyGrid.h>
 
@@ -17,22 +17,11 @@ public:
   
 
   void Test();
+
+  TrajectoryLibrary* getTrajectoryLibraryPtr();
   
   void InitializeLibrary(double const& final_time);
-  void setInitialVelocity(Vector3 const& initialVelocity);
   size_t getNumTrajectories();
-
-  void setRollPitch(double const& roll, double const& pitch) {
-    trajectory_library.setRollPitch(roll, pitch);
-    trajectory_library.updateInitialAcceleration();
-  };
-  void setThrust(double const& thrust) {
-    trajectory_library.setThrust(thrust);
-  };
-
-  Vector3 getInitialAcceleration() const {
-    return trajectory_library.getInitialAcceleration();
-  }
   
   Vector3 getSigmaAtTime(double const& t);
   Vector3 getInverseSigmaAtTime(double const & t);
@@ -44,9 +33,8 @@ public:
 private:
   
   TrajectoryLibrary trajectory_library;
-  size_t num_trajectories = 25;
   TrajectoryEvaluator trajectory_evaluator;
-  ValueGridParser value_grid_parser;
+  ValueGrid value_grid;
 
   void EvaluateGoalProgress(Vector3 const& carrot_body_frame);
   void EvaluateTerminalVelocityCost(Vector3 const& carrot_body_frame);

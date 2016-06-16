@@ -1,6 +1,6 @@
-#include "value_grid_parser.h"
+#include "value_grid.h"
 
-void ValueGridParser::UpdateValueGrid(nav_msgs::OccupancyGrid * value_grid) {
+void ValueGrid::UpdateValueGrid(nav_msgs::OccupancyGrid * value_grid) {
 	//auto t1 = std::chrono::high_resolution_clock::now();
 	value_grid_ptr = value_grid;
 	//std::cout << "I just updated my value grid" << std::endl;

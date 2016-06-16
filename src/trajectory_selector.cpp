@@ -7,9 +7,12 @@ void TrajectorySelector::Test() {
   trajectory_evaluator.TestEvaluator();
 }
 
+TrajectoryLibrary* TrajectorySelector::getTrajectoryLibraryPtr() {
+  return &trajectory_library;
+};
+
 void TrajectorySelector::InitializeLibrary(double const& final_time) {
   trajectory_library.Initialize2DLibrary(final_time);
-  //num_trajectories = getNumTrajectories();
   this->final_time = final_time;
 
   size_t num_samples = 10;
@@ -19,12 +22,6 @@ void TrajectorySelector::InitializeLibrary(double const& final_time) {
       sampling_time = start_time + sampling_interval*(sample_index+1);
       sampling_time_vector(sample_index) = sampling_time;
   }
-
-};
-
-void TrajectorySelector::setInitialVelocity(Vector3 const& initialVelocity) {
-  // THIS MUST CHANGE FOR 3D FLIGHT
-  trajectory_library.setInitialVelocityAllTrajectories(Vector3(initialVelocity(0), initialVelocity(1), 0.0));
 };
 
 
@@ -185,6 +182,6 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryFor
   return sample_points_xyz_over_time;
 }
 
-void TrajectorySelector::PassInUpdatedValueGrid(nav_msgs::OccupancyGrid * value_grid) {
-  value_grid_parser.UpdateValueGrid(value_grid);
+void TrajectorySelector::PassInUpdatedValueGrid(nav_msgs::OccupancyGrid * value_grid_msg) {
+  value_grid.UpdateValueGrid(value_grid_msg);
 };

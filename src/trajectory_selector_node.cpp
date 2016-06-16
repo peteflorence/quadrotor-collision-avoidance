@@ -53,6 +53,7 @@ public:
 
 		// Initialization
 		trajectory_selector.InitializeLibrary(final_time);
+
 		trajectory_visualizer.initialize(&trajectory_selector, nh, &best_traj_index, final_time);
 		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);
 		srand ( time(NULL) ); //initialize the random seed
@@ -60,28 +61,34 @@ public:
 		ROS_INFO("Finished constructing the trajectory selector node, waiting for waypoints");
 	}
 
+	void SetThrustForLibrary(double thrust) {
+		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.getTrajectoryLibraryPtr();
+		if (trajectory_library_ptr != nullptr) {
+			trajectory_library_ptr->setThrust(thrust);
+		}
+	}
+
 	void ReactToSampledPointCloud() {
 		Vector3 desired_acceleration;
 		trajectory_selector.computeBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
-		trajectory_selector.setThrust(attitude_thrust_desired(2));
+
+		SetThrustForLibrary(attitude_thrust_desired(2));
 
 		PublishAttitudeSetpoint(attitude_thrust_desired);
 	}
 
 private:
 
-	void OnPose( geometry_msgs::PoseStamped const& pose ) {
-		
-		//ROS_INFO("GOT POSE");
+	void UpdateTrajectoryLibraryRollPitch(double roll, double pitch) {
+		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.getTrajectoryLibraryPtr();
+		if (trajectory_library_ptr != nullptr) {
+			trajectory_library_ptr->setRollPitch(roll, pitch);
+		}
+	}
 
-		attitude_generator.setZ(pose.pose.position.z);
-		
-		tf::Quaternion q(pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w);
-		tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-		trajectory_selector.setRollPitch(roll, pitch);
-		
+	void PublishOrthoBodyTransform(double roll, double pitch) {
 		static tf2_ros::TransformBroadcaster br;
   		geometry_msgs::TransformStamped transformStamped;
   
@@ -99,8 +106,10 @@ private:
 	    transformStamped.transform.rotation.w = q_ortho.w();
 
 	    br.sendTransform(transformStamped);
+	}
 
-	    geometry_msgs::TransformStamped tf;
+	void UpdateCarrotOrthoBodyFrame() {
+		geometry_msgs::TransformStamped tf;
 	    try {
 
 	      tf = tf_buffer_.lookupTransform("ortho_body", "world", 
@@ -114,67 +123,69 @@ private:
 	    geometry_msgs::PoseStamped pose_global_goal_ortho_body_frame = PoseFromVector3(Vector3(0,0,0), "ortho_body");
 	   
 	    tf2::doTransform(pose_global_goal_world_frame, pose_global_goal_ortho_body_frame, tf);
-
 	    carrot_ortho_body_frame = VectorFromPose(pose_global_goal_ortho_body_frame);
+	}
 
-	    //ReactToSampledPointCloud();
 
+	void OnPose( geometry_msgs::PoseStamped const& pose ) {
+		//ROS_INFO("GOT POSE");
+		attitude_generator.setZ(pose.pose.position.z);
+		
+		tf::Quaternion q(pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w);
+		double roll, pitch, yaw;
+		tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+
+		UpdateTrajectoryLibraryRollPitch(roll, pitch);
+		PublishOrthoBodyTransform(roll, pitch);
+		UpdateCarrotOrthoBodyFrame();
+
+	}
+
+	Vector3 TransformWorldToOrthoBody(Vector3 const& world_frame) {
+		geometry_msgs::TransformStamped tf;
+	    try {
+	      tf = tf_buffer_.lookupTransform("ortho_body", "world", 
+	                                    ros::Time(0), ros::Duration(1/30.0));
+	    } catch (tf2::TransformException &ex) {
+	      ROS_ERROR("%s", ex.what());
+	      return Vector3::Zero();
+	    }
+
+	    Eigen::Quaternion<Scalar> quat(tf.transform.rotation.w, tf.transform.rotation.x, tf.transform.rotation.y, tf.transform.rotation.z);
+	    Matrix3 R = quat.toRotationMatrix();
+	    return R*world_frame;
+	}
+
+	void UpdateTrajectoryLibraryVelocity(Vector3 const& velocity_ortho_body_frame) {
+		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.getTrajectoryLibraryPtr();
+		if (trajectory_library_ptr != nullptr) {
+			trajectory_library_ptr->setInitialVelocity(velocity_ortho_body_frame);
+		}
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
 		//ROS_INFO("GOT VELOCITY");
 		attitude_generator.setZvelocity(twist.twist.linear.z);
-		
-		geometry_msgs::TransformStamped tf;
-	    try {
-	      // Need to remove leading "/" if it exists.
-	      std::string twist_frame_id = twist.header.frame_id;
-	      if (twist_frame_id[0] == '/') {
-	        twist_frame_id = twist_frame_id.substr(1, twist_frame_id.size()-1);
-	      }
-
-	      tf = tf_buffer_.lookupTransform("ortho_body", twist_frame_id, 
-	                                    ros::Time(0), ros::Duration(1/30.0));
-	    } catch (tf2::TransformException &ex) {
-	      ROS_ERROR("%s", ex.what());
-	      return;
-	    }
-
-	    Eigen::Quaternion<Scalar> quat(tf.transform.rotation.w, tf.transform.rotation.x, tf.transform.rotation.y, tf.transform.rotation.z);
-	    Matrix3 R = quat.toRotationMatrix();
-
-		trajectory_selector.setInitialVelocity(R*Vector3(twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z));
+		Vector3 velocity_world_frame(twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z);
+		Vector3 velocity_ortho_body_frame = TransformWorldToOrthoBody(velocity_world_frame);
+		UpdateTrajectoryLibraryVelocity(velocity_ortho_body_frame);
 	}
 	
 	void OnGlobalGoal(geometry_msgs::PoseStamped const& global_goal) {
 		//ROS_INFO("GOT GLOBAL GOAL");
-
 		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.0; 
-		//attitude_generator.setZsetpoint(global_goal.pose.position.z+1.0);
-		
-
-		geometry_msgs::TransformStamped tf;
-	    try {
-
-	      tf = tf_buffer_.lookupTransform("ortho_body", "world", 
-	                                    ros::Time(0), ros::Duration(1/30.0));
-	    } catch (tf2::TransformException &ex) {
-	      ROS_ERROR("%s", ex.what());
-	      return;
-	    }
-
-	    geometry_msgs::PoseStamped pose_carrot_world_frame = PoseFromVector3(carrot_world_frame, "world");
-	    geometry_msgs::PoseStamped pose_carrot_ortho_body_frame = PoseFromVector3(carrot_ortho_body_frame, "ortho_body");
-	   
-	    tf2::doTransform(pose_carrot_world_frame, pose_carrot_ortho_body_frame, tf);
-
-	    carrot_ortho_body_frame = VectorFromPose(pose_carrot_ortho_body_frame);
+		UpdateCarrotOrthoBodyFrame();
 	}
 
 	void OnValueGrid(nav_msgs::OccupancyGrid value_grid) {
 		ROS_INFO("GOT VALUE GRID");
+
 		auto t1 = std::chrono::high_resolution_clock::now();
+
+
 		trajectory_selector.PassInUpdatedValueGrid(&value_grid);
+		
+
 		auto t2 = std::chrono::high_resolution_clock::now();
 		std::cout << "Whole value grid took "
       		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
@@ -410,7 +421,6 @@ private:
 	double final_time = 0.5;
 
 	Eigen::Vector4d pose_x_y_z_yaw;
-	double roll, pitch, yaw;
 	Eigen::Matrix<double, 4, Eigen::Dynamic> waypoints_matrix;
 
 	Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector;

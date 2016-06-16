@@ -58,15 +58,12 @@ void TrajectoryLibrary::updateInitialAcceleration() {
 
 
 
-void TrajectoryLibrary::setInitialVelocityAllTrajectories(Vector3 const& initialVelocity) {
+void TrajectoryLibrary::setInitialVelocity(Vector3 const& velocity) {
+	initial_velocity = velocity;
+	initial_velocity(2) = 0; // WARNING MUST GET RID OF THIS FOR 3D FLIGHT
 	for (size_t index = 0; index < trajectories.size(); index++) {
-		trajectories.at(index).setInitialVelocity(initialVelocity);
+		trajectories.at(index).setInitialVelocity(initial_velocity);
 	}
-	initial_velocity = initialVelocity;
-};
-
-void TrajectoryLibrary::setInitialVelocityJustOneTrajectory(Vector3 const& initialVelocity) {
-	trajectories.at(0).setInitialVelocity(initialVelocity);
 };
 
 

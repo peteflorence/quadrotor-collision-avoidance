@@ -8,12 +8,12 @@ public:
 
   void Initialize2DLibrary(double const& final_time);
 
-  void setInitialVelocityAllTrajectories(Vector3 const& initialVelocity);
-  void setInitialVelocityJustOneTrajectory(Vector3 const& initialVelocity);
+  void setInitialVelocity(Vector3 const& initialVelocity);
 
   void setRollPitch(double const& roll, double const& pitch) {
     this->roll = roll;
     this->pitch = pitch;
+    updateInitialAcceleration();
   };
   void setThrust(double const& thrust) {
     this->thrust = thrust;

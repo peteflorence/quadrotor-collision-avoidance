@@ -1,10 +1,10 @@
 #include <iostream>
 #include <chrono>
-#include <nav_msgs/OccupancyGrid.h>
 #include "trajectory_selector_utils.h"
+#include <nav_msgs/OccupancyGrid.h>
 
 
-class ValueGridParser {
+class ValueGrid {
 public:
   void UpdateValueGrid(nav_msgs::OccupancyGrid * value_grid);
 
