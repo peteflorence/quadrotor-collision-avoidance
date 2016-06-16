@@ -195,8 +195,9 @@ private:
       		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
       		<< " microseconds\n";
 
-		std::cout << value_grid_ptr->GetValueOfPosition(carrot_world_frame) << "is value of carrot" << std::endl;
-		std::cout << value_grid_ptr->GetValueOfPosition(Vector3(0,0,0)) << "is value of world origin" << std::endl;
+		std::cout << value_grid_ptr->GetValueOfPosition(carrot_world_frame) << " is value of goal" << std::endl;
+		std::cout << value_grid_ptr->GetValueOfPosition(Vector3(0,0,0)) << " is value of world origin" << std::endl;
+		std::cout << value_grid_ptr->GetValueOfPosition(Vector3(0,-2.0,0)) << " is value of 1.5 to my right" << std::endl;
 	}
 
 
