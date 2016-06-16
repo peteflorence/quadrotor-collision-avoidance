@@ -46,44 +46,9 @@ find_package(orocos_kdl REQUIRED)
 find_library(OROCOS_KDL orocos-kdl)
 set(orocos_kdl_LIBRARIES ${OROCOS_KDL})
 
-add_library( trajectory_selector src/trajectory_selector.cpp )
-add_executable( test_trajectory_selector src/test_trajectory_selector.cpp )
-target_link_libraries( test_trajectory_selector trajectory_selector )
 
-add_library( trajectory_library src/trajectory_library.cpp )
-target_link_libraries( trajectory_selector trajectory_library )
-
-add_library( trajectory_evaluator src/trajectory_evaluator.cpp )
-target_link_libraries( trajectory_selector trajectory_evaluator )
-
-add_library( trajectory src/trajectory.cpp )
-target_link_libraries( trajectory_library trajectory )
-
-add_library( attitude_generator src/attitude_generator.cpp )
-target_link_libraries( attitude_generator trajectory )
-
-add_library( trajectory_visualizer src/trajectory_visualizer.cpp )
-
-add_library( value_grid src/value_grid.cpp )
-target_link_libraries( trajectory_selector value_grid )
+add_library( trajectory_selector src/trajectory_selector.cpp src/trajectory_library.cpp src/trajectory_evaluator.cpp  src/trajectory.cpp src/attitude_generator.cpp src/trajectory_visualizer.cpp src/value_grid_evaluator.cpp src/value_grid.cpp src/trajectory_selector_utils.cpp)
 
 
 add_executable( trajectory_selector_node src/trajectory_selector_node.cpp )
-target_link_libraries( trajectory_selector_node trajectory_selector )
-target_link_libraries( trajectory_selector_node ${catkin_LIBRARIES} )
-target_link_libraries( trajectory_selector_node ${PCL_LIBRARIES})
-target_link_libraries( trajectory_selector_node attitude_generator )
-target_link_libraries( trajectory_selector_node trajectory_visualizer )
-target_link_libraries( trajectory_selector_node orocos-kdl )
-
-
-
-##add_library( depth_image_processor src/devel/depth_image_processor.cpp)
-##add_executable( test_depth_image_processor src/devel/test_depth_image_processor.cpp)
-##add_executable( dip_node src/devel/depth_image_processor_node.cpp)
-##target_link_libraries( test_depth_image_processor depth_image_processor)
-##target_link_libraries( dip_node depth_image_processor)
-
-target_link_libraries(trajectory_selector
-  ${OpenCV_LIBS} ${catkin_LIBRARIES}
-)
+target_link_libraries( trajectory_selector_node trajectory_selector ${catkin_LIBRARIES} ${PCL_LIBRARIES} orocos-kdl)

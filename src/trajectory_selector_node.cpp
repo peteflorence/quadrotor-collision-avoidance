@@ -25,7 +25,7 @@
 #include "trajectory_selector.h"
 #include "attitude_generator.h"
 #include "trajectory_visualizer.h"
-#include "trajectory_selector_utils.h"
+//#include "trajectory_selector_utils.h"
 
 // debug only
 #include <chrono>
@@ -62,7 +62,7 @@ public:
 	}
 
 	void SetThrustForLibrary(double thrust) {
-		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.getTrajectoryLibraryPtr();
+		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
 		if (trajectory_library_ptr != nullptr) {
 			trajectory_library_ptr->setThrust(thrust);
 		}
@@ -82,7 +82,7 @@ public:
 private:
 
 	void UpdateTrajectoryLibraryRollPitch(double roll, double pitch) {
-		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.getTrajectoryLibraryPtr();
+		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
 		if (trajectory_library_ptr != nullptr) {
 			trajectory_library_ptr->setRollPitch(roll, pitch);
 		}
@@ -157,7 +157,7 @@ private:
 	}
 
 	void UpdateTrajectoryLibraryVelocity(Vector3 const& velocity_ortho_body_frame) {
-		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.getTrajectoryLibraryPtr();
+		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
 		if (trajectory_library_ptr != nullptr) {
 			trajectory_library_ptr->setInitialVelocity(velocity_ortho_body_frame);
 		}
@@ -177,19 +177,26 @@ private:
 		UpdateCarrotOrthoBodyFrame();
 	}
 
-	void OnValueGrid(nav_msgs::OccupancyGrid value_grid) {
+	void OnValueGrid(nav_msgs::OccupancyGrid value_grid_msg) {
 		ROS_INFO("GOT VALUE GRID");
-
 		auto t1 = std::chrono::high_resolution_clock::now();
 
+		ValueGridEvaluator* value_grid_evaluator_ptr = trajectory_selector.GetValueGridEvaluatorPtr();
+		ValueGrid* value_grid_ptr = value_grid_evaluator_ptr->GetValueGridPtr();
 
-		trajectory_selector.PassInUpdatedValueGrid(&value_grid);
-		
+		value_grid_ptr->SetResolution(value_grid_msg.info.resolution);
+		value_grid_ptr->SetSize(value_grid_msg.info.width, value_grid_msg.info.height);
+		value_grid_ptr->SetOrigin(value_grid_msg.info.origin.position.x, value_grid_msg.info.origin.position.y);
+		value_grid_ptr->SetValues(value_grid_msg.data);
 
+		//trajectory_selector.PassInUpdatedValueGrid(&value_grid);
 		auto t2 = std::chrono::high_resolution_clock::now();
-		std::cout << "Whole value grid took "
+		std::cout << "Whole value grid construction took "
       		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
       		<< " microseconds\n";
+
+		std::cout << value_grid_ptr->GetValueOfPosition(carrot_world_frame) << "is value of carrot" << std::endl;
+		std::cout << value_grid_ptr->GetValueOfPosition(Vector3(0,0,0)) << "is value of world origin" << std::endl;
 	}
 
 

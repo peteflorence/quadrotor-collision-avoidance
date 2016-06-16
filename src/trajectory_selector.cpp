@@ -7,8 +7,12 @@ void TrajectorySelector::Test() {
   trajectory_evaluator.TestEvaluator();
 }
 
-TrajectoryLibrary* TrajectorySelector::getTrajectoryLibraryPtr() {
+TrajectoryLibrary* TrajectorySelector::GetTrajectoryLibraryPtr() {
   return &trajectory_library;
+};
+
+ValueGridEvaluator* TrajectorySelector::GetValueGridEvaluatorPtr() {
+  return &value_grid_evaluator;
 };
 
 void TrajectorySelector::InitializeLibrary(double const& final_time) {
@@ -181,7 +185,3 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryFor
   }
   return sample_points_xyz_over_time;
 }
-
-void TrajectorySelector::PassInUpdatedValueGrid(nav_msgs::OccupancyGrid * value_grid_msg) {
-  value_grid.UpdateValueGrid(value_grid_msg);
-};

@@ -1,12 +1,22 @@
 #include "value_grid.h"
 
-void ValueGrid::UpdateValueGrid(nav_msgs::OccupancyGrid * value_grid) {
-	//auto t1 = std::chrono::high_resolution_clock::now();
-	value_grid_ptr = value_grid;
-	//std::cout << "I just updated my value grid" << std::endl;
-	//std::cout << VectorFromPoseUnstamped(this->value_grid.info.origin) << " is (0,0) cell in map" << std::endl;
-	// auto t2 = std::chrono::high_resolution_clock::now();
-	// 	std::cout << "Just updating value grid pointer took "
- //      		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
- //      		<< " microseconds\n";
-};
+int ValueGrid::GetValueOfPosition(Vector3 const& position_in_world_frame) {
+	Eigen::Matrix<Scalar, 2, 1> point_in_value_grid_frame = transformIntoValueGridFrame(position_in_world_frame);
+	size_t x_index, y_index;
+	IndexInValueGrid(point_in_value_grid_frame, x_index, y_index);
+	return ValueFromIndex(x_index, y_index);
+}
+
+Eigen::Matrix<Scalar, 2, 1> ValueGrid::transformIntoValueGridFrame(Vector3 const& point) {
+	return Eigen::Matrix<Scalar, 2, 1>(point(0) - cell_0_x_in_world, point(1) - cell_0_y_in_world);
+}
+
+void ValueGrid::IndexInValueGrid(Eigen::Matrix<Scalar, 2, 1> const& position_in_value_grid_frame, size_t& x_index, size_t& y_index) {
+	x_index = static_cast<size_t> (position_in_value_grid_frame(0) / resolution);
+	y_index = static_cast<size_t> (position_in_value_grid_frame(1) / resolution);
+}
+
+int ValueGrid::ValueFromIndex(size_t x_index, size_t y_index) {
+	return values[y_index*width + x_index];
+}
+

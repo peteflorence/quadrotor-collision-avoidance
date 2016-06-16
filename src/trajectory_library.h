@@ -1,3 +1,7 @@
+#ifndef TRAJECTORY_LIBRARY_H
+#define TRAJECTORY_LIBRARY_H
+
+
 #include <iostream>
 #include "trajectory.h"
 #include <vector>
@@ -58,3 +62,4 @@ private:
  
 };
 
+#endif
