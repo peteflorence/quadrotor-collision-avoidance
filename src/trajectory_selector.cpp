@@ -185,6 +185,6 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryFor
   return sample_points_xyz_over_time;
 }
 
-void TrajectorySelector::PassInUpdatedValueGrid(nav_msgs::OccupancyGrid const& value_grid) {
+void TrajectorySelector::PassInUpdatedValueGrid(nav_msgs::OccupancyGrid * value_grid) {
   value_grid_parser.UpdateValueGrid(value_grid);
 };

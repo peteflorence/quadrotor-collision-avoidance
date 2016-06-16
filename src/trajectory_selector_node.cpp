@@ -171,9 +171,14 @@ private:
 	    carrot_ortho_body_frame = VectorFromPose(pose_carrot_ortho_body_frame);
 	}
 
-	void OnValueGrid(nav_msgs::OccupancyGrid const& value_grid) {
+	void OnValueGrid(nav_msgs::OccupancyGrid value_grid) {
 		ROS_INFO("GOT VALUE GRID");
-		trajectory_selector.PassInUpdatedValueGrid(value_grid);
+		auto t1 = std::chrono::high_resolution_clock::now();
+		trajectory_selector.PassInUpdatedValueGrid(&value_grid);
+		auto t2 = std::chrono::high_resolution_clock::now();
+		std::cout << "Whole value grid took "
+      		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+      		<< " microseconds\n";
 	}
 
 
