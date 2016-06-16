@@ -5,6 +5,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
 #include <mavros_msgs/AttitudeTarget.h>
+#include <nav_msgs/OccupancyGrid.h>
 
 #include "tf/tf.h"
 #include <tf2_ros/transform_listener.h>
@@ -39,9 +40,10 @@ public:
 		// Subscribers
 		pose_sub = nh.subscribe("/samros/pose", 1, &TrajectorySelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/samros/twist", 1, &TrajectorySelectorNode::OnVelocity, this);
-		waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
+		//waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
   	    //point_cloud_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnPointCloud, this);
-  	    //global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
+  	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
+  	    value_grid_sub = nh.subscribe("/value_grid", 1, &TrajectorySelectorNode::OnValueGrid, this);
 
   	    // Publishers
 		carrot_pub = nh.advertise<visualization_msgs::Marker>( "carrot_marker", 0 );
@@ -167,6 +169,11 @@ private:
 	    tf2::doTransform(pose_carrot_world_frame, pose_carrot_ortho_body_frame, tf);
 
 	    carrot_ortho_body_frame = VectorFromPose(pose_carrot_ortho_body_frame);
+	}
+
+	void OnValueGrid(nav_msgs::OccupancyGrid const& value_grid) {
+		ROS_INFO("GOT VALUE GRID");
+		trajectory_selector.PassInUpdatedValueGrid(value_grid);
 	}
 
 
@@ -377,6 +384,7 @@ private:
 	ros::Subscriber velocity_sub;
 	ros::Subscriber point_cloud_sub;
 	ros::Subscriber global_goal_sub;
+	ros::Subscriber value_grid_sub;
 
 	ros::Publisher carrot_pub;
 	ros::Publisher gaussian_pub;

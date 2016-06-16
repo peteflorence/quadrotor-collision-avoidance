@@ -64,6 +64,9 @@ target_link_libraries( attitude_generator trajectory )
 
 add_library( trajectory_visualizer src/trajectory_visualizer.cpp )
 
+add_library( value_grid_parser src/value_grid_parser.cpp )
+target_link_libraries( trajectory_selector value_grid_parser )
+
 
 add_executable( trajectory_selector_node src/trajectory_selector_node.cpp )
 target_link_libraries( trajectory_selector_node trajectory_selector )

@@ -7,6 +7,9 @@
 #include <opencv2/opencv.hpp>
 #include "trajectory_library.h"
 #include "trajectory_evaluator.h"
+#include "value_grid_parser.h"
+
+#include <nav_msgs/OccupancyGrid.h>
 
 
 class TrajectorySelector {
@@ -36,12 +39,14 @@ public:
   void computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration);
 
   Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sampleTrajectoryForDrawing(size_t trajectory_index, Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector, size_t num_samples);
+  void PassInUpdatedValueGrid(nav_msgs::OccupancyGrid const& value_grid);
 
 private:
   
   TrajectoryLibrary trajectory_library;
   size_t num_trajectories = 25;
   TrajectoryEvaluator trajectory_evaluator;
+  ValueGridParser value_grid_parser;
 
   void EvaluateGoalProgress(Vector3 const& carrot_body_frame);
   void EvaluateTerminalVelocityCost(Vector3 const& carrot_body_frame);

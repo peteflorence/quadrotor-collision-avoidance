@@ -41,8 +41,8 @@ Vector3 TrajectorySelector::getInverseSigmaAtTime(double const & t) {
 };
 
 void TrajectorySelector::computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
-  //EvaluateCollisionProbabilities(point_cloud_xyz_samples);
-  EvaluateGoalProgress(carrot_body_frame);
+  //EvaluateCollisionProbabilities(point_cloud_xyz_samples); // INSTANTANEOUS LOW LATENCY
+  EvaluateGoalProgress(carrot_body_frame); // DIJSKTRA
   EvaluateTerminalVelocityCost(carrot_body_frame);
 
   desired_acceleration << 0,0,0;
@@ -103,7 +103,7 @@ void TrajectorySelector::EvaluateTerminalVelocityCost(Vector3 const& carrot_body
     TerminalVelocityEvaluations(i) = 0;
     
     // cost on going too fast
-    double soft_top_speed = 3.0;
+    double soft_top_speed = 15.0;
     if (final_trajectory_speed > soft_top_speed) {
       TerminalVelocityEvaluations(i) -= (soft_top_speed - final_trajectory_speed)*(soft_top_speed - final_trajectory_speed);
     }
@@ -184,3 +184,7 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryFor
   }
   return sample_points_xyz_over_time;
 }
+
+void TrajectorySelector::PassInUpdatedValueGrid(nav_msgs::OccupancyGrid const& value_grid) {
+  value_grid_parser.UpdateValueGrid(value_grid);
+};

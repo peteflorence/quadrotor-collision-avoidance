@@ -52,11 +52,10 @@ double AttitudeGenerator::zPID() {
 	double error = z_setpoint - z;
 	double Pout = _Kp * error;
 
-        std::cout << "dt is " << _dt << std::endl;
-        std::cout << "_integral is " << _integral << std::endl;
-        std::cout << "z setpoint is " << z_setpoint << std::endl;
-        std::cout << "z is          " << z << std::endl;
-
+    //std::cout << "dt is " << _dt << std::endl;
+    //std::cout << "_integral is " << _integral << std::endl;
+    //std::cout << "z setpoint is " << z_setpoint << std::endl;
+    //std::cout << "z is          " << z << std::endl;
 
 	// Integral term
 	_integral += _Ki * error * _dt;
