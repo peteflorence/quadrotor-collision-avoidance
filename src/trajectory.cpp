@@ -42,13 +42,29 @@ Vector3 Trajectory::getTerminalStopPosition(Scalar const& t) const {
   Vector3 velocity_end_of_trajectory = getVelocity(t);
 
   double speed = velocity_end_of_trajectory.norm();
-  double stop_t = speed / a_max_horizontal;
-  double drift_time = 0.300;
+  std::cout << "Speed " << speed << std::endl;
+  
+  Vector3 stopping_vector = -velocity_end_of_trajectory/speed;
+  Vector3 max_stop_acceleration = a_max_horizontal*stopping_vector;
+  Vector3 stopping_jerk = (max_stop_acceleration - acceleration) / jerk_time;
+  Vector3 position_end_of_jerk_stop = 0.1666*stopping_jerk*jerk_time*jerk_time*jerk_time + 0.5*acceleration*jerk_time*jerk_time + velocity_end_of_trajectory*jerk_time + position_end_of_trajectory;
+  Vector3 velocity_end_of_jerk_stop = 0.5*stopping_jerk*jerk_time*jerk_time + acceleration*jerk_time + velocity_end_of_trajectory;
 
-  //double stopping_distance = 0.5 * -a_max_horizontal * stop_t*stop_t +speed*stop_t;
-  //return position_end_of_trajectory + stopping_distance*velocity_end_of_trajectory/speed;
+  // check if stopped during jerk time
+  if (velocity_end_of_trajectory.dot(velocity_end_of_jerk_stop) < 0) {
+    return position_end_of_jerk_stop;
+  }
 
-  return initial_velocity*drift_time + 0.5*(a_max_horizontal)*-(velocity_end_of_trajectory)/speed*stop_t*stop_t + velocity_end_of_trajectory*(stop_t+drift_time) + position_end_of_trajectory;
+  double realistic_stop_accel = a_max_horizontal*0.65;
+  double speed_after_jerk = velocity_end_of_jerk_stop.norm();
+  std::cout << "Speed after jerk " << speed_after_jerk << std::endl;
+  double stop_t_after_jerk = (speed_after_jerk / realistic_stop_accel);
+  std::cout << "Stop t after jerk " << stop_t_after_jerk << std::endl;
+  //double extra_drift = speed_after_jerk*0.200;
+  double stopping_distance_after_jerk =  0.5 * -realistic_stop_accel * stop_t_after_jerk*stop_t_after_jerk + speed_after_jerk*stop_t_after_jerk;
+  std::cout << "Stop distance after jerk " << stopping_distance_after_jerk << std::endl;
+
+  return position_end_of_jerk_stop + stopping_distance_after_jerk*-stopping_vector;
 
 }
 
