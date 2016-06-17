@@ -22,8 +22,8 @@ private:
   double z_velocity = 0;
   double z_velocity_setpoint = 0;
 
-  double actual_roll;
-  double actual_pitch;
+  double actual_roll=0;
+  double actual_pitch=0;
 
   double _dt = 1/100.0;
   double _max = 0.9;
