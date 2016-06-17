@@ -50,7 +50,7 @@ private:
   Vector3 velocity_end_of_jerk_time;
 
   double a_max_horizontal;
-  double jerk_time = 0.100;
+  double jerk_time = 0.200;
 
 };
 
