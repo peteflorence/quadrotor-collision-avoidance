@@ -63,7 +63,7 @@ Vector3 Trajectory::getVelocity(Scalar const& t) const {
   }
   else {
     double t_left = t - jerk_time;
-    return velocity_end_of_jerk_time + acceleration*t_left + initial_velocity;
+    return velocity_end_of_jerk_time + acceleration*t_left;
   }
 };
 
