@@ -43,11 +43,12 @@ Vector3 Trajectory::getTerminalStopPosition(Scalar const& t) const {
 
   double speed = velocity_end_of_trajectory.norm();
   double stop_t = speed / a_max_horizontal;
+  double drift_time = 0.300;
 
   //double stopping_distance = 0.5 * -a_max_horizontal * stop_t*stop_t +speed*stop_t;
   //return position_end_of_trajectory + stopping_distance*velocity_end_of_trajectory/speed;
 
-  return 0.5*a_max_horizontal*-(velocity_end_of_trajectory)/speed*stop_t*stop_t + velocity_end_of_trajectory*stop_t + position_end_of_trajectory;
+  return initial_velocity*drift_time + 0.5*(a_max_horizontal)*-(velocity_end_of_trajectory)/speed*stop_t*stop_t + velocity_end_of_trajectory*(stop_t+drift_time) + position_end_of_trajectory;
 
 }
 
