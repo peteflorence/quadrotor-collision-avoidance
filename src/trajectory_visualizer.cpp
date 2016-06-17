@@ -88,9 +88,9 @@ void TrajectoryVisualizer::drawAll() {
 			}
 		}
 
-		if (trajectory_index == *best_traj_index) {
-			drawFinalStoppingPosition(num_samples-1, sample_points_xyz_over_time.row(num_samples-1));
-		}
+		// if (trajectory_index == *best_traj_index) {
+		// 	drawFinalStoppingPosition(num_samples-1, sample_points_xyz_over_time.row(num_samples-1));
+		// }
 
 		action_paths_pubs.at(trajectory_index).publish(action_samples_msg);
 	}

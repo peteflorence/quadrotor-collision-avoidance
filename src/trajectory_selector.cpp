@@ -49,9 +49,9 @@ void TrajectorySelector::computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> con
   desired_acceleration << 0,0,0;
   best_traj_index = 0;
   float current_objective_value;
-  float best_traj_objective_value = GoalProgressEvaluations(0) + 1.0*TerminalVelocityEvaluations(0);
+  float best_traj_objective_value = GoalProgressEvaluations(0) + 2.0*TerminalVelocityEvaluations(0);
   for (size_t traj_index = 1; traj_index < 25; traj_index++) {
-    current_objective_value = GoalProgressEvaluations(traj_index) + 1.0*TerminalVelocityEvaluations(traj_index);
+    current_objective_value = GoalProgressEvaluations(traj_index) + 2.0*TerminalVelocityEvaluations(traj_index);
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
       best_traj_objective_value = GoalProgressEvaluations(traj_index);
@@ -104,9 +104,9 @@ void TrajectorySelector::EvaluateTerminalVelocityCost(Vector3 const& carrot_body
     TerminalVelocityEvaluations(i) = 0;
     
     // cost on going too fast
-    double soft_top_speed = 15.0;
-    if (final_trajectory_speed > soft_top_speed) {
-      TerminalVelocityEvaluations(i) -= (soft_top_speed - final_trajectory_speed)*(soft_top_speed - final_trajectory_speed);
+    double soft_top_speed = 5.0;
+    if (final_trajectory_speed > (soft_top_speed-1.0)) {
+      TerminalVelocityEvaluations(i) -= ((soft_top_speed-1.0) - final_trajectory_speed)*((soft_top_speed-1.0) - final_trajectory_speed);
     }
 
     i++;
