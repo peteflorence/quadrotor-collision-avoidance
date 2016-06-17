@@ -6,6 +6,11 @@ void AttitudeGenerator::TestAttitudeGenerator() {
 
 }
 
+void AttitudeGenerator::UpdateRollPitch(double roll, double pitch) {
+	actual_roll = roll;
+	actual_pitch = pitch;
+}
+
 void AttitudeGenerator::setZ(double z) {
 	this->z = z;
 };
@@ -38,7 +43,7 @@ Vector3 AttitudeGenerator::generateDesiredAttitudeThrust(Vector3 const& desired_
 	//	std::cout << "I just tried to command a roll, pitch of: " << roll_degrees << " " << pitch_degrees << std::endl;
 	}
 
-	double thrust = zPID(roll, pitch);
+	double thrust = zPID();
 
 	return Vector3(roll, pitch, thrust);
 };
@@ -51,7 +56,7 @@ void AttitudeGenerator::setGains(Vector3 const& pid, double const& offset) {
 	_offset = offset;
 }
 
-double AttitudeGenerator::zPID(double roll, double pitch) {
+double AttitudeGenerator::zPID() {
 
 	// Proportional term
 	double error = z_setpoint - z;
@@ -77,7 +82,7 @@ double AttitudeGenerator::zPID(double roll, double pitch) {
     double Dout = _Kd * velocity_error;
 
     // Calculate total output
-    double offset_tilted = _offset/cos(pitch)/cos(roll);
+    double offset_tilted = _offset/cos(actual_pitch)/cos(actual_roll);
     double output = Pout + _integral + Dout + offset_tilted;
 
     // Restrict to max/min

@@ -126,6 +126,10 @@ private:
 	    carrot_ortho_body_frame = VectorFromPose(pose_global_goal_ortho_body_frame);
 	}
 
+	void UpdateAttitudeGeneratorRollPitch(double roll, double pitch) {
+		attitude_generator.UpdateRollPitch(roll, pitch);
+	}
+
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
 		//ROS_INFO("GOT POSE");
@@ -136,6 +140,7 @@ private:
 		tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
 
 		UpdateTrajectoryLibraryRollPitch(roll, pitch);
+		UpdateAttitudeGeneratorRollPitch(roll, pitch);
 		PublishOrthoBodyTransform(roll, pitch);
 		UpdateCarrotOrthoBodyFrame();
 

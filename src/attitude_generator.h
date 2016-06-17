@@ -9,7 +9,8 @@ public:
   void setZsetpoint(double z_setpoint);
   void setZvelocity(double const& z_velocity);
   void setGains(Vector3 const& pid, double const& offset);
-  double zPID(double roll, double pitch);
+  double zPID();
+  void UpdateRollPitch(double roll, double pitch);
 
   Vector3 generateDesiredAttitudeThrust(Vector3 const& desired_acceleration);
 
@@ -21,10 +22,8 @@ private:
   double z_velocity = 0;
   double z_velocity_setpoint = 0;
 
-  double roll;
-  double pitch;
-  double thrust;
-
+  double actual_roll;
+  double actual_pitch;
 
   double _dt = 1/100.0;
   double _max = 0.9;
