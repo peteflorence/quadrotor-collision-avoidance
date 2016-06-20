@@ -83,3 +83,11 @@ Vector3 TrajectoryLibrary::getInverseSigmaAtTime(double const& t) {
 	Vector3 sigma = getSigmaAtTime(t);
 	return Vector3(1.0/sigma(0), 1.0/sigma(1), 1.0/sigma(2));
 };
+
+void TrajectoryLibrary::setInitialAccelerationLASER(Vector3 const& initial_acceleration_laser_frame) {
+	this->initial_acceleration_laser_frame = initial_acceleration_laser_frame;
+	for (size_t index = 0; index < trajectories.size(); index++) {
+		trajectories.at(index).setInitialAccelerationLASER(initial_acceleration_laser_frame);
+	}
+	return;
+};

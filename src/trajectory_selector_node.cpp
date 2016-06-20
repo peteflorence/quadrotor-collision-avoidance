@@ -160,6 +160,44 @@ private:
 		PublishOrthoBodyTransform(roll, pitch);
 		UpdateCarrotOrthoBodyFrame();
 
+		transformAccelerationsIntoLaserFrame();
+
+		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
+		Vector3 initial_acceleration = trajectory_library_ptr->getInitialAcceleration();
+    	trajectory_library_ptr->setInitialAccelerationLASER(transformOrthoBodyIntoLaserFrame(initial_acceleration));
+
+	}
+
+	void transformAccelerationsIntoLaserFrame() {
+		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
+
+		std::vector<Trajectory>::iterator trajectory_iterator_begin = trajectory_library_ptr->GetTrajectoryNonConstIteratorBegin();
+  		std::vector<Trajectory>::iterator trajectory_iterator_end = trajectory_library_ptr->GetTrajectoryNonConstIteratorEnd();
+
+  		Vector3 acceleration_ortho_body;
+		Vector3 acceleration_laser_frame;
+
+  		for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
+  			std::cout << "YUP" << std::endl;
+  			acceleration_ortho_body = trajectory->getAcceleration();
+  			acceleration_laser_frame = transformOrthoBodyIntoLaserFrame(acceleration_ortho_body);
+  			trajectory->setAccelerationLASER(acceleration_laser_frame);
+  		} 
+	}
+
+	Vector3 transformOrthoBodyIntoLaserFrame(Vector3 const& ortho_body_vector) {
+		geometry_msgs::TransformStamped tf;
+    	try {
+     		tf = tf_buffer_.lookupTransform("laser", "ortho_body", 
+                                    ros::Time(0), ros::Duration(1/30.0));
+   		} catch (tf2::TransformException &ex) {
+     	 	ROS_ERROR("%s", ex.what());
+      	return Vector3(0,0,0);
+    	}
+    	geometry_msgs::PoseStamped pose_ortho_body_vector = PoseFromVector3(ortho_body_vector, "ortho_body");
+    	geometry_msgs::PoseStamped pose_vector_laser_frame = PoseFromVector3(Vector3(0,0,0), "laser");
+    	tf2::doTransform(pose_ortho_body_vector, pose_vector_laser_frame, tf);
+    	return VectorFromPose(pose_vector_laser_frame);
 	}
 
 	Vector3 TransformWorldToOrthoBody(Vector3 const& world_frame) {
@@ -197,7 +235,6 @@ private:
 		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.0; 
 		UpdateCarrotOrthoBodyFrame();
 	}
-
 
 	void OnScan(sensor_msgs::PointCloud2 const& laser_point_cloud_msg) {
 		ROS_INFO("GOT SCAN");

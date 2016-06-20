@@ -22,7 +22,7 @@ public:
 
 
   void setAccelerationMax(double const& acceleration_max);
-  
+
   void setAcceleration(Vector3 const& acceleration);
   void setInitialAcceleration(Vector3 const& initial_acceleration);
   void setInitialVelocity(Vector3 const& initial_velocity);
@@ -33,9 +33,9 @@ public:
   Vector3 getPosition(Scalar const& t) const;
   Vector3 getTerminalStopPosition(Scalar const& t) const;
 
-  void setAccelerationLASER(Vector3 const& acceleration_rdf);
-  void setInitialAccelerationLASER(Vector3 const& initial_acceleration_rdf);
-  void setInitialVelocityLASER(Vector3 const& initial_velocity_rdf);
+  void setAccelerationLASER(Vector3 const& acceleration_laser);
+  void setInitialAccelerationLASER(Vector3 const& initial_acceleration_laser);
+  void setInitialVelocityLASER(Vector3 const& initial_velocity_laser);
 
   Vector3 getAccelerationLASER() const;
   Vector3 getVelocityLASER(Scalar const& t) const;

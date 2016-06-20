@@ -41,6 +41,16 @@ public:
 	return trajectories.end(); 
   };
 
+  std::vector<Trajectory>::iterator GetTrajectoryNonConstIteratorBegin() {
+  return trajectories.begin(); 
+  };
+
+  std::vector<Trajectory>::iterator GetTrajectoryNonConstIteratorEnd() {
+  return trajectories.end(); 
+  };
+
+  void setInitialAccelerationLASER(Vector3 const& initial_acceleration_laser_frame);
+
 
 
 private:
@@ -52,6 +62,9 @@ private:
 
   Vector3 initial_velocity = Vector3(0,0,0);
   Vector3 initial_acceleration = Vector3(0,0,0);
+
+
+  Vector3 initial_acceleration_laser_frame = Vector3(0,0,0);
 
   double roll = 0;
   double pitch = 0;
