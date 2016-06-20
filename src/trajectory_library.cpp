@@ -91,3 +91,11 @@ void TrajectoryLibrary::setInitialAccelerationLASER(Vector3 const& initial_accel
 	}
 	return;
 };
+
+void TrajectoryLibrary::setInitialVelocityLASER(Vector3 const& initial_velocity_laser_frame) {
+	this->initial_velocity_laser_frame = initial_velocity_laser_frame;
+	for (size_t index = 0; index < trajectories.size(); index++) {
+		trajectories.at(index).setInitialVelocityLASER(initial_velocity_laser_frame);
+	}
+	return;
+};

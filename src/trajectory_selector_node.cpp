@@ -219,6 +219,7 @@ private:
 		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
 		if (trajectory_library_ptr != nullptr) {
 			trajectory_library_ptr->setInitialVelocity(velocity_ortho_body_frame);
+			trajectory_library_ptr->setInitialVelocityLASER(transformOrthoBodyIntoLaserFrame(velocity_ortho_body_frame));
 		}
 	}
 

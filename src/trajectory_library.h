@@ -50,6 +50,7 @@ public:
   };
 
   void setInitialAccelerationLASER(Vector3 const& initial_acceleration_laser_frame);
+  void setInitialVelocityLASER(Vector3 const& initial_velocity_laser_frame);
 
 
 
@@ -63,7 +64,7 @@ private:
   Vector3 initial_velocity = Vector3(0,0,0);
   Vector3 initial_acceleration = Vector3(0,0,0);
 
-
+  Vector3 initial_velocity_laser_frame = Vector3(0,0,0);
   Vector3 initial_acceleration_laser_frame = Vector3(0,0,0);
 
   double roll = 0;
