@@ -26,7 +26,6 @@
 #include "trajectory_selector.h"
 #include "attitude_generator.h"
 #include "trajectory_visualizer.h"
-//#include "trajectory_selector_utils.h"
 
 // debug only
 #include <chrono>
@@ -146,6 +145,15 @@ private:
 		attitude_generator.UpdateRollPitch(roll, pitch);
 	}
 
+	void UpdateLaserFrameFromPose() {
+		transformAccelerationsIntoLaserFrame();
+		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
+		Vector3 initial_acceleration = trajectory_library_ptr->getInitialAcceleration();
+    	if (trajectory_library_ptr != nullptr) {
+			trajectory_library_ptr->setInitialAccelerationLASER(transformOrthoBodyIntoLaserFrame(initial_acceleration));
+		}
+	}
+
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
 		//ROS_INFO("GOT POSE");
@@ -159,30 +167,26 @@ private:
 		UpdateAttitudeGeneratorRollPitch(roll, pitch);
 		PublishOrthoBodyTransform(roll, pitch);
 		UpdateCarrotOrthoBodyFrame();
-
-		transformAccelerationsIntoLaserFrame();
-
-		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
-		Vector3 initial_acceleration = trajectory_library_ptr->getInitialAcceleration();
-    	trajectory_library_ptr->setInitialAccelerationLASER(transformOrthoBodyIntoLaserFrame(initial_acceleration));
-
+		UpdateLaserFrameFromPose();
 	}
 
 	void transformAccelerationsIntoLaserFrame() {
 		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
+		if (trajectory_library_ptr != nullptr) {
 
-		std::vector<Trajectory>::iterator trajectory_iterator_begin = trajectory_library_ptr->GetTrajectoryNonConstIteratorBegin();
-  		std::vector<Trajectory>::iterator trajectory_iterator_end = trajectory_library_ptr->GetTrajectoryNonConstIteratorEnd();
+			std::vector<Trajectory>::iterator trajectory_iterator_begin = trajectory_library_ptr->GetTrajectoryNonConstIteratorBegin();
+	  		std::vector<Trajectory>::iterator trajectory_iterator_end = trajectory_library_ptr->GetTrajectoryNonConstIteratorEnd();
 
-  		Vector3 acceleration_ortho_body;
-		Vector3 acceleration_laser_frame;
+	  		Vector3 acceleration_ortho_body;
+			Vector3 acceleration_laser_frame;
 
-  		for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-  			std::cout << "YUP" << std::endl;
-  			acceleration_ortho_body = trajectory->getAcceleration();
-  			acceleration_laser_frame = transformOrthoBodyIntoLaserFrame(acceleration_ortho_body);
-  			trajectory->setAccelerationLASER(acceleration_laser_frame);
-  		} 
+	  		for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
+	  			std::cout << "YUP" << std::endl;
+	  			acceleration_ortho_body = trajectory->getAcceleration();
+	  			acceleration_laser_frame = transformOrthoBodyIntoLaserFrame(acceleration_ortho_body);
+	  			trajectory->setAccelerationLASER(acceleration_laser_frame);
+	  		} 
+	  	}
 	}
 
 	Vector3 transformOrthoBodyIntoLaserFrame(Vector3 const& ortho_body_vector) {
@@ -241,37 +245,47 @@ private:
 		ROS_INFO("GOT SCAN");
 		LaserScanCollisionEvaluator* laser_scan_collision_ptr = trajectory_selector.GetLaserScanCollisionEvaluatorPtr();
 
-		pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
-		pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
-		
-		pcl_conversions::toPCL(laser_point_cloud_msg, *cloud);
-		pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
-		pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
+		if (laser_scan_collision_ptr != nullptr) {
+			pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
+			pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
+			
+			pcl_conversions::toPCL(laser_point_cloud_msg, *cloud);
+			pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+			pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
 
-		laser_scan_collision_ptr->UpdatePointCloudPtr(xyz_cloud);
+			laser_scan_collision_ptr->UpdatePointCloudPtr(xyz_cloud);
+		}
+	}
+
+	void UpdateValueGrid(nav_msgs::OccupancyGrid value_grid_msg) {
+		auto t1 = std::chrono::high_resolution_clock::now();
+
+		ValueGridEvaluator* value_grid_evaluator_ptr = trajectory_selector.GetValueGridEvaluatorPtr();
+		if (value_grid_evaluator_ptr != nullptr) {
+			ValueGrid* value_grid_ptr = value_grid_evaluator_ptr->GetValueGridPtr();
+			if (value_grid_ptr != nullptr) {
+
+				value_grid_ptr->SetResolution(value_grid_msg.info.resolution);
+				value_grid_ptr->SetSize(value_grid_msg.info.width, value_grid_msg.info.height);
+				value_grid_ptr->SetOrigin(value_grid_msg.info.origin.position.x, value_grid_msg.info.origin.position.y);
+				value_grid_ptr->SetValues(value_grid_msg.data);
+
+				//trajectory_selector.PassInUpdatedValueGrid(&value_grid);
+				auto t2 = std::chrono::high_resolution_clock::now();
+				std::cout << "Whole value grid construction took "
+		      		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+		      		<< " microseconds\n";
+
+				std::cout << value_grid_ptr->GetValueOfPosition(carrot_world_frame) << " is value of goal" << std::endl;
+				std::cout << value_grid_ptr->GetValueOfPosition(Vector3(0,0,0)) << " is value of world origin" << std::endl;
+				std::cout << value_grid_ptr->GetValueOfPosition(Vector3(0,-2.0,0)) << " is value of 1.5 to my right" << std::endl;
+			}
+		}
 	}
 
 	void OnValueGrid(nav_msgs::OccupancyGrid value_grid_msg) {
 		ROS_INFO("GOT VALUE GRID");
-		auto t1 = std::chrono::high_resolution_clock::now();
-
-		ValueGridEvaluator* value_grid_evaluator_ptr = trajectory_selector.GetValueGridEvaluatorPtr();
-		ValueGrid* value_grid_ptr = value_grid_evaluator_ptr->GetValueGridPtr();
-
-		value_grid_ptr->SetResolution(value_grid_msg.info.resolution);
-		value_grid_ptr->SetSize(value_grid_msg.info.width, value_grid_msg.info.height);
-		value_grid_ptr->SetOrigin(value_grid_msg.info.origin.position.x, value_grid_msg.info.origin.position.y);
-		value_grid_ptr->SetValues(value_grid_msg.data);
-
-		//trajectory_selector.PassInUpdatedValueGrid(&value_grid);
-		auto t2 = std::chrono::high_resolution_clock::now();
-		std::cout << "Whole value grid construction took "
-      		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-      		<< " microseconds\n";
-
-		std::cout << value_grid_ptr->GetValueOfPosition(carrot_world_frame) << " is value of goal" << std::endl;
-		std::cout << value_grid_ptr->GetValueOfPosition(Vector3(0,0,0)) << " is value of world origin" << std::endl;
-		std::cout << value_grid_ptr->GetValueOfPosition(Vector3(0,-2.0,0)) << " is value of 1.5 to my right" << std::endl;
+		UpdateValueGrid(value_grid_msg);
 	}
 
 
