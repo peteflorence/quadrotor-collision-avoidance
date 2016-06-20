@@ -1,12 +1,6 @@
 #include "trajectory_selector.h"
 #include <iostream>
 
-void TrajectorySelector::Test() {
-  std::cout << "Printing from inside TrajectorySelector " << std::endl;  
-  trajectory_library.TestLibrary();
-  trajectory_evaluator.TestEvaluator();
-}
-
 TrajectoryLibrary* TrajectorySelector::GetTrajectoryLibraryPtr() {
   return &trajectory_library;
 };
@@ -40,6 +34,12 @@ Vector3 TrajectorySelector::getSigmaAtTime(double const & t) {
 Vector3 TrajectorySelector::getInverseSigmaAtTime(double const & t) {
   return trajectory_library.getInverseSigmaAtTime(t);
 };
+
+void computeBestDijkstraTrajectory(geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration) {
+  std::cout << "Called me" << std::endl;
+  return;
+}
+
 
 void TrajectorySelector::computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
   //EvaluateCollisionProbabilities(point_cloud_xyz_samples); // INSTANTANEOUS LOW LATENCY

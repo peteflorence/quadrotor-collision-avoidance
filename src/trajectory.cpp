@@ -42,7 +42,6 @@ Vector3 Trajectory::getTerminalStopPosition(Scalar const& t) const {
   Vector3 velocity_end_of_trajectory = getVelocity(t);
 
   double speed = velocity_end_of_trajectory.norm();
-  std::cout << "Speed " << speed << std::endl;
   
   Vector3 stopping_vector = -velocity_end_of_trajectory/speed;
   Vector3 max_stop_acceleration = a_max_horizontal*stopping_vector;
@@ -57,12 +56,9 @@ Vector3 Trajectory::getTerminalStopPosition(Scalar const& t) const {
 
   double realistic_stop_accel = a_max_horizontal*0.65;
   double speed_after_jerk = velocity_end_of_jerk_stop.norm();
-  std::cout << "Speed after jerk " << speed_after_jerk << std::endl;
   double stop_t_after_jerk = (speed_after_jerk / realistic_stop_accel);
-  std::cout << "Stop t after jerk " << stop_t_after_jerk << std::endl;
   //double extra_drift = speed_after_jerk*0.200;
   double stopping_distance_after_jerk =  0.5 * -realistic_stop_accel * stop_t_after_jerk*stop_t_after_jerk + speed_after_jerk*stop_t_after_jerk;
-  std::cout << "Stop distance after jerk " << stopping_distance_after_jerk << std::endl;
 
   return position_end_of_jerk_stop + stopping_distance_after_jerk*-stopping_vector;
 
@@ -89,23 +85,3 @@ Matrix3 Trajectory::getCovariance(Scalar const& t) const {
   //return covariances.asDiagonal();
   return Matrix3::Identity();
 };
-
-// Vector1 Trajectory::MatrixSpeedTest(Vector3 const& robot_position, Vector3 const& depth_position, Matrix3 const covariance) const {
-// 	return (robot_position - depth_position).transpose() * covariance.inverse() * (robot_position - depth_position);
-// };
-
-Vector1 Trajectory::MatrixSpeedTestVector(Vector3 const& robot_position, Vector3 const& depth_position, Vector3 const inverse_covariance_vector) const {
-	return (robot_position - depth_position).transpose() * inverse_covariance_vector.cwiseProduct(robot_position - depth_position);
-	//return (robot_position - depth_position).transpose() *(inverse_covariance_vector.array() * (robot_position - depth_position).array()).matrix();
-};
-
-// Vector1 Trajectory::MatrixSpeedTestLLT(Vector3 const& robot_position, Vector3 const& depth_position, Matrix3 const covariance) {
-// 	Eigen::LLT<Matrix3> llt;
-// 	llt.compute(covariance);
-// 	return (robot_position - depth_position).transpose() * llt.solve(robot_position - depth_position);
-// };
-
-// Vector1 Trajectory::MatrixSpeedTestLDLT(Vector3 const& robot_position, Vector3 const& depth_position, Matrix3 const covariance) {
-// 	Eigen::LDLT<Matrix3> ldlt(covariance);
-// 	return (robot_position - depth_position).transpose() * ldlt.solve(robot_position - depth_position);
-// };

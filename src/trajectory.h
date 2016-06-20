@@ -34,10 +34,7 @@ public:
   Vector3 getTerminalStopPosition(Scalar const& t) const;
   Vector3 getVelocity(Scalar const& t) const;
   Matrix3 getCovariance(Scalar const& t) const;
-  //Vector1 MatrixSpeedTest(Vector3 const& robot_position, Vector3 const& depth_position, Matrix3 const covariance) const;
-  Vector1 MatrixSpeedTestVector(Vector3 const& robot_position, Vector3 const& depth_position, Vector3 const inverse_covariance_vector) const;
-  // Vector1 MatrixSpeedTestLLT(Vector3 const& robot_position, Vector3 const& depth_position, Matrix3 const covariance);
-  // Vector1 MatrixSpeedTestLDLT(Vector3 const& robot_position, Vector3 const& depth_position, Matrix3 const covariance);
+
 
 
 private:

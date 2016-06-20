@@ -68,9 +68,25 @@ public:
 		}
 	}
 
+	geometry_msgs::TransformStamped GetTransformToWorld() {
+		geometry_msgs::TransformStamped tf;
+	    try {
+
+	      tf = tf_buffer_.lookupTransform("world", "ortho_body", 
+	                                    ros::Time(0), ros::Duration(1.0/30.0));
+	    } catch (tf2::TransformException &ex) {
+	      ROS_ERROR("%s", ex.what());
+	      return tf;
+	    }
+	    return tf;
+	}
+
 	void ReactToSampledPointCloud() {
 		Vector3 desired_acceleration;
-		trajectory_selector.computeBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+		geometry_msgs::TransformStamped tf = GetTransformToWorld();
+		trajectory_selector.computeBestDijkstraTrajectory(tf, best_traj_index, desired_acceleration);
+
+		//trajectory_selector.computeBestTrajectory(point_cloud_xyz_samples_ortho_body, carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 

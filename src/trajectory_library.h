@@ -8,7 +8,6 @@
 
 class TrajectoryLibrary {
 public:
-  void TestLibrary();
 
   void Initialize2DLibrary(double const& final_time);
 
