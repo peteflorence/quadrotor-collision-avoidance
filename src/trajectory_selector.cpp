@@ -35,11 +35,11 @@ Vector3 TrajectorySelector::getInverseSigmaAtTime(double const & t) {
   return trajectory_library.getInverseSigmaAtTime(t);
 };
 
-void TrajectorySelector::computeBestDijkstraTrajectory(geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration) {
-  EvaluateDijkstraCost(tf);
+void TrajectorySelector::computeBestDijkstraTrajectory(Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration) {
+  EvaluateDijkstraCost(carrot_world_frame, tf);
   EvaluateTerminalVelocityCost();
-  DijkstraEvaluations = Normalize(DijkstraEvaluations);
-  TerminalVelocityEvaluations = Normalize(TerminalVelocityEvaluations);
+  //DijkstraEvaluations = Normalize(DijkstraEvaluations);
+  //TerminalVelocityEvaluations = Normalize(TerminalVelocityEvaluations);
 
   desired_acceleration << 0,0,0;
   best_traj_index = 0;
@@ -80,11 +80,11 @@ Eigen::Matrix<Scalar, 25, 1> TrajectorySelector::Normalize(Eigen::Matrix<Scalar,
 }
 
 float TrajectorySelector::EvaluateObjective(size_t index) {
-  return DijkstraEvaluations(index) + 0.2*TerminalVelocityEvaluations(index);
+  return DijkstraEvaluations(index) + 2*TerminalVelocityEvaluations(index);
 }
 
 
-void TrajectorySelector::EvaluateDijkstraCost(geometry_msgs::TransformStamped const& tf) {
+void TrajectorySelector::EvaluateDijkstraCost(Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf) {
 
   ValueGrid* value_grid_ptr = value_grid_evaluator.GetValueGridPtr();
 
@@ -113,6 +113,10 @@ void TrajectorySelector::EvaluateDijkstraCost(geometry_msgs::TransformStamped co
 
       // Then evaluate Dijkstra cost
       current_value = value_grid_ptr->GetValueOfPosition(world_frame_position);
+      if ((current_value == 0) && ((world_frame_position - carrot_world_frame).norm() > 1.0)) {
+        current_value = 1000;
+      }
+
       DijkstraEvaluations(i) += current_value;
 
     }
