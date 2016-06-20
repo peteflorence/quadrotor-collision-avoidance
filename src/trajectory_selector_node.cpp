@@ -85,7 +85,7 @@ public:
 	void ReactToSampledPointCloud() {
 		Vector3 desired_acceleration;
 	
-		trajectory_selector.computeBestTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+		//trajectory_selector.computeBestTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 
@@ -181,7 +181,6 @@ private:
 			Vector3 acceleration_laser_frame;
 
 	  		for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-	  			std::cout << "YUP" << std::endl;
 	  			acceleration_ortho_body = trajectory->getAcceleration();
 	  			acceleration_laser_frame = transformOrthoBodyIntoLaserFrame(acceleration_ortho_body);
 	  			trajectory->setAccelerationLASER(acceleration_laser_frame);
