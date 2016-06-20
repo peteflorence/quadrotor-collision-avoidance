@@ -19,39 +19,36 @@ void LaserScanCollisionEvaluator::UpdatePointCloudPtr(pcl::PointCloud<pcl::Point
 
 
 
+double LaserScanCollisionEvaluator::computeProbabilityOfCollisionOnePosition(Vector3 const& robot_position, Vector3 const& sigma_robot_position) {
+	std::cout << "Inside LaserScanCollisionEvaluator" << std::endl;
+
+	//pcl::PointXYZ first_point = xyz_cloud->at(0,0);
+	//std::cout << first_point.x << " is the x of the first point" << std::endl;
 
 
+	// I NEED TO ITERATE OVER ALL POINTS
 
-// double DepthImageCollisionEvaluator::computeProbabilityOfCollisionOnePosition(Vector3 const& robot_position, Vector3 const& sigma_robot_position) {
-// 	Vector3 projected = K * robot_position;
-// 	int pi_x = projected(0)/projected(2); 
-// 	int pi_y = projected(1)/projected(2);
-// 	//std::cout << "pi_x and pi_y were " << pi_x << " " << pi_y << std::endl;
+	// for (size_t point_index = 0; point_index < 100; point_index++) {
+ //      point = point_cloud_xyz_samples.row(point_index);
 
-// 	if (pi_x < 0 || pi_x > 159) {
-// 		//std::cout << "This position is outside of my FOV (to the sides)" << std::endl;
-// 		return 0.0;
-// 	}
-// 	else if (pi_y < 0 || pi_y > 119) {
-// 		//std::cout << "This position is outside of my FOV (above / below)" << std::endl;
-// 		return 0.0;
-// 	}
-
-// 	pcl::PointXYZ first_point = xyz_cloud->at(pi_x,pi_y);
+ //      probability_of_collision_one_step_one_obstacle = computeProbabilityOfCollisionOneStepOneObstacle(trajectory_position, point, inverse_total_sigma);
+ //      probability_no_collision_one_step_one_obstacle = 1.0 - probability_of_collision_one_step_one_obstacle;
+ //      probability_no_collision = probability_no_collision * probability_no_collision_one_step_one_obstacle;
+ //    }
 	
-// 	if (isnan(first_point.x)) {
-// 		return 0.0;
-// 	}
+	// if (isnan(first_point.x)) {
+	// 	return 0.0;
+	// }
 
-// 	Vector3 depth_position = Vector3(first_point.x, first_point.y, first_point.z);
+	// Vector3 depth_position = Vector3(first_point.x, first_point.y, first_point.z);
 
-// 	Vector3 total_sigma = sigma_robot_position + sigma_depth_point;
-// 	Vector3 inverse_total_sigma = Vector3(1/total_sigma(0), 1/total_sigma(1), 1/total_sigma(2));	
+	// Vector3 total_sigma = sigma_robot_position + sigma_depth_point;
+	// Vector3 inverse_total_sigma = Vector3(1/total_sigma(0), 1/total_sigma(1), 1/total_sigma(2));	
 	
-// 	double volume = 0.267*2; // 4/3*pi*r^3, with r=0.4 as first guess
-//   double denominator = std::sqrt( 248.05021344239853*(total_sigma(0))*(total_sigma(1))*(total_sigma(2)) ); // coefficient is 2pi*2pi*2pi
-//   double exponent = -0.5*(robot_position - depth_position).transpose() * inverse_total_sigma.cwiseProduct(robot_position - depth_position);
+	// double volume = 0.267*2; // 4/3*pi*r^3, with r=0.4 as first guess
+ //  	double denominator = std::sqrt( 248.05021344239853*(total_sigma(0))*(total_sigma(1))*(total_sigma(2)) ); // coefficient is 2pi*2pi*2pi
+ //  	double exponent = -0.5*(robot_position - depth_position).transpose() * inverse_total_sigma.cwiseProduct(robot_position - depth_position);
 
-//   return volume / denominator * std::exp(exponent);
+ //  	return volume / denominator * std::exp(exponent);
 
-// }
+}

@@ -52,6 +52,10 @@ public:
   void setInitialAccelerationLASER(Vector3 const& initial_acceleration_laser_frame);
   void setInitialVelocityLASER(Vector3 const& initial_velocity_laser_frame);
 
+  Vector3 getLASERSigmaAtTime(double const& t);
+
+  Vector3 getLASERInverseSigmaAtTime(double const& t);
+
 
 
 private:

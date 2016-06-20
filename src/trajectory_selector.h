@@ -42,12 +42,13 @@ private:
 
   float EvaluateObjective(size_t index);
   Eigen::Matrix<Scalar, 25, 1> Normalize(Eigen::Matrix<Scalar, 25, 1> cost);
+  double EvaluateWeightedObjectivesWithCollision(size_t const& trajectory_index);
 
   void EvaluateDijkstraCost(Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf);
   void EvaluateGoalProgress(Vector3 const& carrot_body_frame);
   void EvaluateTerminalVelocityCost();
-  void EvaluateCollisionProbabilities(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples);
-  double computeProbabilityOfCollisionOneTrajectory(Trajectory trajectory, Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples);
+  void EvaluateCollisionProbabilities();
+  double computeProbabilityOfCollisionOneTrajectory(Trajectory trajectory);
   double computeProbabilityOfCollisionOneStepOneObstacle(Vector3 const& trajectory_position, Vector3 const& point, Vector3 const& inverse_sigma_at_time);
 
   double final_time;
@@ -55,10 +56,14 @@ private:
 
   Eigen::Matrix<Scalar, 10, 1> sampling_time_vector;
 
+  Eigen::Matrix<Scalar, 20, 1> collision_sampling_time_vector;
+  size_t num_samples_collision = collision_sampling_time_vector.size();
+
   Eigen::Matrix<Scalar, 25, 1> DijkstraEvaluations;
   Eigen::Matrix<Scalar, 25, 1> GoalProgressEvaluations;
   Eigen::Matrix<Scalar, 25, 1> TerminalVelocityEvaluations;
   Eigen::Matrix<Scalar, 25, 1> CollisionProbabilities;
+  Eigen::Matrix<Scalar, 25, 1> NoCollisionProbabilities;
 
 };
 

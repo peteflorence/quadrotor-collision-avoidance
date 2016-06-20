@@ -99,3 +99,12 @@ void TrajectoryLibrary::setInitialVelocityLASER(Vector3 const& initial_velocity_
 	}
 	return;
 };
+
+Vector3 TrajectoryLibrary::getLASERSigmaAtTime(double const& t) {
+	return t*(Vector3(1.5,1.5,1.5) + 0.1*(initial_velocity_laser_frame.array().abs()).matrix());
+};
+
+Vector3 TrajectoryLibrary::getLASERInverseSigmaAtTime(double const& t) {
+	Vector3 LASERsigma = getLASERSigmaAtTime(t);
+	return Vector3(1.0/LASERsigma(0), 1.0/LASERsigma(1), 1.0/LASERsigma(2));
+};
