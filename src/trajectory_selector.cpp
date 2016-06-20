@@ -36,13 +36,57 @@ Vector3 TrajectorySelector::getInverseSigmaAtTime(double const & t) {
 };
 
 void TrajectorySelector::computeBestDijkstraTrajectory(geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration) {
-  std::cout << "Called me" << std::endl;
   EvaluateDijkstraCost(tf);
+  EvaluateTerminalVelocityCost();
+  DijkstraEvaluations = Normalize(DijkstraEvaluations);
+  TerminalVelocityEvaluations = Normalize(TerminalVelocityEvaluations);
+
+  desired_acceleration << 0,0,0;
+  best_traj_index = 0;
+  float current_objective_value;
+  float best_traj_objective_value = EvaluateObjective(0);
+  for (size_t traj_index = 1; traj_index < 25; traj_index++) {
+    current_objective_value = EvaluateObjective(traj_index);
+    if (current_objective_value > best_traj_objective_value) {
+      best_traj_index = traj_index;
+      best_traj_objective_value = current_objective_value;
+    }
+  }
+
+  //std::cout << "## best_traj_index was " << best_traj_index << std::endl;
+  //std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
+
+  desired_acceleration = trajectory_library.getTrajectoryFromIndex(best_traj_index).getAcceleration();
 
   return;
 }
 
+Eigen::Matrix<Scalar, 25, 1> TrajectorySelector::Normalize(Eigen::Matrix<Scalar, 25, 1> cost) {
+  double largest = cost(0);
+  size_t largest_index = 0;
+  double current;
+  for (size_t i = 1; i < cost.size(); i++) {
+    current = cost(i);
+    if (current > largest) {
+      largest_index = i;
+      largest = current;
+    }
+  }
+
+  for (size_t i = 0; i < cost.size(); i++) {
+    cost(i) = cost(i)/largest;
+  }
+  return cost;
+}
+
+float TrajectorySelector::EvaluateObjective(size_t index) {
+  return DijkstraEvaluations(index) + 0.2*TerminalVelocityEvaluations(index);
+}
+
+
 void TrajectorySelector::EvaluateDijkstraCost(geometry_msgs::TransformStamped const& tf) {
+
+  ValueGrid* value_grid_ptr = value_grid_evaluator.GetValueGridPtr();
 
   std::vector<Trajectory>::const_iterator trajectory_iterator_begin = trajectory_library.GetTrajectoryIteratorBegin();
   std::vector<Trajectory>::const_iterator trajectory_iterator_end = trajectory_library.GetTrajectoryIteratorEnd();
@@ -51,10 +95,11 @@ void TrajectorySelector::EvaluateDijkstraCost(geometry_msgs::TransformStamped co
   Vector3 ortho_body_frame_position;
   geometry_msgs::PoseStamped pose_ortho_body_frame_position;
   geometry_msgs::PoseStamped pose_world_frame_position = PoseFromVector3(Vector3(0,0,0), "world");
+  int current_value;
   // Iterate over trajectories
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
     
-    
+    DijkstraEvaluations(i) = 0;
     double sampling_time;
     // Iterate over sampling times
     for (size_t time_index = 0; time_index < sampling_time_vector.size(); time_index++) {
@@ -67,20 +112,23 @@ void TrajectorySelector::EvaluateDijkstraCost(geometry_msgs::TransformStamped co
       Vector3 world_frame_position = VectorFromPose(pose_world_frame_position);
 
       // Then evaluate Dijkstra cost
+      current_value = value_grid_ptr->GetValueOfPosition(world_frame_position);
+      DijkstraEvaluations(i) += current_value;
 
     }
-    DijkstraEvaluations(i) = 0;
-
+    
     i++;
   }
+
+  std::cout << "At the end of all this, my Dijkstra evaluations are: " << DijkstraEvaluations << std::endl;
 
 };
 
 
 void TrajectorySelector::computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
   //EvaluateCollisionProbabilities(point_cloud_xyz_samples); // INSTANTANEOUS LOW LATENCY
-  EvaluateGoalProgress(carrot_body_frame); // DIJSKTRA
-  EvaluateTerminalVelocityCost(carrot_body_frame);
+  EvaluateGoalProgress(carrot_body_frame); 
+  EvaluateTerminalVelocityCost();
 
   desired_acceleration << 0,0,0;
   best_traj_index = 0;
@@ -124,13 +172,11 @@ void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) 
 };
 
 
-void TrajectorySelector::EvaluateTerminalVelocityCost(Vector3 const& carrot_body_frame) {
+void TrajectorySelector::EvaluateTerminalVelocityCost() {
 
   // for each traj in trajectory_library.trajectories
   std::vector<Trajectory>::const_iterator trajectory_iterator_begin = trajectory_library.GetTrajectoryIteratorBegin();
   std::vector<Trajectory>::const_iterator trajectory_iterator_end = trajectory_library.GetTrajectoryIteratorEnd();
-
-  double initial_distance = carrot_body_frame.norm();
 
   size_t i = 0;
   double final_trajectory_speed;

@@ -36,9 +36,12 @@ private:
   TrajectoryEvaluator trajectory_evaluator;
   ValueGridEvaluator value_grid_evaluator;
 
+  float EvaluateObjective(size_t index);
+  Eigen::Matrix<Scalar, 25, 1> Normalize(Eigen::Matrix<Scalar, 25, 1> cost);
+
   void EvaluateDijkstraCost(geometry_msgs::TransformStamped const& tf);
   void EvaluateGoalProgress(Vector3 const& carrot_body_frame);
-  void EvaluateTerminalVelocityCost(Vector3 const& carrot_body_frame);
+  void EvaluateTerminalVelocityCost();
   void EvaluateCollisionProbabilities(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples);
   double computeProbabilityOfCollisionOneTrajectory(Trajectory trajectory, Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples);
   double computeProbabilityOfCollisionOneStepOneObstacle(Vector3 const& trajectory_position, Vector3 const& point, Vector3 const& inverse_sigma_at_time);
