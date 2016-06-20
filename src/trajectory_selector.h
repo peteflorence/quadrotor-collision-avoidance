@@ -8,8 +8,10 @@
 #include "trajectory_evaluator.h"
 #include "value_grid_evaluator.h"
 
+// This ROS stuff should go.  Only temporary.
 #include <nav_msgs/OccupancyGrid.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include "geometry_msgs/PoseStamped.h"
 
 
 class TrajectorySelector {
@@ -34,6 +36,7 @@ private:
   TrajectoryEvaluator trajectory_evaluator;
   ValueGridEvaluator value_grid_evaluator;
 
+  void EvaluateDijkstraCost(geometry_msgs::TransformStamped const& tf);
   void EvaluateGoalProgress(Vector3 const& carrot_body_frame);
   void EvaluateTerminalVelocityCost(Vector3 const& carrot_body_frame);
   void EvaluateCollisionProbabilities(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples);
@@ -45,6 +48,7 @@ private:
 
   Eigen::Matrix<Scalar, 10, 1> sampling_time_vector;
 
+  Eigen::Matrix<Scalar, 25, 1> DijkstraEvaluations;
   Eigen::Matrix<Scalar, 25, 1> GoalProgressEvaluations;
   Eigen::Matrix<Scalar, 25, 1> TerminalVelocityEvaluations;
   Eigen::Matrix<Scalar, 25, 1> CollisionProbabilities;

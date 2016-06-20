@@ -35,10 +35,46 @@ Vector3 TrajectorySelector::getInverseSigmaAtTime(double const & t) {
   return trajectory_library.getInverseSigmaAtTime(t);
 };
 
-void computeBestDijkstraTrajectory(geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration) {
+void TrajectorySelector::computeBestDijkstraTrajectory(geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration) {
   std::cout << "Called me" << std::endl;
+  EvaluateDijkstraCost(tf);
+
   return;
 }
+
+void TrajectorySelector::EvaluateDijkstraCost(geometry_msgs::TransformStamped const& tf) {
+
+  std::vector<Trajectory>::const_iterator trajectory_iterator_begin = trajectory_library.GetTrajectoryIteratorBegin();
+  std::vector<Trajectory>::const_iterator trajectory_iterator_end = trajectory_library.GetTrajectoryIteratorEnd();
+
+  size_t i = 0;
+  Vector3 ortho_body_frame_position;
+  geometry_msgs::PoseStamped pose_ortho_body_frame_position;
+  geometry_msgs::PoseStamped pose_world_frame_position = PoseFromVector3(Vector3(0,0,0), "world");
+  // Iterate over trajectories
+  for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
+    
+    
+    double sampling_time;
+    // Iterate over sampling times
+    for (size_t time_index = 0; time_index < sampling_time_vector.size(); time_index++) {
+      
+      sampling_time = sampling_time_vector(time_index);
+      ortho_body_frame_position = trajectory->getPosition(sampling_time);
+      
+      geometry_msgs::PoseStamped pose_ortho_body_frame_position = PoseFromVector3(ortho_body_frame_position, "ortho_body");
+      tf2::doTransform(pose_ortho_body_frame_position, pose_world_frame_position, tf);
+      Vector3 world_frame_position = VectorFromPose(pose_world_frame_position);
+
+      // Then evaluate Dijkstra cost
+
+    }
+    DijkstraEvaluations(i) = 0;
+
+    i++;
+  }
+
+};
 
 
 void TrajectorySelector::computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
