@@ -35,28 +35,32 @@ Vector3 TrajectorySelector::getInverseSigmaAtTime(double const & t) {
   return trajectory_library.getInverseSigmaAtTime(t);
 };
 
-void TrajectorySelector::computeBestDijkstraTrajectory(Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration) {
+void TrajectorySelector::computeBestDijkstraTrajectory(Vector3 const& carrot_body_frame, Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration) {
   EvaluateDijkstraCost(carrot_world_frame, tf);
-  // EvaluateTerminalVelocityCost();
-  // //DijkstraEvaluations = Normalize(DijkstraEvaluations);
-  // //TerminalVelocityEvaluations = Normalize(TerminalVelocityEvaluations);
+  EvaluateTerminalVelocityCost();
+  EvaluateGoalProgress(carrot_body_frame); 
+  //DijkstraEvaluations = Normalize(DijkstraEvaluations);
+  //TerminalVelocityEvaluations = Normalize(TerminalVelocityEvaluations);
 
-  // desired_acceleration << 0,0,0;
-  // best_traj_index = 0;
-  // float current_objective_value;
-  // float best_traj_objective_value = EvaluateObjective(0);
-  // for (size_t traj_index = 1; traj_index < 25; traj_index++) {
-  //   current_objective_value = EvaluateObjective(traj_index);
-  //   if (current_objective_value > best_traj_objective_value) {
-  //     best_traj_index = traj_index;
-  //     best_traj_objective_value = current_objective_value;
-  //   }
-  // }
+  desired_acceleration << 0,0,0;
+  best_traj_index = 0;
+  float current_objective_value;
+  float best_traj_objective_value = EvaluateObjective(0);
+  for (size_t traj_index = 1; traj_index < 25; traj_index++) {
+    current_objective_value = EvaluateObjective(traj_index);
+    std::cout << "current_objective_value " << current_objective_value << std::endl;
+    if (current_objective_value > best_traj_objective_value) {
+      best_traj_index = traj_index;
+      best_traj_objective_value = current_objective_value;
+    }
+  }
 
-  //std::cout << "## best_traj_index was " << best_traj_index << std::endl;
-  //std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
+  std::cout << "## best_traj_index was " << best_traj_index << std::endl;
+  std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
 
   desired_acceleration = trajectory_library.getTrajectoryFromIndex(best_traj_index).getAcceleration();
+
+
 
   return;
 }
@@ -80,7 +84,7 @@ Eigen::Matrix<Scalar, 25, 1> TrajectorySelector::Normalize(Eigen::Matrix<Scalar,
 }
 
 float TrajectorySelector::EvaluateObjective(size_t index) {
-  return DijkstraEvaluations(index) + 2*TerminalVelocityEvaluations(index);
+  return DijkstraEvaluations(index) + 0.01*GoalProgressEvaluations(index) + 2*TerminalVelocityEvaluations(index);
 }
 
 
@@ -118,7 +122,7 @@ void TrajectorySelector::EvaluateDijkstraCost(Vector3 const& carrot_world_frame,
         current_value = 1000;
       }
 
-      DijkstraEvaluations(i) += current_value;
+      DijkstraEvaluations(i) -= current_value;
 
     }
     
@@ -130,7 +134,7 @@ void TrajectorySelector::EvaluateDijkstraCost(Vector3 const& carrot_world_frame,
 };
 
 
-void TrajectorySelector::computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> const& point_cloud_xyz_samples, Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
+void TrajectorySelector::computeBestTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
   //EvaluateCollisionProbabilities(point_cloud_xyz_samples); // INSTANTANEOUS LOW LATENCY
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
@@ -143,7 +147,7 @@ void TrajectorySelector::computeBestTrajectory(Eigen::Matrix<Scalar, 100, 3> con
     current_objective_value = GoalProgressEvaluations(traj_index) + 2.0*TerminalVelocityEvaluations(traj_index);
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
-      best_traj_objective_value = GoalProgressEvaluations(traj_index);
+      best_traj_objective_value = GoalProgressEvaluations(traj_index) + 2.0*TerminalVelocityEvaluations(traj_index);
     }
   }
 

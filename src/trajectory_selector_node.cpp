@@ -83,8 +83,15 @@ public:
 
 	void ReactToSampledPointCloud() {
 		Vector3 desired_acceleration;
-		geometry_msgs::TransformStamped tf = GetTransformToWorld();
-		trajectory_selector.computeBestDijkstraTrajectory(carrot_world_frame, tf, best_traj_index, desired_acceleration);
+		if (carrot_ortho_body_frame.norm() > 2.0) {
+			geometry_msgs::TransformStamped tf = GetTransformToWorld();
+			trajectory_selector.computeBestDijkstraTrajectory(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
+		}
+		else {
+			trajectory_selector.computeBestTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+		}
+
+		
 
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 
