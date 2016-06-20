@@ -1,15 +1,11 @@
 #include "trajectory.h"
 
-void Trajectory::TestTrajectory() {
-  std::cout << "Printing from inside Trajectory " << std::endl;  
-}
-
 void Trajectory::setAccelerationMax(double const& acceleration_max) {
   this->a_max_horizontal = acceleration_max;
 };
 
-void Trajectory::setInitialVelocity(Vector3 const& initial_velocity_to_set) {
-  initial_velocity = initial_velocity_to_set;
+void Trajectory::setAcceleration(Vector3 const& acceleration) {
+  this->acceleration = acceleration;
 };
 
 void Trajectory::setInitialAcceleration(Vector3 const& initial_acceleration_to_set) {
@@ -19,13 +15,28 @@ void Trajectory::setInitialAcceleration(Vector3 const& initial_acceleration_to_s
   velocity_end_of_jerk_time = 0.5*jerk*jerk_time*jerk_time + initial_acceleration*jerk_time + initial_velocity;
 };
 
-void Trajectory::setAcceleration(Vector3 const& acceleration) {
-  this->acceleration = acceleration;
+void Trajectory::setInitialVelocity(Vector3 const& initial_velocity_to_set) {
+  initial_velocity = initial_velocity_to_set;
 };
+
 
 Vector3 Trajectory::getAcceleration() const{
   return this->acceleration;
 }
+
+Vector3 Trajectory::getInitialVelocity() const {
+  return initial_velocity;
+};
+
+Vector3 Trajectory::getVelocity(Scalar const& t) const {
+  if (t < jerk_time) {
+    return 0.5*jerk*t*t + initial_acceleration*t + initial_velocity; 
+  }
+  else {
+    double t_left = t - jerk_time;
+    return velocity_end_of_jerk_time + acceleration*t_left;
+  }
+};
 
 Vector3 Trajectory::getPosition(Scalar const& t) const {
   if (t < jerk_time) {
@@ -64,24 +75,50 @@ Vector3 Trajectory::getTerminalStopPosition(Scalar const& t) const {
 
 }
 
-Vector3 Trajectory::getInitialVelocity() const {
-  return initial_velocity;
+
+void Trajectory::setAccelerationLASER(Vector3 const& acceleration_laser) {
+  this->acceleration_laser = acceleration_laser;
 };
 
+void Trajectory::setInitialAccelerationLASER(Vector3 const& initial_acceleration_laser) {
+  this->initial_acceleration_laser = initial_acceleration_laser;
+  jerk_laser = (acceleration_laser - initial_acceleration_laser) / jerk_time;
+  position_end_of_jerk_time_laser = 0.1666*jerk_laser*jerk_time*jerk_time*jerk_time + 0.5*initial_acceleration_laser*jerk_time*jerk_time + initial_velocity_laser*jerk_time;
+  velocity_end_of_jerk_time_laser = 0.5*jerk_laser*jerk_time*jerk_time + initial_acceleration_laser*jerk_time + initial_velocity_laser;
+};
 
+void Trajectory::setInitialVelocityLASER(Vector3 const& initial_velocity_laser) {
+  this->initial_velocity_laser = initial_velocity_laser;
+};
 
-Vector3 Trajectory::getVelocity(Scalar const& t) const {
+Vector3 Trajectory::getAccelerationLASER() const{
+  return acceleration_laser;
+};
+
+Vector3 Trajectory::getInitialVelocityLASER() const {
+  return initial_velocity_laser;
+};
+
+Vector3 Trajectory::getVelocityLASER(Scalar const& t) const {
   if (t < jerk_time) {
-    return 0.5*jerk*t*t + initial_acceleration*t + initial_velocity; 
+    return 0.5*jerk_laser*t*t + initial_acceleration_laser*t + initial_velocity_laser; 
   }
   else {
     double t_left = t - jerk_time;
-    return velocity_end_of_jerk_time + acceleration*t_left;
+    return velocity_end_of_jerk_time_laser + acceleration_laser*t_left;
   }
 };
 
-Matrix3 Trajectory::getCovariance(Scalar const& t) const {
-  //Vector3 covariances = initial_velocity*t*t;
-  //return covariances.asDiagonal();
-  return Matrix3::Identity();
+Vector3 Trajectory::getPositionLASER(Scalar const& t) const {
+  if (t < jerk_time) {
+    return 0.1666*jerk_laser*t*t*t + 0.5*initial_acceleration_laser*t*t + initial_velocity_laser*t;
+  }
+  else {
+    double t_left = t - jerk_time;
+    return position_end_of_jerk_time_laser + 0.5*acceleration_laser*t_left*t_left + initial_velocity_laser*t_left;
+  }
 };
+
+
+
+
