@@ -29,7 +29,6 @@ public:
 
 	int GetValueOfPosition(Vector3 const& position_in_world_frame);
 
-
 private:
 	Eigen::Matrix<Scalar, 2, 1> transformIntoValueGridFrame(Vector3 const& point);
 	void IndexInValueGrid(Eigen::Matrix<Scalar, 2, 1> const& position_in_value_grid_frame, size_t& x_index, size_t& y_index);

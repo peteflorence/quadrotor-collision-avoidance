@@ -37,21 +37,21 @@ Vector3 TrajectorySelector::getInverseSigmaAtTime(double const & t) {
 
 void TrajectorySelector::computeBestDijkstraTrajectory(Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration) {
   EvaluateDijkstraCost(carrot_world_frame, tf);
-  EvaluateTerminalVelocityCost();
-  //DijkstraEvaluations = Normalize(DijkstraEvaluations);
-  //TerminalVelocityEvaluations = Normalize(TerminalVelocityEvaluations);
+  // EvaluateTerminalVelocityCost();
+  // //DijkstraEvaluations = Normalize(DijkstraEvaluations);
+  // //TerminalVelocityEvaluations = Normalize(TerminalVelocityEvaluations);
 
-  desired_acceleration << 0,0,0;
-  best_traj_index = 0;
-  float current_objective_value;
-  float best_traj_objective_value = EvaluateObjective(0);
-  for (size_t traj_index = 1; traj_index < 25; traj_index++) {
-    current_objective_value = EvaluateObjective(traj_index);
-    if (current_objective_value > best_traj_objective_value) {
-      best_traj_index = traj_index;
-      best_traj_objective_value = current_objective_value;
-    }
-  }
+  // desired_acceleration << 0,0,0;
+  // best_traj_index = 0;
+  // float current_objective_value;
+  // float best_traj_objective_value = EvaluateObjective(0);
+  // for (size_t traj_index = 1; traj_index < 25; traj_index++) {
+  //   current_objective_value = EvaluateObjective(traj_index);
+  //   if (current_objective_value > best_traj_objective_value) {
+  //     best_traj_index = traj_index;
+  //     best_traj_objective_value = current_objective_value;
+  //   }
+  // }
 
   //std::cout << "## best_traj_index was " << best_traj_index << std::endl;
   //std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
@@ -101,7 +101,7 @@ void TrajectorySelector::EvaluateDijkstraCost(Vector3 const& carrot_world_frame,
     
     DijkstraEvaluations(i) = 0;
     double sampling_time;
-    // Iterate over sampling times
+    //Iterate over sampling times
     for (size_t time_index = 0; time_index < sampling_time_vector.size(); time_index++) {
       
       sampling_time = sampling_time_vector(time_index);
@@ -111,8 +111,9 @@ void TrajectorySelector::EvaluateDijkstraCost(Vector3 const& carrot_world_frame,
       tf2::doTransform(pose_ortho_body_frame_position, pose_world_frame_position, tf);
       Vector3 world_frame_position = VectorFromPose(pose_world_frame_position);
 
-      // Then evaluate Dijkstra cost
+      // // Then evaluate Dijkstra cost
       current_value = value_grid_ptr->GetValueOfPosition(world_frame_position);
+
       if ((current_value == 0) && ((world_frame_position - carrot_world_frame).norm() > 1.0)) {
         current_value = 1000;
       }

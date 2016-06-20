@@ -4,9 +4,11 @@ int ValueGrid::GetValueOfPosition(Vector3 const& position_in_world_frame) {
 	Eigen::Matrix<Scalar, 2, 1> point_in_value_grid_frame = transformIntoValueGridFrame(position_in_world_frame);
 	size_t col_index, row_index;
 	IndexInValueGrid(point_in_value_grid_frame, col_index, row_index);
-	// NEED TO CHECK BOUNDS
-	std::cout << ValueFromIndex(0,0) << " is value at 0,0" << std::endl;
-	std::cout << "Width, Height " << width << " " << height << std::endl;
+
+	if (col_index < 0 || col_index > width || row_index < 0 || row_index > height ) {
+		std::cout << "FOUND OUT OF BOUNDS, TRYING " << col_index << ", " << row_index << std::endl;
+		return 0;
+	}
 
 	return ValueFromIndex(col_index, row_index);
 }
@@ -21,6 +23,10 @@ void ValueGrid::IndexInValueGrid(Eigen::Matrix<Scalar, 2, 1> const& position_in_
 }
 
 int ValueGrid::ValueFromIndex(size_t col_index, size_t row_index) {
+	if (values.size() == 0) {
+		std::cout << "NO VALUE GRID YET " << std::endl;
+		return 0;
+	}
 	return values[row_index*width + col_index];
 }
 
