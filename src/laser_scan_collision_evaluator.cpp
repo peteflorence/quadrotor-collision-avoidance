@@ -1,15 +1,10 @@
 #include "laser_scan_collision_evaluator.h"
 
 
-void LaserScanCollisionEvaluator::updatePointCloud(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
+void LaserScanCollisionEvaluator::UpdatePointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new) {
 	//auto t1 = std::chrono::high_resolution_clock::now();
 
-	pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
-	pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
-		
-	pcl_conversions::toPCL(*point_cloud_msg, *cloud);
-	xyz_cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
-	pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
+	xyz_cloud = xyz_cloud_new;
 
 	//pcl::PointXYZ first_point = xyz_cloud->at(10,50);
 

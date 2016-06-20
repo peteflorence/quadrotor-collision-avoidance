@@ -199,9 +199,18 @@ private:
 	}
 
 
-	void OnScan(sensor_msgs::PointCloud2 const& laser_point_cloud) {
+	void OnScan(sensor_msgs::PointCloud2 const& laser_point_cloud_msg) {
 		ROS_INFO("GOT SCAN");
+		LaserScanCollisionEvaluator* laser_scan_collision_ptr = trajectory_selector.GetLaserScanCollisionEvaluatorPtr();
 
+		pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
+		pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
+		
+		pcl_conversions::toPCL(laser_point_cloud_msg, *cloud);
+		pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
+
+		laser_scan_collision_ptr->UpdatePointCloudPtr(xyz_cloud);
 	}
 
 	void OnValueGrid(nav_msgs::OccupancyGrid value_grid_msg) {

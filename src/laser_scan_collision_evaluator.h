@@ -1,8 +1,6 @@
 #include <iostream>
 #include <math.h>
 
-#include <sensor_msgs/PointCloud2.h>
-
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -14,7 +12,7 @@
 class LaserScanCollisionEvaluator {
 public:
 	
-  void updatePointCloud(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg);
+  void UpdatePointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new);
   //double computeProbabilityOfCollisionOnePosition(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
   
 
