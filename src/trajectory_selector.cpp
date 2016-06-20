@@ -9,6 +9,10 @@ ValueGridEvaluator* TrajectorySelector::GetValueGridEvaluatorPtr() {
   return &value_grid_evaluator;
 };
 
+LaserScanCollisionEvaluator* TrajectorySelector::GetLaserScanCollisionEvaluatorPtr() {
+  return &laser_scan_collision_evaluator;
+};
+
 void TrajectorySelector::InitializeLibrary(double const& final_time) {
   trajectory_library.Initialize2DLibrary(final_time);
   this->final_time = final_time;

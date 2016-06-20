@@ -7,6 +7,7 @@
 #include "trajectory_library.h"
 #include "trajectory_evaluator.h"
 #include "value_grid_evaluator.h"
+#include "laser_scan_collision_evaluator.h"
 
 // This ROS stuff should go.  Only temporary.
 #include <nav_msgs/OccupancyGrid.h>
@@ -19,6 +20,8 @@ public:
 
   TrajectoryLibrary* GetTrajectoryLibraryPtr();
   ValueGridEvaluator* GetValueGridEvaluatorPtr();
+  LaserScanCollisionEvaluator* GetLaserScanCollisionEvaluatorPtr();
+
   
   void InitializeLibrary(double const& final_time);
   size_t getNumTrajectories();
@@ -35,6 +38,7 @@ private:
   TrajectoryLibrary trajectory_library;
   TrajectoryEvaluator trajectory_evaluator;
   ValueGridEvaluator value_grid_evaluator;
+  LaserScanCollisionEvaluator laser_scan_collision_evaluator;
 
   float EvaluateObjective(size_t index);
   Eigen::Matrix<Scalar, 25, 1> Normalize(Eigen::Matrix<Scalar, 25, 1> cost);

@@ -6,6 +6,7 @@
 #include "geometry_msgs/TwistStamped.h"
 #include <mavros_msgs/AttitudeTarget.h>
 #include <nav_msgs/OccupancyGrid.h>
+#include <sensor_msgs/PointCloud2.h>
 
 #include "tf/tf.h"
 #include <tf2_ros/transform_listener.h>
@@ -43,7 +44,8 @@ public:
 		//waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
   	    //point_cloud_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnPointCloud, this);
   	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
-  	    value_grid_sub = nh.subscribe("/value_grid", 1, &TrajectorySelectorNode::OnValueGrid, this);
+  	    //value_grid_sub = nh.subscribe("/value_grid", 1, &TrajectorySelectorNode::OnValueGrid, this);
+  	    laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &TrajectorySelectorNode::OnScan, this);
 
   	    // Publishers
 		carrot_pub = nh.advertise<visualization_msgs::Marker>( "carrot_marker", 0 );
@@ -83,15 +85,8 @@ public:
 
 	void ReactToSampledPointCloud() {
 		Vector3 desired_acceleration;
-		if (carrot_ortho_body_frame.norm() > 2.0) {
-			geometry_msgs::TransformStamped tf = GetTransformToWorld();
-			trajectory_selector.computeBestDijkstraTrajectory(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
-		}
-		else {
-			trajectory_selector.computeBestTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
-		}
-
-		
+	
+		trajectory_selector.computeBestTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 
@@ -201,6 +196,12 @@ private:
 		//ROS_INFO("GOT GLOBAL GOAL");
 		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.0; 
 		UpdateCarrotOrthoBodyFrame();
+	}
+
+
+	void OnScan(sensor_msgs::PointCloud2 const& laser_point_cloud) {
+		ROS_INFO("GOT SCAN");
+
 	}
 
 	void OnValueGrid(nav_msgs::OccupancyGrid value_grid_msg) {
@@ -435,6 +436,7 @@ private:
 	ros::Subscriber point_cloud_sub;
 	ros::Subscriber global_goal_sub;
 	ros::Subscriber value_grid_sub;
+	ros::Subscriber laser_scan_sub;
 
 	ros::Publisher carrot_pub;
 	ros::Publisher gaussian_pub;
