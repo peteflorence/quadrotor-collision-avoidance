@@ -76,7 +76,7 @@ size_t TrajectoryLibrary::getNumTrajectories() {
 };
 
 Vector3 TrajectoryLibrary::getSigmaAtTime(double const& t) {
-	return t*(Vector3(1.5,1.5,1.5) + 0.1*(initial_velocity.array().abs()).matrix());
+	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.5) + 0.1*(initial_velocity.array().abs()).matrix());
 };
 
 Vector3 TrajectoryLibrary::getInverseSigmaAtTime(double const& t) {
@@ -101,7 +101,7 @@ void TrajectoryLibrary::setInitialVelocityLASER(Vector3 const& initial_velocity_
 };
 
 Vector3 TrajectoryLibrary::getLASERSigmaAtTime(double const& t) {
-	return t*(Vector3(1.5,1.5,1.5) + 0.1*(initial_velocity_laser_frame.array().abs()).matrix());
+	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.5) + 0.1*(initial_velocity_laser_frame.array().abs()).matrix());
 };
 
 Vector3 TrajectoryLibrary::getLASERInverseSigmaAtTime(double const& t) {

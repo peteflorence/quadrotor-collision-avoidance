@@ -47,6 +47,8 @@ public:
 
 private:
 
+	void NormalizeCollisions();
+
 	std::string drawing_frame = "laser";
 
 	ros::NodeHandle nh;
@@ -63,6 +65,7 @@ private:
   size_t* best_traj_index;
 
   Eigen::Matrix<Scalar, 25, 1> collision_probabilities;
+  Eigen::Matrix<Scalar, 25, 1> normalized_collision_probabilities;
   
 };
 

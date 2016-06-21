@@ -236,9 +236,13 @@ void TrajectorySelector::EvaluateCollisionProbabilities() {
 
   size_t i = 0;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-    std::cout << std::endl << "######" << std::endl;
-    std::cout << "now evaling trajectory number " << i << std::endl;
-    CollisionProbabilities(i) = computeProbabilityOfCollisionOneTrajectory(*trajectory); 
+    // if (i == 0) {
+      CollisionProbabilities(i) = computeProbabilityOfCollisionOneTrajectory(*trajectory);   
+    // }
+    // else {
+    //   CollisionProbabilities(i) = 0.0;
+    // }
+    
     //CollisionProbabilities(i) = i*1.0/25.0;
     NoCollisionProbabilities(i) = 1.0 - CollisionProbabilities(i);
     i++;
@@ -254,6 +258,7 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
 
   for (size_t time_step_index = 0; time_step_index < num_samples_collision; time_step_index++) {
     //sigma_robot_position = trajectory_library.getLASERSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
+    //std::cout << "sigma robot position is " << sigma_robot_position << std::endl;
     sigma_robot_position = Vector3(0.01,0.01,0.01);
     robot_position = trajectory.getPositionLASER(collision_sampling_time_vector(time_step_index));
     //std::cout << "robot position is " << robot_position << std::endl;

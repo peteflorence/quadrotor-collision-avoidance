@@ -38,9 +38,9 @@ void TrajectoryVisualizer::drawGaussianPropagation(int id, Vector3 position, Vec
 	marker.pose.position.x = position(0);
 	marker.pose.position.y = position(1);
 	marker.pose.position.z = position(2);
-	marker.scale.x = sigma(0)*0.2;
-	marker.scale.y = sigma(1)*0.2;
-	marker.scale.z = sigma(2)*0.2;
+	marker.scale.x = sigma(0);
+	marker.scale.y = sigma(1);
+	marker.scale.z = sigma(2);
 	marker.color.a = 0.30; // Don't forget to set the alpha!
 	marker.color.r = 0.9;
 	marker.color.g = 0.1;
@@ -48,8 +48,34 @@ void TrajectoryVisualizer::drawGaussianPropagation(int id, Vector3 position, Vec
 	gaussian_pub.publish( marker );
 }
 
+void TrajectoryVisualizer::NormalizeCollisions() {
+	double max = collision_probabilities(0);
+	double min = collision_probabilities(0);
+	double current;
+	for (int i = 1; i < 25; i++) {
+		current = collision_probabilities(i);
+		if (current > max) {
+			max = current;
+		}
+		if (current < min) {
+			min = current;
+		}
+	}
+
+	if (max == min) {
+		normalized_collision_probabilities = collision_probabilities;
+		return;
+	};
+
+	for (int i = 1; i < 25; i++) {
+		normalized_collision_probabilities(i) = (collision_probabilities(i) - min) / (max - min);
+	}
+}
+
 
 void TrajectoryVisualizer::drawCollisionIndicator(int const& id, Vector3 const& position, double const& collision_prob) {
+	NormalizeCollisions();
+
 	visualization_msgs::Marker marker;
 	marker.header.frame_id = drawing_frame;
 	marker.header.stamp = ros::Time::now();
@@ -152,7 +178,7 @@ void TrajectoryVisualizer::drawAll() {
 		// if (trajectory_index == *best_traj_index) {
 		// 	drawFinalStoppingPosition(num_samples-1, sample_points_xyz_over_time.row(num_samples-1));
 		// }
-		drawCollisionIndicator(trajectory_index, sample_points_xyz_over_time.row(num_samples-1), collision_probabilities(trajectory_index));
+		drawCollisionIndicator(trajectory_index, sample_points_xyz_over_time.row(num_samples-1), normalized_collision_probabilities(trajectory_index));
 
 		action_paths_pubs.at(trajectory_index).publish(action_samples_msg);
 	}
