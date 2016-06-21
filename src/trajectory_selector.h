@@ -44,9 +44,11 @@ private:
   ValueGridEvaluator value_grid_evaluator;
   LaserScanCollisionEvaluator laser_scan_collision_evaluator;
 
-  float EvaluateObjective(size_t index);
+  double EvaluateObjective(size_t index);
+  void EvaluateObjectives();
+  void EvaluateObjectivesEuclid();
   Eigen::Matrix<Scalar, 25, 1> Normalize(Eigen::Matrix<Scalar, 25, 1> cost);
-  double EvaluateWeightedObjectivesWithCollision(size_t const& trajectory_index);
+  double EvaluateWeightedObjectivesEuclid(size_t const& trajectory_index);
 
   void EvaluateDijkstraCost(Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf);
   void EvaluateGoalProgress(Vector3 const& carrot_body_frame);
@@ -54,6 +56,9 @@ private:
   void EvaluateCollisionProbabilities();
   double computeProbabilityOfCollisionOneTrajectory(Trajectory trajectory);
   double computeProbabilityOfCollisionOneStepOneObstacle(Vector3 const& trajectory_position, Vector3 const& point, Vector3 const& inverse_sigma_at_time);
+
+  void NormalizeCollisionProbabilities();
+  void EvaluateExpectedObjectivesEuclid();
 
   double final_time;
   double start_time = 0.0;
@@ -68,6 +73,12 @@ private:
   Eigen::Matrix<Scalar, 25, 1> TerminalVelocityEvaluations;
   Eigen::Matrix<Scalar, 25, 1> CollisionProbabilities;
   Eigen::Matrix<Scalar, 25, 1> NoCollisionProbabilities;
+  Eigen::Matrix<Scalar, 25, 1> normalized_no_collision_probabilities;
+
+  Eigen::Matrix<Scalar, 25, 1> Objectives;
+  Eigen::Matrix<Scalar, 25, 1> ObjectivesEuclid;
+
+
 
 };
 

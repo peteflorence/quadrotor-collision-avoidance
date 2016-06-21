@@ -67,7 +67,7 @@ void TrajectoryVisualizer::NormalizeCollisions() {
 		return;
 	};
 
-	for (int i = 1; i < 25; i++) {
+	for (int i = 0; i < 25; i++) {
 		normalized_collision_probabilities(i) = (collision_probabilities(i) - min) / (max - min);
 	}
 }

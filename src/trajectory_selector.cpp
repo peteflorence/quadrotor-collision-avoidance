@@ -53,13 +53,14 @@ void TrajectorySelector::computeBestDijkstraTrajectory(Vector3 const& carrot_bod
   EvaluateCollisionProbabilities();
   //DijkstraEvaluations = Normalize(DijkstraEvaluations);
   //TerminalVelocityEvaluations = Normalize(TerminalVelocityEvaluations);
+  EvaluateObjectives();
 
   desired_acceleration << 0,0,0;
   best_traj_index = 0;
-  float current_objective_value;
-  float best_traj_objective_value = EvaluateObjective(0);
+  double current_objective_value;
+  double best_traj_objective_value = Objectives(0);
   for (size_t traj_index = 1; traj_index < 25; traj_index++) {
-    current_objective_value = EvaluateObjective(traj_index);
+    current_objective_value = Objectives(traj_index);
     std::cout << "current_objective_value " << current_objective_value << std::endl;
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
@@ -92,12 +93,42 @@ Eigen::Matrix<Scalar, 25, 1> TrajectorySelector::Normalize(Eigen::Matrix<Scalar,
   for (size_t i = 0; i < cost.size(); i++) {
     cost(i) = cost(i)/largest;
   }
-  return cost;
+  return cost;  
 }
 
-float TrajectorySelector::EvaluateObjective(size_t index) {
-  return NoCollisionProbabilities(index)*(DijkstraEvaluations(index) + 0.01*GoalProgressEvaluations(index) + 2*TerminalVelocityEvaluations(index));
+void TrajectorySelector::EvaluateObjectives() {
+  for (int i = 0; i < 25; i++) {
+    Objectives(i) = EvaluateObjective(i);
+  }
+
+  double max = Objectives(0);
+  double min = Objectives(0);
+  double current;
+  for (int i = 1; i < 25; i++) {
+    current = Objectives(i);
+    if (current > max) {
+      max = current;
+    }
+    if (current < min) {
+      min = current;
+    }
+  }
+
+  if (max == min) {
+    return;
+  };
+
+  for (int i = 0; i < 25; i++) {
+     Objectives(i) = NoCollisionProbabilities(i)*(Objectives(i));
+  }
 }
+
+
+double TrajectorySelector::EvaluateObjective(size_t index) {
+  return DijkstraEvaluations(index) + 0.01*GoalProgressEvaluations(index) + 0.02*TerminalVelocityEvaluations(index);
+}
+
+
 
 
 
@@ -150,35 +181,87 @@ void TrajectorySelector::EvaluateDijkstraCost(Vector3 const& carrot_world_frame,
 
 void TrajectorySelector::computeBestTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
   EvaluateCollisionProbabilities();
-  std::cout << "All collision probs were " << CollisionProbabilities << std::endl;
+  std::cout << "No collision probs were " << NoCollisionProbabilities << std::endl;
+  NormalizeCollisionProbabilities();
+  std::cout << "Normalized collision probs were " << normalized_no_collision_probabilities << std::endl;
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
+  EvaluateObjectivesEuclid();
+  std::cout << "Objectives Euclid were  " << normalized_no_collision_probabilities << std::endl;
+  EvaluateExpectedObjectivesEuclid();
 
   desired_acceleration << 0,0,0;
   best_traj_index = 0;
   float current_objective_value;
-  float best_traj_objective_value = GoalProgressEvaluations(0) + 2.0*TerminalVelocityEvaluations(0);
+  float best_traj_objective_value = ObjectivesEuclid(0);
   for (size_t traj_index = 1; traj_index < 25; traj_index++) {
-    current_objective_value = GoalProgressEvaluations(traj_index) + 2.0*TerminalVelocityEvaluations(traj_index);
+    current_objective_value = ObjectivesEuclid(traj_index);
+    std::cout << "current_objective_value " << current_objective_value << std::endl;
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
-      best_traj_objective_value = GoalProgressEvaluations(traj_index) + 2.0*TerminalVelocityEvaluations(traj_index);
+      best_traj_objective_value = current_objective_value;
     }
   }
 
-  //std::cout << "## best_traj_index was " << best_traj_index << std::endl;
-  //std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
+  std::cout << "## best_traj_index was " << best_traj_index << std::endl;
+  std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
 
   desired_acceleration = trajectory_library.getTrajectoryFromIndex(best_traj_index).getAcceleration();
 
 };
 
-double TrajectorySelector::EvaluateWeightedObjectivesWithCollision(size_t const& trajectory_index) {
-  double raw_reward = GoalProgressEvaluations(trajectory_index) + 1.0*TerminalVelocityEvaluations(trajectory_index);
-  if (raw_reward < 0.0) { 
-    raw_reward = 0.1;
+void TrajectorySelector::NormalizeCollisionProbabilities() {
+  double max = NoCollisionProbabilities(0);
+  double min = NoCollisionProbabilities(0);
+  double current;
+  for (int i = 1; i < 25; i++) {
+    current = NoCollisionProbabilities(i);
+    if (current > max) {
+      max = current;
+    }
+    if (current < min) {
+      min = current;
+    }
   }
-  return NoCollisionProbabilities(trajectory_index)*raw_reward;
+
+  if (max==min) {return;};
+
+  for (int i = 0; i < 25; i++) {
+    normalized_no_collision_probabilities(i) = (NoCollisionProbabilities(i) - min);
+  }
+}
+
+void TrajectorySelector::EvaluateObjectivesEuclid() {
+  for (int i = 0; i < 25; i++) {
+    ObjectivesEuclid(i) = EvaluateWeightedObjectivesEuclid(i);
+  }
+
+  double max = ObjectivesEuclid(0);
+  double min = ObjectivesEuclid(0);
+  double current;
+  for (int i = 1; i < 25; i++) {
+    current = ObjectivesEuclid(i);
+    if (current > max) {
+      max = current;
+    }
+    if (current < min) {
+      min = current;
+    }
+  }
+
+  for (int i = 0; i < 25; i++) {
+     ObjectivesEuclid(i) =  ObjectivesEuclid(i)-min;
+  }
+}
+
+void TrajectorySelector::EvaluateExpectedObjectivesEuclid() {
+  for (int i = 0; i < 25; i++) {
+    ObjectivesEuclid(i) = ObjectivesEuclid(i)*normalized_no_collision_probabilities(i);
+  }
+}
+
+double TrajectorySelector::EvaluateWeightedObjectivesEuclid(size_t const& trajectory_index) {
+  return GoalProgressEvaluations(trajectory_index) + 1.0*TerminalVelocityEvaluations(trajectory_index);
 }
 
 

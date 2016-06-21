@@ -43,7 +43,7 @@ public:
 		//waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
   	    //point_cloud_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnPointCloud, this);
   	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
-  	    //value_grid_sub = nh.subscribe("/value_grid", 1, &TrajectorySelectorNode::OnValueGrid, this);
+  	    value_grid_sub = nh.subscribe("/value_grid", 1, &TrajectorySelectorNode::OnValueGrid, this);
   	    laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &TrajectorySelectorNode::OnScan, this);
 
   	    // Publishers
@@ -86,7 +86,15 @@ public:
 		Vector3 desired_acceleration;
 	
 		auto t1 = std::chrono::high_resolution_clock::now();
-		trajectory_selector.computeBestDijkstraTrajectory(carrot_ortho_body_frame, carrot_world_frame, best_traj_index, desired_acceleration);
+		
+		// if (carrot_ortho_body_frame.norm() > 2.0) {
+		// 	geometry_msgs::TransformStamped tf = GetTransformToWorld();
+		// 	trajectory_selector.computeBestDijkstraTrajectory(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
+		// }
+		// else {
+			trajectory_selector.computeBestTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+		//}
+
 		auto t2 = std::chrono::high_resolution_clock::now();
 		std::cout << "Computing best traj took "
     	  << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
