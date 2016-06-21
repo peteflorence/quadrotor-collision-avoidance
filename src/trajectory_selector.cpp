@@ -284,7 +284,7 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryFor
       sample_points_xyz_over_time.row(time_index) = trajectory_to_sample.getPositionLASER(sampling_time);
     }
     else {
-      sample_points_xyz_over_time.row(time_index) = trajectory_to_sample.getTerminalStopPositionLASER(sampling_time);
+      sample_points_xyz_over_time.row(time_index) = trajectory_to_sample.getPositionLASER(sampling_time);
     }
   }
   return sample_points_xyz_over_time;

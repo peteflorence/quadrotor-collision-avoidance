@@ -38,9 +38,9 @@ void TrajectoryVisualizer::drawGaussianPropagation(int id, Vector3 position, Vec
 	marker.pose.position.x = position(0);
 	marker.pose.position.y = position(1);
 	marker.pose.position.z = position(2);
-	marker.scale.x = sigma(0);
-	marker.scale.y = sigma(1);
-	marker.scale.z = sigma(2);
+	marker.scale.x = sigma(0)*0.2;
+	marker.scale.y = sigma(1)*0.2;
+	marker.scale.z = sigma(2)*0.2;
 	marker.color.a = 0.30; // Don't forget to set the alpha!
 	marker.color.r = 0.9;
 	marker.color.g = 0.1;
@@ -60,9 +60,9 @@ void TrajectoryVisualizer::drawCollisionIndicator(int const& id, Vector3 const& 
 	marker.pose.position.x = position(0);
 	marker.pose.position.y = position(1);
 	marker.pose.position.z = position(2);
-	marker.scale.x = 0.75;
-	marker.scale.y = 0.75;
-	marker.scale.z = 0.75;
+	marker.scale.x = 0.2;
+	marker.scale.y = 0.2;
+	marker.scale.z = 0.2;
 	marker.color.a = 0.15; // Don't forget to set the alpha!
 
 	if (collision_prob > 0.5) {

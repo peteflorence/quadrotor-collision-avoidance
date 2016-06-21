@@ -17,7 +17,7 @@ double LaserScanCollisionEvaluator::computeProbabilityOfCollisionOnePosition(Vec
 	double probability_of_collision_one_return;
 	Vector3 total_sigma = sigma_robot_position + sigma_depth_point;
   	Vector3 inverse_total_sigma = Vector3(1/total_sigma(0), 1/total_sigma(1), 1/total_sigma(2));
-  	double volume = 0.267; // 4/3*pi*r^3, with r=0.4 as first guess
+  	double volume = 0.2*0.267; // 4/3*pi*r^3, with r=0.4 as first guess
   	double denominator = std::sqrt( 248.05021344239853*(total_sigma(0))*(total_sigma(1))*(total_sigma(2)) ); // coefficient is 2pi*2pi*2pi	
 	
 	if (xyz_cloud_ptr != nullptr) {
@@ -28,7 +28,7 @@ double LaserScanCollisionEvaluator::computeProbabilityOfCollisionOnePosition(Vec
   			Vector3 depth_position = Vector3(point->x, point->y, point->z);
   			double exponent = -0.5*(robot_position - depth_position).transpose() * inverse_total_sigma.cwiseProduct(robot_position - depth_position);
   			probability_of_collision_one_return = volume / denominator * std::exp(exponent);
-  			if (probability_of_collision_one_return < 0.10) {probability_of_collision_one_return=0.0;}
+  			if (probability_of_collision_one_return < 0.02) {probability_of_collision_one_return=0.0;}
   			//std::cout << "Prob of collision with this return is " << probability_of_collision_one_return << std::endl;
   			probability_no_collision = probability_no_collision * (1 - probability_of_collision_one_return);
   		}
