@@ -17,7 +17,7 @@ public:
   
 
 private:
-  pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud;
+  pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud_ptr;
 
   Vector3 sigma_depth_point = Vector3(0.2, 0.2, 0.2);
 
