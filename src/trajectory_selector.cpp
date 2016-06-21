@@ -236,7 +236,10 @@ void TrajectorySelector::EvaluateCollisionProbabilities() {
 
   size_t i = 0;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
+    std::cout << std::endl << "######" << std::endl;
+    std::cout << "now evaling trajectory number " << i << std::endl;
     CollisionProbabilities(i) = computeProbabilityOfCollisionOneTrajectory(*trajectory); 
+    //CollisionProbabilities(i) = i*1.0/25.0;
     NoCollisionProbabilities(i) = 1.0 - CollisionProbabilities(i);
     i++;
   }
@@ -252,8 +255,11 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
   for (size_t time_step_index = 0; time_step_index < 10; time_step_index++) {
     sigma_robot_position = trajectory_library.getLASERSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
     robot_position = trajectory.getPositionLASER(collision_sampling_time_vector(time_step_index));
+    std::cout << "robot position is " << robot_position << std::endl;
+    std::cout << "sigma robot position is " << sigma_robot_position << std::endl;
 
     probability_of_collision_one_step = laser_scan_collision_evaluator.computeProbabilityOfCollisionOnePosition(robot_position, sigma_robot_position);
+    std::cout << "This prob of collision one step was " <<  probability_of_collision_one_step << std::endl;
     probability_no_collision_one_step = 1.0 - probability_of_collision_one_step;
     probability_no_collision = probability_no_collision * probability_no_collision_one_step;
   }
@@ -274,10 +280,10 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryFor
     //std::cout << "the position I sample is " << trajectory_to_sample.getPosition(sampling_time) << std::endl;
     sampling_time = sampling_time_vector(time_index);
     if (time_index < num_samples - 1) {
-      sample_points_xyz_over_time.row(time_index) = trajectory_to_sample.getPosition(sampling_time);
+      sample_points_xyz_over_time.row(time_index) = trajectory_to_sample.getPositionLASER(sampling_time);
     }
     else {
-      sample_points_xyz_over_time.row(time_index) = trajectory_to_sample.getTerminalStopPosition(sampling_time);
+      sample_points_xyz_over_time.row(time_index) = trajectory_to_sample.getTerminalStopPositionLASER(sampling_time);
     }
   }
   return sample_points_xyz_over_time;

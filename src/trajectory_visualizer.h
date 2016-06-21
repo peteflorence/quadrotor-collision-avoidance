@@ -42,11 +42,12 @@ public:
   void setCollisionProbabilities(Eigen::Matrix<Scalar, 25, 1> const& collision_probabilities) {
   	this->collision_probabilities = collision_probabilities;
   }
+  void drawDebugPoints();
   
 
 private:
 
-	std::string drawing_frame = "ortho_body";
+	std::string drawing_frame = "laser";
 
 	ros::NodeHandle nh;
 	ros::Publisher gaussian_pub;

@@ -36,3 +36,24 @@ double LaserScanCollisionEvaluator::computeProbabilityOfCollisionOnePosition(Vec
 	// Ptr was null
 	return 0.0;
 }
+
+Eigen::Matrix<Scalar, 100, 3> LaserScanCollisionEvaluator::DebugPointsToDraw() {
+
+	Eigen::Matrix<Scalar, 100, 3> points_to_draw;
+	points_to_draw.setZero();
+
+	if (xyz_cloud_ptr != nullptr) {
+
+		auto point_cloud_iterator_begin = xyz_cloud_ptr->begin();
+  		auto point_cloud_iterator_end = xyz_cloud_ptr->end();
+  		int i = 0;
+  		for (auto point = point_cloud_iterator_begin; point != point_cloud_iterator_end; point++) {
+  			Vector3 depth_position = Vector3(point->x, point->y, point->z);
+  			points_to_draw.row(i) = depth_position;
+  			i++;
+  		}
+	}
+	// Ptr was null
+	return points_to_draw;
+
+};

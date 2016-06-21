@@ -67,10 +67,10 @@ void TrajectoryVisualizer::drawCollisionIndicator(int const& id, Vector3 const& 
 
 	if (collision_prob > 0.5) {
 		marker.color.r = collision_prob;
-		marker.color.g = 0.0;
+		marker.color.g = 1.0 - collision_prob;
 	}
 	else {
-		marker.color.r = 0.0;
+		marker.color.r = collision_prob;
 		marker.color.g = 1.0 - collision_prob;
 	}
 	marker.color.b = 0.0;
@@ -98,7 +98,39 @@ void TrajectoryVisualizer::drawFinalStoppingPosition(int id, Vector3 position) {
 	gaussian_pub.publish( marker );
 }
 
+void TrajectoryVisualizer::drawDebugPoints() {
+	LaserScanCollisionEvaluator* laser_scan_collision_ptr = trajectory_selector->GetLaserScanCollisionEvaluatorPtr();
+	if (laser_scan_collision_ptr != nullptr) {
+		Eigen::Matrix<Scalar, 100, 3> points = laser_scan_collision_ptr->DebugPointsToDraw();
+
+		for (int i = 0; i<100; i++) {
+			visualization_msgs::Marker marker;
+			marker.header.frame_id = drawing_frame;
+			marker.header.stamp = ros::Time::now();
+			marker.ns = "my_namespace";
+			marker.id = 65+i;
+			marker.type = visualization_msgs::Marker::SPHERE;
+			marker.action = visualization_msgs::Marker::ADD;
+			marker.pose.position.x = points(i,0);
+			marker.pose.position.y = points(i,1);
+			marker.pose.position.z = points(i,2);
+			marker.scale.x = 0.2;
+			marker.scale.y = 0.2;
+			marker.scale.z = 0.2;
+			marker.color.a = 0.15; // Don't forget to set the alpha!
+			marker.color.r = 0.0;
+			marker.color.g = 0.0;
+			marker.color.b = 1.0;
+			gaussian_pub.publish( marker );
+
+		}	
+	}
+}
+
+
+
 void TrajectoryVisualizer::drawAll() {
+	drawDebugPoints();
 	size_t num_trajectories = trajectory_selector->getNumTrajectories(); 
 
 	for (size_t trajectory_index = 0; trajectory_index < num_trajectories; trajectory_index++) {
@@ -110,7 +142,7 @@ void TrajectoryVisualizer::drawAll() {
 		action_samples_msg.header.stamp = ros::Time::now();
 		Vector3 sigma;
 		for (size_t sample = 0; sample < num_samples; sample++) {
-			action_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), "ortho_body"));
+			action_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), drawing_frame));
 			sigma = trajectory_selector->getSigmaAtTime(sampling_time_vector(sample));
 			if (trajectory_index == *best_traj_index) {
 				drawGaussianPropagation(sample, sample_points_xyz_over_time.row(sample), sigma);
