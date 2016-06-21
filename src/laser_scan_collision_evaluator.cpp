@@ -20,10 +20,59 @@ void LaserScanCollisionEvaluator::UpdatePointCloudPtr(pcl::PointCloud<pcl::Point
 
 
 double LaserScanCollisionEvaluator::computeProbabilityOfCollisionOnePosition(Vector3 const& robot_position, Vector3 const& sigma_robot_position) {
+	
 	std::cout << "Inside LaserScanCollisionEvaluator" << std::endl;
+	double test_point;
+	pcl::PointXYZ first_point;
 
-	//pcl::PointXYZ first_point = xyz_cloud->at(0,0);
-	//std::cout << first_point.x << " is the x of the first point" << std::endl;
+	auto t1 = std::chrono::high_resolution_clock::now();
+	auto t2 = std::chrono::high_resolution_clock::now();
+	
+
+	if (xyz_cloud != nullptr) {
+		if (xyz_cloud->size() == 0) {
+			std::cout << "This point cloud is empty ! " << std::endl;
+			return 0.0;
+		}
+		std::cout << xyz_cloud->size() << " is the size" << std::endl;
+
+		auto point_cloud_iterator_begin = xyz_cloud->begin();
+  		auto point_cloud_iterator_end = xyz_cloud->end();
+  		int i = 0;
+
+  		t1 = std::chrono::high_resolution_clock::now();
+  		for (auto point = point_cloud_iterator_begin; point != point_cloud_iterator_end; point++) {
+  			//std::cout << i << std::endl;
+  			//i++;
+  			test_point = point->x;
+  		}
+  		t2 = std::chrono::high_resolution_clock::now();
+		std::cout << "With iterator took "
+      		<< std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count()
+      		<< " microseconds\n"; 
+
+  		t1 = std::chrono::high_resolution_clock::now();
+  		for (int j = 0; j < xyz_cloud->size(); j++) {
+  			first_point = xyz_cloud->at(j);
+  			test_point = first_point.x;
+  		} 
+  		t2 = std::chrono::high_resolution_clock::now();
+		std::cout << "No iterator took "
+      		<< std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count()
+      		<< " microseconds\n"; 
+
+
+		pcl::PointXYZ first_point = xyz_cloud->at(0);
+		std::cout << first_point.x << " is the x of the first point" << std::endl;
+		return 0.5;	
+	}
+	std::cout << "Ptr was null  " << std::endl;
+	return 0.0;
+
+
+	
+
+	
 
 
 	// I NEED TO ITERATE OVER ALL POINTS

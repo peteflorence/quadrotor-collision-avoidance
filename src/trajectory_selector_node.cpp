@@ -85,7 +85,7 @@ public:
 	void ReactToSampledPointCloud() {
 		Vector3 desired_acceleration;
 	
-		//trajectory_selector.computeBestTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+		trajectory_selector.computeBestTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 
@@ -241,10 +241,11 @@ private:
 	}
 
 	void OnScan(sensor_msgs::PointCloud2 const& laser_point_cloud_msg) {
-		ROS_INFO("GOT SCAN");
+		
 		LaserScanCollisionEvaluator* laser_scan_collision_ptr = trajectory_selector.GetLaserScanCollisionEvaluatorPtr();
 
 		if (laser_scan_collision_ptr != nullptr) {
+			ROS_INFO("GOT SCAN AND NEWING");
 			pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
 			pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
 			
