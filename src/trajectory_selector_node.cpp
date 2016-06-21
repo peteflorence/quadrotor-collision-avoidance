@@ -86,7 +86,7 @@ public:
 		Vector3 desired_acceleration;
 	
 		auto t1 = std::chrono::high_resolution_clock::now();
-		trajectory_selector.computeBestTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+		trajectory_selector.computeBestDijkstraTrajectory(carrot_ortho_body_frame, carrot_world_frame, best_traj_index, desired_acceleration);
 		auto t2 = std::chrono::high_resolution_clock::now();
 		std::cout << "Computing best traj took "
     	  << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()

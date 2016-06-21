@@ -50,6 +50,7 @@ void TrajectorySelector::computeBestDijkstraTrajectory(Vector3 const& carrot_bod
   EvaluateDijkstraCost(carrot_world_frame, tf);
   EvaluateTerminalVelocityCost();
   EvaluateGoalProgress(carrot_body_frame); 
+  EvaluateCollisionProbabilities();
   //DijkstraEvaluations = Normalize(DijkstraEvaluations);
   //TerminalVelocityEvaluations = Normalize(TerminalVelocityEvaluations);
 
@@ -95,7 +96,7 @@ Eigen::Matrix<Scalar, 25, 1> TrajectorySelector::Normalize(Eigen::Matrix<Scalar,
 }
 
 float TrajectorySelector::EvaluateObjective(size_t index) {
-  return DijkstraEvaluations(index) + 0.01*GoalProgressEvaluations(index) + 2*TerminalVelocityEvaluations(index);
+  return NoCollisionProbabilities(index)*(DijkstraEvaluations(index) + 0.01*GoalProgressEvaluations(index) + 2*TerminalVelocityEvaluations(index));
 }
 
 
