@@ -33,6 +33,10 @@ public:
 
   Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sampleTrajectoryForDrawing(size_t trajectory_index, Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector, size_t num_samples);
 
+  Eigen::Matrix<Scalar, 25, 1> getCollisionProbabilities() {
+    return CollisionProbabilities;
+  }
+
 private:
   
   TrajectoryLibrary trajectory_library;

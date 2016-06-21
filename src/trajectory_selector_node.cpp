@@ -85,7 +85,15 @@ public:
 	void ReactToSampledPointCloud() {
 		Vector3 desired_acceleration;
 	
+		auto t1 = std::chrono::high_resolution_clock::now();
 		trajectory_selector.computeBestTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+		auto t2 = std::chrono::high_resolution_clock::now();
+		std::cout << "Computing best traj took "
+    	  << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+      		<< " microseconds\n"; 
+
+      	Eigen::Matrix<Scalar, 25, 1> collision_probabilities = trajectory_selector.getCollisionProbabilities();
+		trajectory_visualizer.setCollisionProbabilities(collision_probabilities);
 
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 
@@ -445,13 +453,13 @@ private:
 
 		using namespace Eigen;
 
-		Vector3 pid;
-		double offset;
-		nh.param("z_p", pid(0), 1.5);
-		nh.param("z_i", pid(1), 0.6);
-		nh.param("z_d", pid(2), 0.5);
-		nh.param("z_offset", offset, 0.69);
-		attitude_generator.setGains(pid, offset);
+		// Vector3 pid;
+		// double offset;
+		// nh.param("z_p", pid(0), 1.5);
+		// nh.param("z_i", pid(1), 0.6);
+		// nh.param("z_d", pid(2), 0.5);
+		// nh.param("z_offset", offset, 0.69);
+		// attitude_generator.setGains(pid, offset);
 
 		mavros_msgs::AttitudeTarget setpoint_msg;
 		setpoint_msg.header.stamp = ros::Time::now();

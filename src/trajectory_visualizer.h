@@ -20,6 +20,7 @@ public:
 		this->nh = nh;
 		this->best_traj_index = best_traj_index;
 		this->final_time = final_time;
+		collision_probabilities.setZero();
 
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
 
@@ -37,9 +38,15 @@ public:
   void drawAll();
   void drawGaussianPropagation(int id, Vector3 position, Vector3 sigma);
   void drawFinalStoppingPosition(int id, Vector3 position);
+  void drawCollisionIndicator(int const& id, Vector3 const& position, double const& collision_prob);
+  void setCollisionProbabilities(Eigen::Matrix<Scalar, 25, 1> const& collision_probabilities) {
+  	this->collision_probabilities = collision_probabilities;
+  }
   
 
 private:
+
+	std::string drawing_frame = "ortho_body";
 
 	ros::NodeHandle nh;
 	ros::Publisher gaussian_pub;
@@ -53,6 +60,8 @@ private:
   double final_time;
 
   size_t* best_traj_index;
+
+  Eigen::Matrix<Scalar, 25, 1> collision_probabilities;
   
 };
 

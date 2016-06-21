@@ -149,6 +149,7 @@ void TrajectorySelector::EvaluateDijkstraCost(Vector3 const& carrot_world_frame,
 
 void TrajectorySelector::computeBestTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
   EvaluateCollisionProbabilities();
+  std::cout << "All collision probs were " << CollisionProbabilities << std::endl;
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
 
