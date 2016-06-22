@@ -404,24 +404,20 @@ private:
 
 	void OnDepthImage(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
 		ROS_INFO("GOT POINT CLOUD");
+		DepthImageCollisionEvaluator* depth_image_collision_ptr = trajectory_selector.GetDepthImageCollisionEvaluatorPtr();
 
-		geometry_msgs::TransformStamped tf;
-	    try {
-	      tf = tf_buffer_.lookupTransform("ortho_body", "xtion_depth_optical_frame", 
-	                                    ros::Time(0), ros::Duration(1/30.0));
-	    } catch (tf2::TransformException &ex) {
-	      ROS_ERROR("%s", ex.what());
-	      return;
-	    }
+		if (depth_image_collision_ptr != nullptr) {
 
-		pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
-		pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
-		
-    	pcl_conversions::toPCL(*point_cloud_msg, *cloud);
-    	pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    	pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
 
-  		//ReactToSampledPointCloud();
+			pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
+			pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
+			
+	    	pcl_conversions::toPCL(*point_cloud_msg, *cloud);
+	    	pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	    	pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
+
+			depth_image_collision_ptr->UpdatePointCloudPtr(xyz_cloud);
+		}
 	
 	}
 

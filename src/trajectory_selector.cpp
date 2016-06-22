@@ -12,6 +12,12 @@ LaserScanCollisionEvaluator* TrajectorySelector::GetLaserScanCollisionEvaluatorP
   return &laser_scan_collision_evaluator;
 };
 
+DepthImageCollisionEvaluator* TrajectorySelector::GetDepthImageCollisionEvaluatorPtr() {
+  return &depth_image_collision_evaluator;
+};
+
+
+
 void TrajectorySelector::InitializeLibrary(double const& final_time) {
   trajectory_library.Initialize2DLibrary(final_time);
   this->final_time = final_time;
@@ -42,8 +48,8 @@ size_t TrajectorySelector::getNumTrajectories() {
 
 
 void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
-  //EvaluateCollisionProbabilities();
-  //std::cout << "No collision probs were " << no_collision_probabilities << std::endl;
+  EvaluateCollisionProbabilities();
+  std::cout << "No collision probs were " << no_collision_probabilities << std::endl;
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
   EvaluateObjectivesEuclid();
@@ -259,11 +265,12 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
     //sigma_robot_position = trajectory_library.getLASERSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
     //std::cout << "sigma robot position is " << sigma_robot_position << std::endl;
     sigma_robot_position = Vector3(0.01,0.01,0.01);
-    robot_position = trajectory.getPositionLASER(collision_sampling_time_vector(time_step_index));
+    robot_position = trajectory.getPositionRDF(collision_sampling_time_vector(time_step_index));
     //std::cout << "robot position is " << robot_position << std::endl;
     //std::cout << "sigma robot position is " << sigma_robot_position << std::endl;
 
-    probability_of_collision_one_step = laser_scan_collision_evaluator.computeProbabilityOfCollisionOnePosition(robot_position, sigma_robot_position);
+    probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlock(robot_position, sigma_robot_position, 2);
+    //probability_of_collision_one_step = laser_scan_collision_evaluator.computeProbabilityOfCollisionOnePosition(robot_position, sigma_robot_position);
     //std::cout << "This prob of collision one step was " <<  probability_of_collision_one_step << std::endl;
     probability_no_collision_one_step = 1.0 - probability_of_collision_one_step;
     probability_no_collision = probability_no_collision * probability_no_collision_one_step;
