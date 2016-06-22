@@ -216,7 +216,7 @@ void TrajectorySelector::EvaluateTerminalVelocityCost() {
     terminal_velocity_evaluations(i) = 0;
     
     // cost on going too fast
-    double soft_top_speed = 1.0;
+    double soft_top_speed = 6.0;
     if (final_trajectory_speed > (soft_top_speed-1.0)) {
       terminal_velocity_evaluations(i) -= ((soft_top_speed-1.0) - final_trajectory_speed)*((soft_top_speed-1.0) - final_trajectory_speed);
     }
