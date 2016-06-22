@@ -86,9 +86,9 @@ void TrajectoryVisualizer::drawCollisionIndicator(int const& id, Vector3 const& 
 	marker.pose.position.x = position(0);
 	marker.pose.position.y = position(1);
 	marker.pose.position.z = position(2);
-	marker.scale.x = 0.2;
-	marker.scale.y = 0.2;
-	marker.scale.z = 0.2;
+	marker.scale.x = 0.4;
+	marker.scale.y = 0.4;
+	marker.scale.z = 0.4;
 	marker.color.a = 0.15; // Don't forget to set the alpha!
 
 	if (collision_prob > 0.5) {

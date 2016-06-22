@@ -129,6 +129,15 @@ void TrajectorySelector::EvaluateObjectivesDijkstra() {
   objectives_dijkstra = objectives_dijkstra.cwiseProduct(no_collision_probabilities);
 }
 
+Eigen::Matrix<Scalar, 25, 1> TrajectorySelector::FilterSmallProbabilities(Eigen::Matrix<Scalar, 25, 1> to_filter) {
+  for (size_t i = 0; i < 25; i++) {
+    if (to_filter(i) < 0.10) {
+      to_filter(i) = 0.0;
+    }
+  }
+  return to_filter;
+}
+
 
 double TrajectorySelector::EvaluateWeightedObjectiveDijkstra(size_t index) {
   return dijkstra_evaluations(index) + 0.2*goal_progress_evaluations(index) + 1.0*terminal_velocity_evaluations(index);
@@ -200,7 +209,7 @@ void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) 
   Vector3 final_trajectory_position;
   double distance;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-    final_trajectory_position = trajectory->getTerminalStopPosition(0.5);
+    final_trajectory_position = trajectory->getPosition(final_time);
     distance = (final_trajectory_position - carrot_body_frame).norm();
     goal_progress_evaluations(i) = initial_distance - distance; 
     i++;
@@ -222,7 +231,7 @@ void TrajectorySelector::EvaluateTerminalVelocityCost() {
     terminal_velocity_evaluations(i) = 0;
     
     // cost on going too fast
-    double soft_top_speed = 5.0;
+    double soft_top_speed = 10.0;
     if (final_trajectory_speed > (soft_top_speed-1.0)) {
       terminal_velocity_evaluations(i) -= ((soft_top_speed-1.0) - final_trajectory_speed)*((soft_top_speed-1.0) - final_trajectory_speed);
     }
@@ -249,8 +258,12 @@ void TrajectorySelector::EvaluateCollisionProbabilities() {
     // }
     
     //CollisionProbabilities(i) = i*1.0/25.0;
-    no_collision_probabilities(i) = 1.0 - collision_probabilities(i);
+    
     i++;
+  }
+  //collision_probabilities = FilterSmallProbabilities(collision_probabilities);
+  for (int i = 0; i < 25; i++) {
+    no_collision_probabilities(i) = 1.0 - collision_probabilities(i);
   }
 };
 

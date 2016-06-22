@@ -65,6 +65,7 @@ private:
   double computeProbabilityOfCollisionOneTrajectory(Trajectory trajectory);
 
 
+  Eigen::Matrix<Scalar, 25, 1> FilterSmallProbabilities(Eigen::Matrix<Scalar, 25, 1> to_filter);
   Eigen::Matrix<Scalar, 25, 1> Normalize0to1(Eigen::Matrix<Scalar, 25, 1> cost);
   Eigen::Matrix<Scalar, 25, 1> MakeAllGreaterThan1(Eigen::Matrix<Scalar, 25, 1> cost);
   

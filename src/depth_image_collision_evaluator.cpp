@@ -108,9 +108,9 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionOnePositionBlo
         if (IsNoReturn(first_point)) { 
           continue;
         }
-        if (first_point.y < -0.3) { // this makes it so the ground doesn't count 
-          continue;
-        }
+        // if (first_point.y > 1.0) { // this makes it so the ground doesn't count // NEED TO DO THIS BETTER
+        //   continue;
+        // }
         
 
         Vector3 depth_position = Vector3(first_point.x, first_point.y, first_point.z);

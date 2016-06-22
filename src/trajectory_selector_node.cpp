@@ -510,7 +510,7 @@ private:
 	double carrot_distance;
 
 	double start_time = 0.0;
-	double final_time = 2.0;
+	double final_time = 1.0;
 
 	Eigen::Vector4d pose_x_y_z_yaw;
 	Eigen::Matrix<double, 4, Eigen::Dynamic> waypoints_matrix;
