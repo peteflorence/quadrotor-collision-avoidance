@@ -87,13 +87,13 @@ public:
 	
 		auto t1 = std::chrono::high_resolution_clock::now();
 		
-		// if (carrot_ortho_body_frame.norm() > 2.0) {
-		// 	geometry_msgs::TransformStamped tf = GetTransformToWorld();
-		// 	trajectory_selector.computeBestDijkstraTrajectory(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
-		// }
-		// else {
+		if (carrot_ortho_body_frame.norm() > 2.0) {
+			geometry_msgs::TransformStamped tf = GetTransformToWorld();
+			trajectory_selector.computeBestDijkstraTrajectory(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
+		}
+		else {
 			trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
-		//}
+		}
 
 		auto t2 = std::chrono::high_resolution_clock::now();
 		std::cout << "Computing best traj took "
