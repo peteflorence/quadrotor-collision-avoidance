@@ -44,12 +44,9 @@ size_t TrajectorySelector::getNumTrajectories() {
 void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
   EvaluateCollisionProbabilities();
   std::cout << "No collision probs were " << no_collision_probabilities << std::endl;
-  //NormalizeCollisionProbabilities();
-  std::cout << "Normalized collision probs were " << normalized_no_collision_probabilities << std::endl;
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
   EvaluateObjectivesEuclid();
-  std::cout << "Objectives Euclid were  " << normalized_no_collision_probabilities << std::endl;
   //EvaluateExpectedObjectivesEuclid();
 
   desired_acceleration << 0,0,0;
@@ -76,6 +73,9 @@ void TrajectorySelector::EvaluateObjectivesEuclid() {
   for (int i = 0; i < 25; i++) {
     objectives_euclid(i) = EvaluateWeightedObjectiveEuclid(i);
   }
+  objectives_euclid = MakeAllGreaterThan1(objectives_euclid);
+  no_collision_probabilities = Normalize0to1(no_collision_probabilities);
+  objectives_euclid = objectives_euclid.cwiseProduct(no_collision_probabilities);
 }
 
 double TrajectorySelector::EvaluateWeightedObjectiveEuclid(size_t const& trajectory_index) {
@@ -297,10 +297,28 @@ Eigen::Matrix<Scalar, 25, 1> TrajectorySelector::Normalize0to1(Eigen::Matrix<Sca
   }
 
   for (int i = 0; i < 25; i++) {
-     cost(i) =  cost(i)-min/(max-min);
+     cost(i) =  (cost(i)-min)/(max-min);
   }
   return cost;
 }
+
+Eigen::Matrix<Scalar, 25, 1> TrajectorySelector::MakeAllGreaterThan1(Eigen::Matrix<Scalar, 25, 1> cost) {
+  double min = cost(0);
+  double current;
+  for (int i = 1; i < 25; i++) {
+    current = cost(i);
+    if (current < min) {
+      min = current;
+    }
+  }
+
+  for (int i = 0; i < 25; i++) {
+     cost(i) =  cost(i)-min+1.0;
+  }
+  return cost;
+}
+
+
 
 
 

@@ -63,6 +63,7 @@ private:
 
 
   Eigen::Matrix<Scalar, 25, 1> Normalize0to1(Eigen::Matrix<Scalar, 25, 1> cost);
+  Eigen::Matrix<Scalar, 25, 1> MakeAllGreaterThan1(Eigen::Matrix<Scalar, 25, 1> cost);
   
   
 
@@ -79,7 +80,6 @@ private:
   Eigen::Matrix<Scalar, 25, 1> terminal_velocity_evaluations;
   Eigen::Matrix<Scalar, 25, 1> collision_probabilities;
   Eigen::Matrix<Scalar, 25, 1> no_collision_probabilities;
-  Eigen::Matrix<Scalar, 25, 1> normalized_no_collision_probabilities;
 
   Eigen::Matrix<Scalar, 25, 1> objectives_dijkstra;
   Eigen::Matrix<Scalar, 25, 1> objectives_euclid;
