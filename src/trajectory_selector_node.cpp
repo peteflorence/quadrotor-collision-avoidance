@@ -84,6 +84,16 @@ public:
 
 	void ReactToSampledPointCloud() {
 		Vector3 desired_acceleration;
+
+		bool go;
+		nh.param("go", go, false);
+		if (go) {
+			carrot_ortho_body_frame << 100, 0, 0;
+		}
+		else if (carrot_ortho_body_frame(0) == 100) {
+			carrot_ortho_body_frame << 5, 0, 0;
+		}
+		
 	
 		auto t1 = std::chrono::high_resolution_clock::now();
 		trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
@@ -443,7 +453,7 @@ private:
 			;
 
 		double bearing_azimuth_degrees;
-		nh.param("bearing_degrees", bearing_azimuth_degrees, 0.0);
+		nh.param("bearing_azimuth_degrees", bearing_azimuth_degrees, 0.0);
 
 		Matrix3f m;
 		m =AngleAxisf(-bearing_azimuth_degrees*M_PI/180.0, Vector3f::UnitZ())
