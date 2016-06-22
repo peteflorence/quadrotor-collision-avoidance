@@ -41,7 +41,7 @@ public:
 		pose_sub = nh.subscribe("/samros/pose", 1, &TrajectorySelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/samros/twist", 1, &TrajectorySelectorNode::OnVelocity, this);
 		//waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
-  	    //point_cloud_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnPointCloud, this);
+  	    depth_image_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnDepthImage, this);
   	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
   	    //value_grid_sub = nh.subscribe("/value_grid", 1, &TrajectorySelectorNode::OnValueGrid, this);
   	    laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &TrajectorySelectorNode::OnScan, this);
@@ -86,15 +86,7 @@ public:
 		Vector3 desired_acceleration;
 	
 		auto t1 = std::chrono::high_resolution_clock::now();
-		
-		// if (carrot_ortho_body_frame.norm() > 2.0) {
-		// 	geometry_msgs::TransformStamped tf = GetTransformToWorld();
-		// 	trajectory_selector.computeBestDijkstraTrajectory(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
-		// }
-		// else {
-			trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
-		//}
-
+		trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 		auto t2 = std::chrono::high_resolution_clock::now();
 		std::cout << "Computing best traj took "
     	  << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
@@ -387,7 +379,7 @@ private:
 
 
 
-	void OnPointCloud(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
+	void OnDepthImage(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
 		ROS_INFO("GOT POINT CLOUD");
 
 		geometry_msgs::TransformStamped tf;
@@ -406,52 +398,7 @@ private:
     	pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud(new pcl::PointCloud<pcl::PointXYZ>);
     	pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
 
-    	// edges are:
-    	// 0,0
-    	// 159, 0
-    	// 0, 119
-    	// 159,119
-    	Vector3 blank;
-    	blank << 0,0,0;
-
-  		for (size_t i = 0; i < 100; i++) {
-  			int x_rand_index = rand() % 160;
-  			int y_rand_index = rand() % 120;
-  			pcl::PointXYZ first_point = xyz_cloud->at(x_rand_index,y_rand_index);
-  			geometry_msgs::PoseStamped point_cloud_xyz_body = PoseFromVector3(Vector3(first_point.x, first_point.y, first_point.z), "xtion_depth_optical_frame");
-	    	geometry_msgs::PoseStamped point_cloud_xyz_ortho_body = PoseFromVector3(blank, "ortho_body");
-	    	tf2::doTransform(point_cloud_xyz_body, point_cloud_xyz_ortho_body, tf);
-  			point_cloud_xyz_samples_ortho_body.row(i) = VectorFromPose(point_cloud_xyz_ortho_body);
-  		}
-
-  	// 	for (int i = 0; i < 100; i++) {
-	  // 		if (isnan(point_cloud_xyz_samples_ortho_body(i,0))) {
-	  // 			continue;
-	  // 		}
-  	// 		visualization_msgs::Marker marker;
-			// marker.header.frame_id = "ortho_body";
-			// marker.header.stamp = ros::Time();
-			// marker.ns = "my_namespace";
-			// marker.id = 0;
-			// marker.type = visualization_msgs::Marker::SPHERE;
-			// marker.action = visualization_msgs::Marker::ADD;
-			// marker.pose.position.x = point_cloud_xyz_samples_ortho_body(0,0);
-			// marker.pose.position.y = point_cloud_xyz_samples_ortho_body(0,1);
-			// marker.pose.position.z = point_cloud_xyz_samples_ortho_body(0,2);
-			// //std::cout << "Trying to plot this point " << point_cloud_xyz_samples_ortho_body << std::endl;
-			// marker.scale.x = 0.3;
-			// marker.scale.y = 0.3;
-			// marker.scale.z = 0.3;
-			// marker.color.a = 0.5; // Don't forget to set the alpha!
-			// marker.color.r = 0.9;
-			// marker.color.g = 0.1;
-			// marker.color.b = 0.9;
-			// vis_pub.publish( marker );
-			// break;
-  	// 	}
-  		
-
-  		ReactToSampledPointCloud();
+  		//ReactToSampledPointCloud();
 	
 	}
 
@@ -510,7 +457,7 @@ private:
 	ros::Subscriber waypoints_sub;
 	ros::Subscriber pose_sub;
 	ros::Subscriber velocity_sub;
-	ros::Subscriber point_cloud_sub;
+	ros::Subscriber depth_image_sub;
 	ros::Subscriber global_goal_sub;
 	ros::Subscriber value_grid_sub;
 	ros::Subscriber laser_scan_sub;
@@ -538,8 +485,6 @@ private:
 
 	Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector;
 	size_t num_samples;
-
-	Eigen::Matrix<Scalar, 100, 3> point_cloud_xyz_samples_ortho_body;
 
 	std::mutex mutex;
 

@@ -42,8 +42,8 @@ size_t TrajectorySelector::getNumTrajectories() {
 
 
 void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
-  EvaluateCollisionProbabilities();
-  std::cout << "No collision probs were " << no_collision_probabilities << std::endl;
+  //EvaluateCollisionProbabilities();
+  //std::cout << "No collision probs were " << no_collision_probabilities << std::endl;
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
   EvaluateObjectivesEuclid();
@@ -55,15 +55,15 @@ void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_bo
   float best_traj_objective_value = objectives_euclid(0);
   for (size_t traj_index = 1; traj_index < 25; traj_index++) {
     current_objective_value = objectives_euclid(traj_index);
-    std::cout << "current_objective_value " << current_objective_value << std::endl;
+    //std::cout << "current_objective_value " << current_objective_value << std::endl;
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
       best_traj_objective_value = current_objective_value;
     }
   }
 
-  std::cout << "## best_traj_index was " << best_traj_index << std::endl;
-  std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
+  //std::cout << "## best_traj_index was " << best_traj_index << std::endl;
+  //std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
 
   desired_acceleration = trajectory_library.getTrajectoryFromIndex(best_traj_index).getAcceleration();
 
@@ -74,8 +74,8 @@ void TrajectorySelector::EvaluateObjectivesEuclid() {
     objectives_euclid(i) = EvaluateWeightedObjectiveEuclid(i);
   }
   objectives_euclid = MakeAllGreaterThan1(objectives_euclid);
-  no_collision_probabilities = Normalize0to1(no_collision_probabilities);
-  objectives_euclid = objectives_euclid.cwiseProduct(no_collision_probabilities);
+  //no_collision_probabilities = Normalize0to1(no_collision_probabilities);
+  //objectives_euclid = objectives_euclid.cwiseProduct(no_collision_probabilities);
 }
 
 double TrajectorySelector::EvaluateWeightedObjectiveEuclid(size_t const& trajectory_index) {
