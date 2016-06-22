@@ -171,7 +171,7 @@ void TrajectoryVisualizer::drawAll() {
 		Vector3 sigma;
 		for (size_t sample = 0; sample < num_samples; sample++) {
 			action_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), drawing_frame));
-			sigma = trajectory_library_ptr->getSigmaAtTime(sampling_time_vector(sample));
+			sigma = trajectory_library_ptr->getRDFSigmaAtTime(sampling_time_vector(sample));
 			if (trajectory_index == *best_traj_index) {
 				drawGaussianPropagation(sample, sample_points_xyz_over_time.row(sample), sigma);
 			}

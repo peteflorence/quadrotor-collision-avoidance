@@ -44,7 +44,7 @@ public:
   	    depth_image_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnDepthImage, this);
   	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
   	    //value_grid_sub = nh.subscribe("/value_grid", 1, &TrajectorySelectorNode::OnValueGrid, this);
-  	    laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &TrajectorySelectorNode::OnScan, this);
+  	    //laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &TrajectorySelectorNode::OnScan, this);
 
   	    // Publishers
 		carrot_pub = nh.advertise<visualization_msgs::Marker>( "carrot_marker", 0 );
@@ -153,12 +153,13 @@ private:
 		attitude_generator.UpdateRollPitch(roll, pitch);
 	}
 
-	void UpdateLaserFrameFromPose() {
-		transformAccelerationsIntoLaserFrame();
+	void UpdateLaserRDFFramesFromPose() {
+		transformAccelerationsIntoLaserRDFFrames();
 		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
 		Vector3 initial_acceleration = trajectory_library_ptr->getInitialAcceleration();
     	if (trajectory_library_ptr != nullptr) {
 			trajectory_library_ptr->setInitialAccelerationLASER(transformOrthoBodyIntoLaserFrame(initial_acceleration));
+			trajectory_library_ptr->setInitialAccelerationRDF(transformOrthoBodyIntoRDFFrame(initial_acceleration));
 		}
 	}
 
@@ -175,10 +176,10 @@ private:
 		UpdateAttitudeGeneratorRollPitch(roll, pitch);
 		PublishOrthoBodyTransform(roll, pitch);
 		UpdateCarrotOrthoBodyFrame();
-		UpdateLaserFrameFromPose();
+		UpdateLaserRDFFramesFromPose();
 	}
 
-	void transformAccelerationsIntoLaserFrame() {
+	void transformAccelerationsIntoLaserRDFFrames() {
 		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
 		if (trajectory_library_ptr != nullptr) {
 
@@ -187,11 +188,17 @@ private:
 
 	  		Vector3 acceleration_ortho_body;
 			Vector3 acceleration_laser_frame;
+			Vector3 acceleration_rdf_frame;
+
 
 	  		for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
 	  			acceleration_ortho_body = trajectory->getAcceleration();
+
 	  			acceleration_laser_frame = transformOrthoBodyIntoLaserFrame(acceleration_ortho_body);
 	  			trajectory->setAccelerationLASER(acceleration_laser_frame);
+
+	  			acceleration_rdf_frame = transformOrthoBodyIntoRDFFrame(acceleration_ortho_body);
+	  			trajectory->setAccelerationRDF(acceleration_rdf_frame);
 	  		} 
 	  	}
 	}
@@ -209,6 +216,21 @@ private:
     	geometry_msgs::PoseStamped pose_vector_laser_frame = PoseFromVector3(Vector3(0,0,0), "laser");
     	tf2::doTransform(pose_ortho_body_vector, pose_vector_laser_frame, tf);
     	return VectorFromPose(pose_vector_laser_frame);
+	}
+
+	Vector3 transformOrthoBodyIntoRDFFrame(Vector3 const& ortho_body_vector) {
+		geometry_msgs::TransformStamped tf;
+    	try {
+     		tf = tf_buffer_.lookupTransform("xtion_depth_optical_frame", "ortho_body", 
+                                    ros::Time(0), ros::Duration(1/30.0));
+   		} catch (tf2::TransformException &ex) {
+     	 	ROS_ERROR("%s", ex.what());
+      	return Vector3(0,0,0);
+    	}
+    	geometry_msgs::PoseStamped pose_ortho_body_vector = PoseFromVector3(ortho_body_vector, "ortho_body");
+    	geometry_msgs::PoseStamped pose_vector_rdf_frame = PoseFromVector3(Vector3(0,0,0), "xtion_depth_optical_frame");
+    	tf2::doTransform(pose_ortho_body_vector, pose_vector_rdf_frame, tf);
+    	return VectorFromPose(pose_vector_rdf_frame);
 	}
 
 	Vector3 TransformWorldToOrthoBody(Vector3 const& world_frame) {
@@ -231,6 +253,7 @@ private:
 		if (trajectory_library_ptr != nullptr) {
 			trajectory_library_ptr->setInitialVelocity(velocity_ortho_body_frame);
 			trajectory_library_ptr->setInitialVelocityLASER(transformOrthoBodyIntoLaserFrame(velocity_ortho_body_frame));
+			trajectory_library_ptr->setInitialVelocityRDF(transformOrthoBodyIntoRDFFrame(velocity_ortho_body_frame));
 		}
 	}
 

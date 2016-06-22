@@ -53,8 +53,13 @@ public:
   void setInitialVelocityLASER(Vector3 const& initial_velocity_laser_frame);
 
   Vector3 getLASERSigmaAtTime(double const& t);
-
   Vector3 getLASERInverseSigmaAtTime(double const& t);
+
+  void setInitialAccelerationRDF(Vector3 const& initial_acceleration_laser_frame);
+  void setInitialVelocityRDF(Vector3 const& initial_velocity_laser_frame);
+
+  Vector3 getRDFSigmaAtTime(double const& t);
+  Vector3 getRDFInverseSigmaAtTime(double const& t);
 
 
 
@@ -70,6 +75,9 @@ private:
 
   Vector3 initial_velocity_laser_frame = Vector3(0,0,0);
   Vector3 initial_acceleration_laser_frame = Vector3(0,0,0);
+
+  Vector3 initial_velocity_rdf_frame = Vector3(0,0,0);
+  Vector3 initial_acceleration_rdf_frame = Vector3(0,0,0);
 
   double roll = 0;
   double pitch = 0;

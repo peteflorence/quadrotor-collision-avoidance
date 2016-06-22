@@ -42,6 +42,16 @@ public:
   Vector3 getInitialVelocityLASER() const;
   Vector3 getPositionLASER(Scalar const& t) const;
   Vector3 getTerminalStopPositionLASER(Scalar const& t) const;
+
+  void setAccelerationRDF(Vector3 const& acceleration_rdf);
+  void setInitialAccelerationRDF(Vector3 const& initial_acceleration_rdf);
+  void setInitialVelocityRDF(Vector3 const& initial_velocity_rdf);
+
+  Vector3 getAccelerationRDF() const;
+  Vector3 getVelocityRDF(Scalar const& t) const;
+  Vector3 getInitialVelocityRDF() const;
+  Vector3 getPositionRDF(Scalar const& t) const;
+  Vector3 getTerminalStopPositionRDF(Scalar const& t) const;
   
 
 
@@ -61,6 +71,13 @@ private:
   Vector3 jerk_laser;
   Vector3 position_end_of_jerk_time_laser;
   Vector3 velocity_end_of_jerk_time_laser;
+
+  Vector3 acceleration_rdf;
+  Vector3 initial_velocity_rdf;
+  Vector3 initial_acceleration_rdf;
+  Vector3 jerk_rdf;
+  Vector3 position_end_of_jerk_time_rdf;
+  Vector3 velocity_end_of_jerk_time_rdf;
 
   double a_max_horizontal;
   double jerk_time = 0.200;

@@ -49,7 +49,7 @@ private:
 
 	void NormalizeCollisions();
 
-	std::string drawing_frame = "laser";
+	std::string drawing_frame = "xtion_depth_optical_frame";
 
 	ros::NodeHandle nh;
 	ros::Publisher gaussian_pub;

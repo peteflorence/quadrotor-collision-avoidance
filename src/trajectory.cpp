@@ -146,6 +146,76 @@ Vector3 Trajectory::getTerminalStopPositionLASER(Scalar const& t) const {
 
 }
 
+void Trajectory::setAccelerationRDF(Vector3 const& acceleration_rdf) {
+  this->acceleration_rdf = acceleration_rdf;
+};
+
+void Trajectory::setInitialAccelerationRDF(Vector3 const& initial_acceleration_rdf) {
+  this->initial_acceleration_rdf = initial_acceleration_rdf;
+  jerk_rdf = (acceleration_rdf - initial_acceleration_rdf) / jerk_time;
+  position_end_of_jerk_time_rdf = 0.1666*jerk_rdf*jerk_time*jerk_time*jerk_time + 0.5*initial_acceleration_rdf*jerk_time*jerk_time + initial_velocity_rdf*jerk_time;
+  velocity_end_of_jerk_time_rdf = 0.5*jerk_rdf*jerk_time*jerk_time + initial_acceleration_rdf*jerk_time + initial_velocity_rdf;
+};
+
+void Trajectory::setInitialVelocityRDF(Vector3 const& initial_velocity_rdf) {
+  this->initial_velocity_rdf = initial_velocity_rdf;
+};
+
+Vector3 Trajectory::getAccelerationRDF() const{
+  return acceleration_rdf;
+};
+
+Vector3 Trajectory::getInitialVelocityRDF() const {
+  return initial_velocity_rdf;
+};
+
+Vector3 Trajectory::getVelocityRDF(Scalar const& t) const {
+  if (t < jerk_time) {
+    return 0.5*jerk_rdf*t*t + initial_acceleration_rdf*t + initial_velocity_rdf; 
+  }
+  else {
+    double t_left = t - jerk_time;
+    return velocity_end_of_jerk_time_rdf + acceleration_rdf*t_left;
+  }
+};
+
+Vector3 Trajectory::getPositionRDF(Scalar const& t) const {
+  if (t < jerk_time) {
+    return 0.1666*jerk_rdf*t*t*t + 0.5*initial_acceleration_rdf*t*t + initial_velocity_rdf*t;
+  }
+  else {
+    double t_left = t - jerk_time;
+    return position_end_of_jerk_time_rdf + 0.5*acceleration_rdf*t_left*t_left + initial_velocity_rdf*t_left;
+  }
+};
+
+Vector3 Trajectory::getTerminalStopPositionRDF(Scalar const& t) const {
+  Vector3 position_end_of_trajectory = getPositionRDF(t);
+  Vector3 velocity_end_of_trajectory = getVelocityRDF(t);
+
+  double speed = velocity_end_of_trajectory.norm();
+  
+  Vector3 stopping_vector = -velocity_end_of_trajectory/speed;
+  Vector3 max_stop_acceleration = a_max_horizontal*stopping_vector;
+  Vector3 stopping_jerk = (max_stop_acceleration - acceleration) / jerk_time;
+  Vector3 position_end_of_jerk_stop = 0.1666*stopping_jerk*jerk_time*jerk_time*jerk_time + 0.5*acceleration*jerk_time*jerk_time + velocity_end_of_trajectory*jerk_time + position_end_of_trajectory;
+  Vector3 velocity_end_of_jerk_stop = 0.5*stopping_jerk*jerk_time*jerk_time + acceleration*jerk_time + velocity_end_of_trajectory;
+
+  // check if stopped during jerk time
+  if (velocity_end_of_trajectory.dot(velocity_end_of_jerk_stop) < 0) {
+    return position_end_of_jerk_stop;
+  }
+
+  double realistic_stop_accel = a_max_horizontal*0.65;
+  double speed_after_jerk = velocity_end_of_jerk_stop.norm();
+  double stop_t_after_jerk = (speed_after_jerk / realistic_stop_accel);
+  //double extra_drift = speed_after_jerk*0.200;
+  double stopping_distance_after_jerk =  0.5 * -realistic_stop_accel * stop_t_after_jerk*stop_t_after_jerk + speed_after_jerk*stop_t_after_jerk;
+
+  return position_end_of_jerk_stop + stopping_distance_after_jerk*-stopping_vector;
+
+}
+
 
 
 
