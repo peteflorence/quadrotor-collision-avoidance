@@ -34,7 +34,7 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionOnePosition(Ve
     if (IsNoReturn(first_point)) {
       return 0.0;
     }
-    if (first_point.z < 0) { 
+    if (first_point.z < -0.2) { 
       return probability_of_collision_in_unknown;
     }
 
@@ -89,7 +89,7 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionOnePositionBlo
     }
 
     first_point = xyz_cloud_ptr->at(pi_x,pi_y);
-    if (first_point.z < 0) { 
+    if (first_point.z < -0.2) { 
       return probability_of_collision_in_unknown;
     }
 

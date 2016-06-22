@@ -80,8 +80,8 @@ void TrajectorySelector::EvaluateObjectivesEuclid() {
     objectives_euclid(i) = EvaluateWeightedObjectiveEuclid(i);
   }
   objectives_euclid = MakeAllGreaterThan1(objectives_euclid);
-  //no_collision_probabilities = Normalize0to1(no_collision_probabilities);
-  //objectives_euclid = objectives_euclid.cwiseProduct(no_collision_probabilities);
+  no_collision_probabilities = Normalize0to1(no_collision_probabilities);
+  objectives_euclid = objectives_euclid.cwiseProduct(no_collision_probabilities);
 }
 
 double TrajectorySelector::EvaluateWeightedObjectiveEuclid(size_t const& trajectory_index) {
@@ -218,11 +218,11 @@ void TrajectorySelector::EvaluateTerminalVelocityCost() {
   double final_trajectory_speed;
   double distance;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-    final_trajectory_speed = trajectory->getVelocity(final_time).norm();
+    final_trajectory_speed = trajectory->getVelocity(final_time/10).norm();
     terminal_velocity_evaluations(i) = 0;
     
     // cost on going too fast
-    double soft_top_speed = 6.0;
+    double soft_top_speed = 1.0;
     if (final_trajectory_speed > (soft_top_speed-1.0)) {
       terminal_velocity_evaluations(i) -= ((soft_top_speed-1.0) - final_trajectory_speed)*((soft_top_speed-1.0) - final_trajectory_speed);
     }

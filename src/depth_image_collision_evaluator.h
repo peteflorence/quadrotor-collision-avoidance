@@ -35,6 +35,6 @@ private:
 
   Eigen::Matrix<double, 3, 3> K;
 
-  double probability_of_collision_in_unknown = 0.05;
+  double probability_of_collision_in_unknown = 0.0;  // 0.05 is reasonable
 
 };
