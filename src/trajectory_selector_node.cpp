@@ -442,8 +442,11 @@ private:
 			| mavros_msgs::AttitudeTarget::IGNORE_YAW_RATE
 			;
 
+		double bearing_azimuth_degrees;
+		nh.param("bearing_degrees", bearing_azimuth_degrees, 0.0);
+
 		Matrix3f m;
-		m =AngleAxisf(0.0, Vector3f::UnitZ())
+		m =AngleAxisf(-bearing_azimuth_degrees*M_PI/180.0, Vector3f::UnitZ())
 		* AngleAxisf(roll_pitch_thrust(1), Vector3f::UnitY())
 		* AngleAxisf(-roll_pitch_thrust(0), Vector3f::UnitX());
 
