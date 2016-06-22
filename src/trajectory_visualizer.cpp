@@ -156,8 +156,10 @@ void TrajectoryVisualizer::drawDebugPoints() {
 
 
 void TrajectoryVisualizer::drawAll() {
-	drawDebugPoints();
+	//drawDebugPoints();
 	size_t num_trajectories = trajectory_selector->getNumTrajectories(); 
+	TrajectoryLibrary* trajectory_library_ptr = trajectory_selector->GetTrajectoryLibraryPtr();
+
 
 	for (size_t trajectory_index = 0; trajectory_index < num_trajectories; trajectory_index++) {
 
@@ -169,7 +171,7 @@ void TrajectoryVisualizer::drawAll() {
 		Vector3 sigma;
 		for (size_t sample = 0; sample < num_samples; sample++) {
 			action_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), drawing_frame));
-			sigma = trajectory_selector->getSigmaAtTime(sampling_time_vector(sample));
+			sigma = trajectory_library_ptr->getSigmaAtTime(sampling_time_vector(sample));
 			if (trajectory_index == *best_traj_index) {
 				drawGaussianPropagation(sample, sample_points_xyz_over_time.row(sample), sigma);
 			}

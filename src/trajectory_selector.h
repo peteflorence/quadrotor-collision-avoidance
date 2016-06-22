@@ -26,15 +26,14 @@ public:
   void InitializeLibrary(double const& final_time);
   size_t getNumTrajectories();
   
-  Vector3 getSigmaAtTime(double const& t);
-  Vector3 getInverseSigmaAtTime(double const & t);
-  void computeBestTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration);
+  void computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration);
+  
   void computeBestDijkstraTrajectory(Vector3 const& carrot_body_frame, Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration);
 
   Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sampleTrajectoryForDrawing(size_t trajectory_index, Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector, size_t num_samples);
 
   Eigen::Matrix<Scalar, 25, 1> getCollisionProbabilities() {
-    return CollisionProbabilities;
+    return collision_probabilities;
   }
 
 private:
@@ -44,21 +43,28 @@ private:
   ValueGridEvaluator value_grid_evaluator;
   LaserScanCollisionEvaluator laser_scan_collision_evaluator;
 
-  double EvaluateObjective(size_t index);
-  void EvaluateObjectives();
+  // For Euclidean
   void EvaluateObjectivesEuclid();
-  Eigen::Matrix<Scalar, 25, 1> Normalize(Eigen::Matrix<Scalar, 25, 1> cost);
-  double EvaluateWeightedObjectivesEuclid(size_t const& trajectory_index);
+  double EvaluateWeightedObjectiveEuclid(size_t const& trajectory_index);
+ 
+  // For Dijkstra
+  void EvaluateObjectivesDijkstra();
+  double EvaluateWeightedObjectiveDijkstra(size_t index);
+  
+  
+  
 
+  // Evaluate individual objectives
   void EvaluateDijkstraCost(Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf);
   void EvaluateGoalProgress(Vector3 const& carrot_body_frame);
   void EvaluateTerminalVelocityCost();
   void EvaluateCollisionProbabilities();
   double computeProbabilityOfCollisionOneTrajectory(Trajectory trajectory);
-  double computeProbabilityOfCollisionOneStepOneObstacle(Vector3 const& trajectory_position, Vector3 const& point, Vector3 const& inverse_sigma_at_time);
 
-  void NormalizeCollisionProbabilities();
-  void EvaluateExpectedObjectivesEuclid();
+
+  Eigen::Matrix<Scalar, 25, 1> Normalize0to1(Eigen::Matrix<Scalar, 25, 1> cost);
+  
+  
 
   double final_time;
   double start_time = 0.0;
@@ -68,15 +74,15 @@ private:
   Eigen::Matrix<Scalar, 20, 1> collision_sampling_time_vector;
   size_t num_samples_collision = collision_sampling_time_vector.size();
 
-  Eigen::Matrix<Scalar, 25, 1> DijkstraEvaluations;
-  Eigen::Matrix<Scalar, 25, 1> GoalProgressEvaluations;
-  Eigen::Matrix<Scalar, 25, 1> TerminalVelocityEvaluations;
-  Eigen::Matrix<Scalar, 25, 1> CollisionProbabilities;
-  Eigen::Matrix<Scalar, 25, 1> NoCollisionProbabilities;
+  Eigen::Matrix<Scalar, 25, 1> dijkstra_evaluations;
+  Eigen::Matrix<Scalar, 25, 1> goal_progress_evaluations;
+  Eigen::Matrix<Scalar, 25, 1> terminal_velocity_evaluations;
+  Eigen::Matrix<Scalar, 25, 1> collision_probabilities;
+  Eigen::Matrix<Scalar, 25, 1> no_collision_probabilities;
   Eigen::Matrix<Scalar, 25, 1> normalized_no_collision_probabilities;
 
-  Eigen::Matrix<Scalar, 25, 1> Objectives;
-  Eigen::Matrix<Scalar, 25, 1> ObjectivesEuclid;
+  Eigen::Matrix<Scalar, 25, 1> objectives_dijkstra;
+  Eigen::Matrix<Scalar, 25, 1> objectives_euclid;
 
 
 

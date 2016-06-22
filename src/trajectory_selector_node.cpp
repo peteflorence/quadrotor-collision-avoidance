@@ -92,7 +92,7 @@ public:
 		// 	trajectory_selector.computeBestDijkstraTrajectory(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
 		// }
 		// else {
-			trajectory_selector.computeBestTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+			trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 		//}
 
 		auto t2 = std::chrono::high_resolution_clock::now();
