@@ -185,7 +185,7 @@ double DepthImageCollisionEvaluator::computeDeterministicCollisionOnePositionBlo
         
         // Check if in collision
         Vector3 depth_position = Vector3(first_point.x, first_point.y, first_point.z);
-        if ( (depth_position-robot_position).norm() < 0.4) {
+        if ( (depth_position-robot_position).norm() < 2.0) {
           return 1.0;
         }
       }
