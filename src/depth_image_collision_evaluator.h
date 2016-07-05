@@ -22,6 +22,7 @@ public:
 
   double computeProbabilityOfCollisionOnePosition(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
   double computeProbabilityOfCollisionOnePositionBlock(Vector3 const& robot_position, Vector3 const& sigma_robot_position, size_t const& block_increment);
+  double computeDeterministicCollisionOnePositionBlock(Vector3 const& robot_position, Vector3 const& sigma_robot_position, size_t const& block_increment);
 
   bool IsNoReturn(pcl::PointXYZ point);
 
