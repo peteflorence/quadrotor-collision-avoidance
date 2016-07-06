@@ -24,6 +24,7 @@ public:
   void UpdatePointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new);
 
   double computeProbabilityOfCollisionOnePosition(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
+  bool computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
   double computeProbabilityOfCollisionOnePositionBlock(Vector3 const& robot_position, Vector3 const& sigma_robot_position, size_t const& block_increment);
   double computeProbabilityOfCollisionOnePositionBlockMarching(Vector3 const& robot_position, Vector3 const& sigma_robot_position, size_t const& block_increment);
   bool computeDeterministicCollisionOnePositionBlock(Vector3 const& robot_position, Vector3 const& sigma_robot_position, size_t const& block_increment);
@@ -43,6 +44,8 @@ private:
   double probability_of_collision_in_unknown = 0.0;  // 0.05 is reasonable
 
   KDTree<double> my_kd_tree;
+  std::vector<pcl::PointXYZ> closest_pts;
+  std::vector<double> squared_distances;
 
 
 };

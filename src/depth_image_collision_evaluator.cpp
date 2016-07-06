@@ -7,21 +7,34 @@ void DepthImageCollisionEvaluator::UpdatePointCloudPtr(pcl::PointCloud<pcl::Poin
 	
 
   auto t1 = std::chrono::high_resolution_clock::now();
-  KDTree<double> my_kd_tree;
   my_kd_tree.Initialize(xyz_cloud_new);
   auto t2 = std::chrono::high_resolution_clock::now();
   std::cout << "Building kd-tree took "
       << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
       << " microseconds\n";     
 
-  t1 = std::chrono::high_resolution_clock::now();
-  for (size_t i = 0; i<500; i++) {
-   my_kd_tree.SearchForNear(5.0, 0.0, 0.0);
+  
+  // t1 = std::chrono::high_resolution_clock::now();
+  // for (size_t i = 0; i<500; i++) {
+  //  my_kd_tree.SearchForNearest<1>(5.0, 0.0, 0.0, closest_pts, squared_distances);
+  // }
+  // t2 = std::chrono::high_resolution_clock::now();
+  // std::cout << "Searching kd-treetook "
+  //     << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+  //     << " microseconds\n";   
+  // std::cout << squared_distances[0] << std::endl;  
+
+}
+
+bool DepthImageCollisionEvaluator::computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position) {
+
+  my_kd_tree.SearchForNearest<1>(robot_position[0], robot_position[1], robot_position[2], closest_pts, squared_distances);
+  if (squared_distances.size() > 0) {
+    if (squared_distances[0] < 0.2) {
+      return true;
+    }
   }
-  t2 = std::chrono::high_resolution_clock::now();
-  std::cout << "Searching kd-treetook "
-      << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-      << " microseconds\n";     
+  return false;
 
 }
 

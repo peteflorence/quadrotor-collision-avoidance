@@ -8,6 +8,7 @@
 #include <chrono>
 
 
+
 template <typename T>
 struct PointCloud
 {
@@ -71,8 +72,6 @@ public:
 	  // cloud.pts = xyz_cloud_new;
 	  //std::cout << cloud.pts.size() << " is how many pts I ended up with" << std::endl;
 
-		num_t query_pt[3] = { 0.5, 0.5, 0.5};
-
 	  // construct a kd-tree index:
 
 	// index = my_kd_tree_t(3 /*dim*/, cloud, KDTreeSingleIndexAdaptorParams(10 /* max leaf */) );
@@ -96,19 +95,27 @@ public:
 
 	}
 
-void SearchForNear(num_t x, num_t y, num_t z) {
+template <int n>
+void SearchForNearest(num_t x, num_t y, num_t z, std::vector<pcl::PointXYZ>& closest_pts, std::vector<num_t>& squared_distances) {
+	if (cloud.pts.size() > 0) {
 
-		num_t query_pt[3] = { 0.5, 0.5, 0.5};
+		closest_pts.clear();
+		squared_distances.clear();
 
-	    // do a knn search
-	    const size_t num_results = 10;
-	    size_t ret_index[num_results];
-	    num_t out_dist_sqr[num_results];
-	    nanoflann::KNNResultSet<num_t> resultSet(num_results);
+		num_t query_pt[3] = { x, y, z};
+
+	    size_t ret_index[n];
+	    num_t out_dist_sqr[n];
+	    nanoflann::KNNResultSet<num_t> resultSet(n);
 	    resultSet.init(&ret_index[0], &out_dist_sqr[0] );
 	    nanoflann::SearchParams params(10);
 	    index.findNeighbors(resultSet, &query_pt[0], params);
 
+	    for (size_t i = 0; i < n; i++) {
+	    	closest_pts.push_back(cloud.pts[ret_index[i]]);
+	    	squared_distances.push_back(out_dist_sqr[i]);
+	    }
+	}
 
 }
 
