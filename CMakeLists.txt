@@ -47,7 +47,7 @@ find_library(OROCOS_KDL orocos-kdl)
 set(orocos_kdl_LIBRARIES ${OROCOS_KDL})
 
 
-add_library( trajectory_selector src/trajectory_selector.cpp src/trajectory_library.cpp src/trajectory_evaluator.cpp  src/trajectory.cpp src/attitude_generator.cpp src/trajectory_visualizer.cpp src/value_grid_evaluator.cpp src/value_grid.cpp src/trajectory_selector_utils.cpp src/laser_scan_collision_evaluator.cpp src/depth_image_collision_evaluator.cpp)
+add_library( trajectory_selector src/trajectory_selector.cpp src/trajectory_library.cpp src/trajectory_evaluator.cpp  src/trajectory.cpp src/attitude_generator.cpp src/trajectory_visualizer.cpp src/value_grid_evaluator.cpp src/value_grid.cpp src/trajectory_selector_utils.cpp src/laser_scan_collision_evaluator.cpp src/depth_image_collision_evaluator.cpp src/kd_tree.cpp)
 
 
 add_executable( trajectory_selector_node src/trajectory_selector_node.cpp )

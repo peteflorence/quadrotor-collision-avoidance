@@ -1,11 +1,14 @@
 #include <iostream>
 #include <math.h>
 
+#include "nanoflann/include/nanoflann.hpp"
+
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
 #include "trajectory.h"
+#include "kd_tree.h"
 
 #include <chrono>
 

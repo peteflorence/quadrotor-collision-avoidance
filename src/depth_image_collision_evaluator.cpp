@@ -2,14 +2,19 @@
 
 
 void DepthImageCollisionEvaluator::UpdatePointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new) {
-	//auto t1 = std::chrono::high_resolution_clock::now();
+	
 	xyz_cloud_ptr = xyz_cloud_new;
-	// auto t2 = std::chrono::high_resolution_clock::now();
-	// std::cout << "Converting and saving the point cloud took "
- //      << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
- //      << " microseconds\n"; 
-}
+	
 
+  auto t1 = std::chrono::high_resolution_clock::now();
+  KDTree<double> my_kd_tree;
+  my_kd_tree.Initialize(xyz_cloud_new);
+  auto t2 = std::chrono::high_resolution_clock::now();
+  std::cout << "Building kd-tree and searching took "
+      << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+      << " microseconds\n";     
+
+}
 
 
 double DepthImageCollisionEvaluator::computeProbabilityOfCollisionOnePosition(Vector3 const& robot_position, Vector3 const& sigma_robot_position) {

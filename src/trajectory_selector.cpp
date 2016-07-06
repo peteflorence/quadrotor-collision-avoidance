@@ -49,7 +49,7 @@ size_t TrajectorySelector::getNumTrajectories() {
 
 void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
   EvaluateCollisionProbabilities();
-  std::cout << "No collision probs were " << no_collision_probabilities << std::endl;
+  //std::cout << "No collision probs were " << no_collision_probabilities << std::endl;
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
   EvaluateObjectivesEuclid();
@@ -105,15 +105,15 @@ void TrajectorySelector::computeBestDijkstraTrajectory(Vector3 const& carrot_bod
   double best_traj_objective_value = objectives_dijkstra(0);
   for (size_t traj_index = 1; traj_index < 25; traj_index++) {
     current_objective_value = objectives_dijkstra(traj_index);
-    std::cout << "current_objective_value " << current_objective_value << std::endl;
+    //std::cout << "current_objective_value " << current_objective_value << std::endl;
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
       best_traj_objective_value = current_objective_value;
     }
   }
 
-  std::cout << "## best_traj_index was " << best_traj_index << std::endl;
-  std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
+  //std::cout << "## best_traj_index was " << best_traj_index << std::endl;
+  //std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
 
   desired_acceleration = trajectory_library.getTrajectoryFromIndex(best_traj_index).getAcceleration();
   return;
