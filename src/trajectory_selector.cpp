@@ -48,8 +48,15 @@ size_t TrajectorySelector::getNumTrajectories() {
 
 
 void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
+  auto t1 = std::chrono::high_resolution_clock::now();
   EvaluateCollisionProbabilities();
+  auto t2 = std::chrono::high_resolution_clock::now();
+    std::cout << "EvaluateCollisionProbabilities took "
+        << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+          << " microseconds\n";
+
   //std::cout << "No collision probs were " << no_collision_probabilities << std::endl;
+  t1 = std::chrono::high_resolution_clock::now();
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
   EvaluateObjectivesEuclid();
@@ -72,6 +79,10 @@ void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_bo
   //std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
 
   desired_acceleration = trajectory_library.getTrajectoryFromIndex(best_traj_index).getAcceleration();
+  t2 = std::chrono::high_resolution_clock::now();
+  std::cout << "Everything else for best traj took "
+        << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+          << " microseconds\n";
 
 };
 
@@ -250,18 +261,9 @@ void TrajectorySelector::EvaluateCollisionProbabilities() {
 
   size_t i = 0;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-    // if (i == 0) {
-      collision_probabilities(i) = computeProbabilityOfCollisionOneTrajectory(*trajectory);   
-    // }
-    // else {
-    //   CollisionProbabilities(i) = 0.0;
-    // }
-    
-    //CollisionProbabilities(i) = i*1.0/25.0;
-    
+    collision_probabilities(i) = computeProbabilityOfCollisionOneTrajectory(*trajectory);   
     i++;
   }
-  //collision_probabilities = FilterSmallProbabilities(collision_probabilities);
   for (int i = 0; i < 25; i++) {
     no_collision_probabilities(i) = 1.0 - collision_probabilities(i);
   }
@@ -276,19 +278,23 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
 
   for (size_t time_step_index = 0; time_step_index < num_samples_collision; time_step_index++) {
     //sigma_robot_position = trajectory_library.getLASERSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
-    //std::cout << "sigma robot position is " << sigma_robot_position << std::endl;
+    //std::cout << "sigma robot position is " <`< sigma_robot_position << std::endl;
     sigma_robot_position = Vector3(0.01,0.01,0.01);
     robot_position = trajectory.getPositionRDF(collision_sampling_time_vector(time_step_index));
     //std::cout << "robot position is " << robot_position << std::endl;
     //std::cout << "sigma robot position is " << sigma_robot_position << std::endl;
 
     probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlock(robot_position, sigma_robot_position, 10);
-    probability_of_collision_one_step = depth_image_collision_evaluator.computeDeterministicCollisionOnePositionBlock(robot_position, sigma_robot_position, 10);
+    //probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlockMarching(robot_position, sigma_robot_position, 50);
+    // if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionBlock(robot_position, sigma_robot_position, 10)) {
+    //   return 1.0;
+    // }
 
     //probability_of_collision_one_step = laser_scan_collision_evaluator.computeProbabilityOfCollisionOnePosition(robot_position, sigma_robot_position);
     //std::cout << "This prob of collision one step was " <<  probability_of_collision_one_step << std::endl;
     probability_no_collision_one_step = 1.0 - probability_of_collision_one_step;
     probability_no_collision = probability_no_collision * probability_no_collision_one_step;
+    
   }
   if (probability_no_collision > 1.0) { probability_no_collision = 1.0;};
   if (probability_no_collision < 0.0) { probability_no_collision = 0.0;};

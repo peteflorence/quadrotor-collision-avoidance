@@ -47,55 +47,36 @@ struct PointCloud
 template <typename num_t>
 class KDTree {
 public:
-	using my_kd_tree_t = nanoflann::KDTreeSingleIndexAdaptor<
-    nanoflann::L2_Simple_Adaptor<num_t, PointCloud<num_t> > ,
-    PointCloud<num_t>,
-    3 /* dim */
-    >;
+	typedef nanoflann::KDTreeSingleIndexAdaptor<
+	nanoflann::L2_Simple_Adaptor<num_t, PointCloud<num_t> > ,
+	PointCloud<num_t>,
+	3 /* dim */
+	> my_kd_tree_t;
 
-    my_kd_tree_t* my_index = nullptr;
+	KDTree() : cloud(), index(3, cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10 /* max leaf */)) { };
 
-  void Initialize(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new) {
-  	using namespace std;
-	using namespace nanoflann;
-
-		if(my_index != nullptr) return;
-	  PointCloud<num_t> cloud;
+	void Initialize(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new) {
+		using namespace std;
+		using namespace nanoflann;
+		cloud.pts.clear();
 
 	  // Make a PointCloud from a pcl pointcloud
-	  size_t num_points = xyz_cloud_new->points.size();
-	  for (size_t i = 0; i < num_points; i++) {
-	  	if ( !(xyz_cloud_new->points[i].x != xyz_cloud_new->points[i].x) ) {
-	  		cloud.pts.push_back(xyz_cloud_new->points[i]);
-	  	}
-	  }
+		size_t num_points = xyz_cloud_new->points.size();
+		for (size_t i = 0; i < num_points; i++) {
+			if ( !(xyz_cloud_new->points[i].x != xyz_cloud_new->points[i].x) ) {
+				cloud.pts.push_back(xyz_cloud_new->points[i]);
+			}
+		}
 
 	  // cloud.pts = xyz_cloud_new;
 	  //std::cout << cloud.pts.size() << " is how many pts I ended up with" << std::endl;
 
-	  num_t query_pt[3] = { 0.5, 0.5, 0.5};
+		num_t query_pt[3] = { 0.5, 0.5, 0.5};
 
 	  // construct a kd-tree index:
-	  my_index = new my_kd_tree_t(3, cloud, KDTreeSingleIndexAdaptorParams(100 /* max leaf */));
-	  my_index->buildIndex();
 
-	  auto t1 = std::chrono::high_resolution_clock::now();
-
-	  for (size_t i = 0; i < 500; i++) {
-	  
-	    // do a knn search
-	    const size_t num_results = 10;
-	    size_t ret_index;
-	    num_t out_dist_sqr;
-	    nanoflann::KNNResultSet<num_t> resultSet(num_results);
-	    resultSet.init(&ret_index, &out_dist_sqr );
-	    my_index->findNeighbors(resultSet, &query_pt[0], nanoflann::SearchParams(10));
-	}	
-
-	auto t2 = std::chrono::high_resolution_clock::now();
-  std::cout << "Just searching 500 10-nn searches took "
-      << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-      << " microseconds\n"; 
+	// index = my_kd_tree_t(3 /*dim*/, cloud, KDTreeSingleIndexAdaptorParams(10 /* max leaf */) );
+	index.buildIndex();
 
 	  //   std::cout << "knnSearch(nn="<<num_results<<"): \n";
 	  //   std::cout << "ret_index=" << ret_index << " out_dist_sqr=" << out_dist_sqr << endl;
@@ -113,25 +94,25 @@ public:
 	  //   cout << "Worst pair: idx=" << worst_pair.first << " dist=" << worst_pair.second << endl;
 	  // }
 
-};
+	}
 
-// void SearchForNear(num_t x, num_t y, num_t z) {
-// 	{
-// 		num_t query_pt[3] = {x, y, z};
-// 	    // do a knn search
-// 	    const size_t num_results = 1;
-// 	    size_t ret_index;
-// 	    num_t out_dist_sqr;
-// 	    nanoflann::KNNResultSet<num_t> resultSet(num_results);
-// 	    resultSet.init(&ret_index, &out_dist_sqr );
-// 	    if(my_index != nullptr) {
-// 	    	my_index->findNeighbors(resultSet, &query_pt[0], nanoflann::SearchParams(1));
-// 		}
+void SearchForNear(num_t x, num_t y, num_t z) {
 
-// 	  }
-// }
+		num_t query_pt[3] = { 0.5, 0.5, 0.5};
+
+	    // do a knn search
+	    const size_t num_results = 10;
+	    size_t ret_index[num_results];
+	    num_t out_dist_sqr[num_results];
+	    nanoflann::KNNResultSet<num_t> resultSet(num_results);
+	    resultSet.init(&ret_index[0], &out_dist_sqr[0] );
+	    nanoflann::SearchParams params(10);
+	    index.findNeighbors(resultSet, &query_pt[0], params);
+
+
+}
 
 private:
-  
-
+	PointCloud<num_t> cloud;
+	my_kd_tree_t index;
 };
