@@ -114,7 +114,7 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionOnePositionBlo
 
     Vector3 total_sigma = sigma_robot_position + sigma_depth_point;
     Vector3 inverse_total_sigma = Vector3(1/total_sigma(0), 1/total_sigma(1), 1/total_sigma(2));
-    double volume = 0.267; // 4/3*pi*r^3, with r=0.4 as first guess
+    double volume = 0.267*2; // 4/3*pi*r^3, with r=0.4 as first guess
     double denominator = std::sqrt( 248.05021344239853*(total_sigma(0))*(total_sigma(1))*(total_sigma(2)) ); // coefficient is 2pi*2pi*2pi
 
     for (int i = pi_x - block_increment; i < pi_x + block_increment + 1; i++) {
