@@ -183,7 +183,10 @@ void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) 
   Vector3 final_trajectory_position;
   double distance;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-    final_trajectory_position = trajectory->getPosition(final_time);
+    final_trajectory_position = trajectory->getTerminalStopPosition(final_time);
+    if (final_trajectory_position.norm() < initial_distance) {
+      final_trajectory_position = trajectory->getPosition(final_time);
+    }
     distance = (final_trajectory_position - carrot_body_frame).norm();
     goal_progress_evaluations(i) = initial_distance - distance; 
     i++;
@@ -205,7 +208,6 @@ void TrajectorySelector::EvaluateTerminalVelocityCost() {
     terminal_velocity_evaluations(i) = 0;
     
     // cost on going too fast
-    double soft_top_speed = 3.0;
     if (final_trajectory_speed > (soft_top_speed-1.0)) {
       terminal_velocity_evaluations(i) -= ((soft_top_speed-1.0) - final_trajectory_speed)*((soft_top_speed-1.0) - final_trajectory_speed);
     }
