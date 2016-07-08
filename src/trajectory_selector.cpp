@@ -17,7 +17,6 @@ DepthImageCollisionEvaluator* TrajectorySelector::GetDepthImageCollisionEvaluato
 };
 
 
-
 void TrajectorySelector::InitializeLibrary(double const& final_time) {
   trajectory_library.Initialize2DLibrary(final_time);
   this->final_time = final_time;
@@ -45,22 +44,11 @@ size_t TrajectorySelector::getNumTrajectories() {
 
 
 // Euclidean Evaluator
-
-
 void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
-  auto t1 = std::chrono::high_resolution_clock::now();
   EvaluateCollisionProbabilities();
-  auto t2 = std::chrono::high_resolution_clock::now();
-    std::cout << "EvaluateCollisionProbabilities took "
-        << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-          << " microseconds\n";
-
-  //std::cout << "No collision probs were " << no_collision_probabilities << std::endl;
-  t1 = std::chrono::high_resolution_clock::now();
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
   EvaluateObjectivesEuclid();
-  //EvaluateExpectedObjectivesEuclid();
 
   desired_acceleration << 0,0,0;
   best_traj_index = 0;
@@ -68,22 +56,12 @@ void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_bo
   float best_traj_objective_value = objectives_euclid(0);
   for (size_t traj_index = 1; traj_index < 25; traj_index++) {
     current_objective_value = objectives_euclid(traj_index);
-    //std::cout << "current_objective_value " << current_objective_value << std::endl;
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
       best_traj_objective_value = current_objective_value;
     }
   }
-
-  //std::cout << "## best_traj_index was " << best_traj_index << std::endl;
-  //std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
-
   desired_acceleration = trajectory_library.getTrajectoryFromIndex(best_traj_index).getAcceleration();
-  t2 = std::chrono::high_resolution_clock::now();
-  std::cout << "Everything else for best traj took "
-        << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-          << " microseconds\n";
-
 };
 
 void TrajectorySelector::EvaluateObjectivesEuclid() {
@@ -101,8 +79,6 @@ double TrajectorySelector::EvaluateWeightedObjectiveEuclid(size_t const& traject
 
 
 // Dijkstra Evaluator
-
-
 void TrajectorySelector::computeBestDijkstraTrajectory(Vector3 const& carrot_body_frame, Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration) {
   EvaluateCollisionProbabilities();
   EvaluateDijkstraCost(carrot_world_frame, tf);
@@ -116,20 +92,14 @@ void TrajectorySelector::computeBestDijkstraTrajectory(Vector3 const& carrot_bod
   double best_traj_objective_value = objectives_dijkstra(0);
   for (size_t traj_index = 1; traj_index < 25; traj_index++) {
     current_objective_value = objectives_dijkstra(traj_index);
-    //std::cout << "current_objective_value " << current_objective_value << std::endl;
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
       best_traj_objective_value = current_objective_value;
     }
   }
-
-  //std::cout << "## best_traj_index was " << best_traj_index << std::endl;
-  //std::cout << "## best_traj_objective_value " << best_traj_objective_value << std::endl; 
-
   desired_acceleration = trajectory_library.getTrajectoryFromIndex(best_traj_index).getAcceleration();
   return;
 }
-
 
 void TrajectorySelector::EvaluateObjectivesDijkstra() {
   for (int i = 0; i < 25; i++) {
@@ -140,14 +110,7 @@ void TrajectorySelector::EvaluateObjectivesDijkstra() {
   objectives_dijkstra = objectives_dijkstra.cwiseProduct(no_collision_probabilities);
 }
 
-Eigen::Matrix<Scalar, 25, 1> TrajectorySelector::FilterSmallProbabilities(Eigen::Matrix<Scalar, 25, 1> to_filter) {
-  for (size_t i = 0; i < 25; i++) {
-    if (to_filter(i) < 0.10) {
-      to_filter(i) = 0.0;
-    }
-  }
-  return to_filter;
-}
+
 
 
 double TrajectorySelector::EvaluateWeightedObjectiveDijkstra(size_t index) {
@@ -342,9 +305,14 @@ Eigen::Matrix<Scalar, 25, 1> TrajectorySelector::MakeAllGreaterThan1(Eigen::Matr
   return cost;
 }
 
-
-
-
+Eigen::Matrix<Scalar, 25, 1> TrajectorySelector::FilterSmallProbabilities(Eigen::Matrix<Scalar, 25, 1> to_filter) {
+  for (size_t i = 0; i < 25; i++) {
+    if (to_filter(i) < 0.10) {
+      to_filter(i) = 0.0;
+    }
+  }
+  return to_filter;
+}
 
 Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryForDrawing(size_t trajectory_index, Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector, size_t num_samples) {
   Trajectory trajectory_to_sample = trajectory_library.getTrajectoryFromIndex(trajectory_index);
