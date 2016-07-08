@@ -1,11 +1,5 @@
 #include "attitude_generator.h"
 
-void AttitudeGenerator::TestAttitudeGenerator() {
-
-  std::cout << "Printing from inside TrajectoryEvaluator " << std::endl;  
-
-}
-
 void AttitudeGenerator::UpdateRollPitch(double roll, double pitch) {
 	actual_roll = roll;
 	actual_pitch = pitch;
@@ -19,7 +13,7 @@ void AttitudeGenerator::setZsetpoint(double z_setpoint) {
 	this->z_setpoint = z_setpoint;
 };
 
-void AttitudeGenerator::setZvelocity(double const& z_velocity) {
+void AttitudeGenerator::setZvelocity(double z_velocity) {
 	this->z_velocity = z_velocity;
 };
 
@@ -33,14 +27,13 @@ Vector3 AttitudeGenerator::generateDesiredAttitudeThrust(Vector3 const& desired_
 
 	double roll = atan2(a_y , a_z);
 	double pitch = atan2(a_x , a_z);
-	if (roll > 70) {roll = 70;}; if (roll <-70) {roll = -70;};
-	if (pitch > 70) {pitch = 70;}; if (pitch <-70) {pitch = -70;};
 
-
-	double roll_degrees = roll * 180/M_PI;
-	double pitch_degrees = pitch * 180/M_PI;
-	if ((abs(roll_degrees) > 30) || (abs(pitch_degrees) > 30)) {
-	//	std::cout << "I just tried to command a roll, pitch of: " << roll_degrees << " " << pitch_degrees << std::endl;
+	// Guarding from roll / pitch above threshold
+	double thresh = 45*M_PI/180.0;
+	if (roll > thresh) {roll = thresh;}; if (roll <-thresh) {roll = -thresh;};
+	if (pitch > thresh) {pitch = thresh;}; if (pitch <-thresh) {pitch = -thresh;};
+	if ((abs(roll) > thresh) || (abs(pitch) > thresh)) {
+		std::cout << "I just tried to command a roll, pitch of: " << roll*180.0/M_PI << " " << pitch*180.0/M_PI << std::endl;
 	}
 
 	double thrust = zPID();
@@ -62,11 +55,6 @@ double AttitudeGenerator::zPID() {
 	double error = z_setpoint - z;
 	double Pout = _Kp * error;
 
-    //std::cout << "dt is " << _dt << std::endl;
-    //std::cout << "_integral is " << _integral << std::endl;
-    //std::cout << "z setpoint is " << z_setpoint << std::endl;
-    //std::cout << "z is          " << z << std::endl;
-
 	// Integral term
 	_integral += _Ki * error * _dt;
 	if (_integral >_i_max) {
@@ -75,7 +63,6 @@ double AttitudeGenerator::zPID() {
 	if (_integral < -_i_max ) {
 		_integral = -_i_max;
 	}
-
 
     // Derivative term
     double velocity_error = z_velocity_setpoint - z_velocity;
@@ -95,6 +82,5 @@ double AttitudeGenerator::zPID() {
     _pre_error = error;
 
     return output;
-
 };
 

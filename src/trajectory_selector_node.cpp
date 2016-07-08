@@ -22,15 +22,12 @@
 #include <cmath>
 #include <time.h>
 #include <stdlib.h>
+#include <chrono>
 
 #include "trajectory_selector.h"
 #include "attitude_generator.h"
 #include "trajectory_visualizer.h"
 
-// debug only
-#include <chrono>
-
-  
 
 class TrajectorySelectorNode {
 public:
@@ -50,7 +47,7 @@ public:
 		carrot_pub = nh.advertise<visualization_msgs::Marker>( "carrot_marker", 0 );
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
 		attitude_thrust_pub = nh.advertise<mavros_msgs::AttitudeTarget>("/mavros/setpoint_raw/attitude", 1);
-		attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
+		//attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
 
 		// Initialization
 		trajectory_selector.InitializeLibrary(final_time);
@@ -85,16 +82,9 @@ public:
 	void ReactToSampledPointCloud() {
 		Vector3 desired_acceleration;
 
-		bool go;
-		nh.param("go", go, false);
-		if (go) {
-			carrot_ortho_body_frame << 100, 0, 0;
-		}
-		else if (carrot_ortho_body_frame(0) == 100) {
-			carrot_ortho_body_frame << 5, 0, 0;
-		}
+		// uncomment for bearing control
+		//SetGoalFromBearing();
 		
-	
 		auto t1 = std::chrono::high_resolution_clock::now();
 		trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 		auto t2 = std::chrono::high_resolution_clock::now();
@@ -113,6 +103,17 @@ public:
 	}
 
 private:
+
+	void SetGoalFromBearing() {
+		bool go;
+		nh.param("go", go, false);
+		if (go) {
+			carrot_ortho_body_frame << 100, 0, 0;
+		}
+		else if (carrot_ortho_body_frame(0) == 100) {
+			carrot_ortho_body_frame << 5, 0, 0;
+		}
+	}
 
 	void UpdateTrajectoryLibraryRollPitch(double roll, double pitch) {
 		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
@@ -452,8 +453,10 @@ private:
 			| mavros_msgs::AttitudeTarget::IGNORE_YAW_RATE
 			;
 
-		double bearing_azimuth_degrees;
-		nh.param("bearing_azimuth_degrees", bearing_azimuth_degrees, 0.0);
+		double bearing_azimuth_degrees = 0;
+		
+		// uncomment below for bearing control
+		//nh.param("bearing_azimuth_degrees", bearing_azimuth_degrees, 0.0);
 
 		Matrix3f m;
 		m =AngleAxisf(-bearing_azimuth_degrees*M_PI/180.0, Vector3f::UnitZ())

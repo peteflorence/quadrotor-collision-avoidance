@@ -4,10 +4,9 @@
 
 class AttitudeGenerator {
 public:
-  void TestAttitudeGenerator();
   void setZ(double z);
   void setZsetpoint(double z_setpoint);
-  void setZvelocity(double const& z_velocity);
+  void setZvelocity(double z_velocity);
   void setGains(Vector3 const& pid, double const& offset);
   double zPID();
   void UpdateRollPitch(double roll, double pitch);
@@ -16,14 +15,14 @@ public:
 
 private:
   
-  double z=0.0;
+  double z = 0.0;
   double z_setpoint = 1.7;
   
   double z_velocity = 0;
   double z_velocity_setpoint = 0;
 
-  double actual_roll=0;
-  double actual_pitch=0;
+  double actual_roll = 0;
+  double actual_pitch = 0;
 
   double _dt = 1/100.0;
   double _max = 0.9;
