@@ -6,9 +6,9 @@
 #include <math.h>
 #include "trajectory_library.h"
 #include "trajectory_evaluator.h"
-#include "value_grid_evaluator.h"
 #include "laser_scan_collision_evaluator.h"
 #include "depth_image_collision_evaluator.h"
+#include "value_grid_evaluator.h"
 
 // This ROS stuff should go.  Only temporary.
 #include <nav_msgs/OccupancyGrid.h>
