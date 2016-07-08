@@ -90,7 +90,7 @@ private:
   Eigen::Matrix<Scalar, 25, 1> objectives_dijkstra;
   Eigen::Matrix<Scalar, 25, 1> objectives_euclid;
 
-  double soft_top_speed = 10.0;
+  double soft_top_speed = 5.0;
 
 
 
