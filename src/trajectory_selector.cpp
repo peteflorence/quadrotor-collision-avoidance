@@ -159,7 +159,7 @@ void TrajectorySelector::EvaluateDijkstraCost(Vector3 const& carrot_world_frame,
     
     i++;
   }
-  std::cout << "At the end of all this, my Dijkstra evaluations are: " << dijkstra_evaluations << std::endl;
+  //std::cout << "At the end of all this, my Dijkstra evaluations are: " << dijkstra_evaluations << std::endl;
 };
 
 
@@ -241,12 +241,10 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
 
   for (size_t time_step_index = 0; time_step_index < num_samples_collision; time_step_index++) {
     //sigma_robot_position = trajectory_library.getLASERSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
-    //std::cout << "sigma robot position is " <`< sigma_robot_position << std::endl;
+    
     sigma_robot_position = Vector3(0.01,0.01,0.01);
     robot_position = trajectory.getPositionRDF(collision_sampling_time_vector(time_step_index));
-    //std::cout << "robot position is " << robot_position << std::endl;
-    //std::cout << "sigma robot position is " << sigma_robot_position << std::endl;
-
+    
     // probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlock(robot_position, sigma_robot_position, 10);
     //probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlockMarching(robot_position, sigma_robot_position, 50);
     if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionKDTree(robot_position, sigma_robot_position)) {
@@ -254,7 +252,6 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
     }
 
     //probability_of_collision_one_step = laser_scan_collision_evaluator.computeProbabilityOfCollisionOnePosition(robot_position, sigma_robot_position);
-    //std::cout << "This prob of collision one step was " <<  probability_of_collision_one_step << std::endl;
     probability_no_collision_one_step = 1.0 - probability_of_collision_one_step;
     probability_no_collision = probability_no_collision * probability_no_collision_one_step;
     
