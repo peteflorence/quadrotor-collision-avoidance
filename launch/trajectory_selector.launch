@@ -1,3 +1,7 @@
 <launch>
-    <node pkg="trajectory_selector" type="trajectory_selector_node" name="trajectory_selector" output="screen"/>
+    <node pkg="trajectory_selector" type="trajectory_selector_node" name="trajectory_selector" output="screen">
+      <remap from="/samros/pose" to="/FLA_ACL02/pose" />
+      <remap from="/samros/twist" to="/FLA_ACL02/vel" />
+    </node>
+   
 </launch>
