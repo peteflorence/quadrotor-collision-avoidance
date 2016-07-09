@@ -43,16 +43,10 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionOnePositionKDT
       int pi_x = projected(0)/projected(2); 
       int pi_y = projected(1)/projected(2);
 
-      if (pi_x < 0 || pi_x > 159) {
-        return probability_of_collision_in_unknown;
-      }
-      else if (pi_y < 0 || pi_y > 119) {
-        return probability_of_collision_in_unknown;
-      }
+      
       if (robot_position(2) < -1.0) {
-        return 1.0;
+        return 0.9;
       }
-
 
       pcl::PointXYZ first_point = closest_pts[0];
       Vector3 depth_position = Vector3(first_point.x, first_point.y, first_point.z);
@@ -64,7 +58,17 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionOnePositionKDT
       double denominator = std::sqrt( 248.05021344239853*(total_sigma(0))*(total_sigma(1))*(total_sigma(2)) ); // coefficient is 2pi*2pi*2pi
       double exponent = -0.5*(robot_position - depth_position).transpose() * inverse_total_sigma.cwiseProduct(robot_position - depth_position);
 
-      return volume / denominator * std::exp(exponent);
+      double probability_of_collision = volume / denominator * std::exp(exponent);
+
+      if (pi_x < 0 || pi_x > 159) {
+        probability_of_collision *= 1.5;
+      }
+      else if (pi_y < 0 || pi_y > 119) {
+        probability_of_collision *= 1.5;
+      }
+      return probability_of_collision;
+
+
 
     }
     return 0.0; // if no points in closest_pts
