@@ -47,6 +47,7 @@ public:
   void setInitialAccelerationRDF(Vector3 const& initial_acceleration_rdf);
   void setInitialVelocityRDF(Vector3 const& initial_velocity_rdf);
 
+  Vector3 getInitialAccelerationRDF() const;
   Vector3 getAccelerationRDF() const;
   Vector3 getVelocityRDF(Scalar const& t) const;
   Vector3 getInitialVelocityRDF() const;

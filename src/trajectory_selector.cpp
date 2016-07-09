@@ -19,6 +19,7 @@ DepthImageCollisionEvaluator* TrajectorySelector::GetDepthImageCollisionEvaluato
 
 void TrajectorySelector::InitializeLibrary(double const& final_time) {
   trajectory_library.Initialize2DLibrary();
+  last_desired_acceleration << 0, 0, 0;
   this->final_time = final_time;
 
   size_t num_samples = 10;
@@ -81,6 +82,7 @@ void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_bo
     }
   }
   desired_acceleration = trajectory_library.getTrajectoryFromIndex(best_traj_index).getAcceleration();
+  last_desired_acceleration = desired_acceleration;
 };
 
 void TrajectorySelector::EvaluateObjectivesEuclid() {
@@ -93,7 +95,7 @@ void TrajectorySelector::EvaluateObjectivesEuclid() {
 }
 
 double TrajectorySelector::EvaluateWeightedObjectiveEuclid(size_t const& trajectory_index) {
-  return goal_progress_evaluations(trajectory_index) + 1.0*terminal_velocity_evaluations(trajectory_index);
+  return goal_progress_evaluations(trajectory_index) + 1.0*terminal_velocity_evaluations(trajectory_index) + 0.001*(last_desired_acceleration - trajectory_library.getTrajectoryFromIndex(trajectory_index).getInitialAccelerationRDF()).norm();
 }
 
 

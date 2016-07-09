@@ -95,6 +95,8 @@ private:
 
   double collision_reward = -100000;
 
+  Vector3 last_desired_acceleration;
+
 
 
 };

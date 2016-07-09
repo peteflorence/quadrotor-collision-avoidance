@@ -146,6 +146,10 @@ Vector3 Trajectory::getTerminalStopPositionLASER(Scalar const& t) const {
 
 }
 
+Vector3 Trajectory::getInitialAccelerationRDF() const {
+  return this->initial_acceleration_rdf;
+}
+
 void Trajectory::setAccelerationRDF(Vector3 const& acceleration_rdf) {
   this->acceleration_rdf = acceleration_rdf;
 };
