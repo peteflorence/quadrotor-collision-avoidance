@@ -243,9 +243,8 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
   Vector3 sigma_robot_position;
 
   for (size_t time_step_index = 0; time_step_index < num_samples_collision; time_step_index++) {
-    //sigma_robot_position = trajectory_library.getLASERSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
-    
-    sigma_robot_position = Vector3(0.01,0.01,0.01);
+    sigma_robot_position = 0.1*trajectory_library.getRDFSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
+    //sigma_robot_position = Vector3(0.01,0.01,0.01);
     robot_position = trajectory.getPositionRDF(collision_sampling_time_vector(time_step_index));
     
     //probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlock(robot_position, sigma_robot_position, 30);
