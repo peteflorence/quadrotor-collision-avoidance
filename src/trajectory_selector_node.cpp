@@ -499,9 +499,18 @@ private:
 		
 		// uncomment below for bearing control
 		//nh.param("bearing_azimuth_degrees", bearing_azimuth_degrees, 0.0);
+		if (abs(bearing_azimuth_degrees - set_bearing_azimuth_degrees) < 1) {
+			set_bearing_azimuth_degrees = bearing_azimuth_degrees;
+		}
+		if (bearing_azimuth_degrees > set_bearing_azimuth_degrees) {
+			set_bearing_azimuth_degrees += 0.5;
+		}
+		if (bearing_azimuth_degrees < set_bearing_azimuth_degrees) {
+			set_bearing_azimuth_degrees -= 0.5;
+		}
 
 		Matrix3f m;
-		m =AngleAxisf(-bearing_azimuth_degrees*M_PI/180.0, Vector3f::UnitZ())
+		m =AngleAxisf(-set_bearing_azimuth_degrees*M_PI/180.0, Vector3f::UnitZ())
 		* AngleAxisf(roll_pitch_thrust(1), Vector3f::UnitY())
 		* AngleAxisf(-roll_pitch_thrust(0), Vector3f::UnitX());
 
@@ -558,6 +567,7 @@ private:
 	double final_time = 1.0;
 
 	double bearing_azimuth_degrees = 0.0;
+	double set_bearing_azimuth_degrees = 0.0;
 
 	Eigen::Vector4d pose_x_y_z_yaw;
 	Eigen::Matrix<double, 4, Eigen::Dynamic> waypoints_matrix;
