@@ -68,9 +68,9 @@ void TrajectorySelector::EvaluateObjectivesEuclid() {
   for (int i = 0; i < 25; i++) {
     objectives_euclid(i) = EvaluateWeightedObjectiveEuclid(i);
   }
-  objectives_euclid = MakeAllGreaterThan1(objectives_euclid);
-  no_collision_probabilities = Normalize0to1(no_collision_probabilities);
-  objectives_euclid = objectives_euclid.cwiseProduct(no_collision_probabilities);
+  //objectives_euclid = MakeAllGreaterThan1(objectives_euclid);
+  //no_collision_probabilities = Normalize0to1(no_collision_probabilities);
+  objectives_euclid = objectives_euclid.cwiseProduct(no_collision_probabilities) + collision_reward*collision_probabilities;
 }
 
 double TrajectorySelector::EvaluateWeightedObjectiveEuclid(size_t const& trajectory_index) {
@@ -178,14 +178,15 @@ void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) 
   double initial_distance = carrot_body_frame.norm();
 
   //std::cout << "initial_distance is " << initial_distance << std::endl;
+  double time_to_eval = 0.5;
 
   size_t i = 0;
   Vector3 final_trajectory_position;
   double distance;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-    final_trajectory_position = trajectory->getTerminalStopPosition(final_time);
+    final_trajectory_position = trajectory->getTerminalStopPosition(time_to_eval);
     if (final_trajectory_position.norm() < initial_distance) {
-       final_trajectory_position = trajectory->getPosition(final_time);
+       final_trajectory_position = trajectory->getPosition(time_to_eval);
      }
     distance = (final_trajectory_position - carrot_body_frame).norm();
     goal_progress_evaluations(i) = initial_distance - distance; 
@@ -247,7 +248,7 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
     sigma_robot_position = Vector3(0.01,0.01,0.01);
     robot_position = trajectory.getPositionRDF(collision_sampling_time_vector(time_step_index));
     
-    probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlock(robot_position, sigma_robot_position, 10);
+    probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlock(robot_position, sigma_robot_position, 30);
     //probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlockMarching(robot_position, sigma_robot_position, 50);
     // if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionKDTree(robot_position, sigma_robot_position)) {
     //   return 1.0;
