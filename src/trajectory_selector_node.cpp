@@ -502,11 +502,17 @@ private:
 		if (abs(bearing_azimuth_degrees - set_bearing_azimuth_degrees) < 1) {
 			set_bearing_azimuth_degrees = bearing_azimuth_degrees;
 		}
-		if (bearing_azimuth_degrees > set_bearing_azimuth_degrees) {
+		else if ((bearing_azimuth_degrees - set_bearing_azimuth_degrees) < 0 && (bearing_azimuth_degrees - set_bearing_azimuth_degrees) > -180)  {
+			set_bearing_azimuth_degrees -= 0.5;
+		}
+		else {
 			set_bearing_azimuth_degrees += 0.5;
 		}
-		if (bearing_azimuth_degrees < set_bearing_azimuth_degrees) {
-			set_bearing_azimuth_degrees -= 0.5;
+		if (set_bearing_azimuth_degrees > 180.0) {
+			set_bearing_azimuth_degrees -= 360.0;
+		}
+		if (set_bearing_azimuth_degrees < -180.0) {
+			set_bearing_azimuth_degrees += 360.0;
 		}
 
 		Matrix3f m;
