@@ -5,7 +5,7 @@ void DepthImageCollisionEvaluator::UpdatePointCloudPtr(pcl::PointCloud<pcl::Poin
 	
 	xyz_cloud_ptr = xyz_cloud_new;
   // uncomment for kd-tree version
-  //BuildKDTree();
+  BuildKDTree();
   
 }
 
@@ -23,7 +23,7 @@ bool DepthImageCollisionEvaluator::computeDeterministicCollisionOnePositionKDTre
 
   my_kd_tree.SearchForNearest<1>(robot_position[0], robot_position[1], robot_position[2], closest_pts, squared_distances);
   if (squared_distances.size() > 0) {
-    if (squared_distances[0] < 0.2) {
+    if (squared_distances[0] < 4.0) {
       return true;
     }
   }
@@ -35,6 +35,21 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionOnePositionKDT
   if (xyz_cloud_ptr != nullptr) {
     my_kd_tree.SearchForNearest<1>(robot_position[0], robot_position[1], robot_position[2], closest_pts, squared_distances);
     if (closest_pts.size() > 0) {
+      Vector3 projected = K * robot_position;
+      int pi_x = projected(0)/projected(2); 
+      int pi_y = projected(1)/projected(2);
+
+      if (pi_x < 0 || pi_x > 159) {
+        return probability_of_collision_in_unknown;
+      }
+      else if (pi_y < 0 || pi_y > 119) {
+        return probability_of_collision_in_unknown;
+      }
+      if (robot_position(2) < -2.0) {
+        return probability_of_collision_in_unknown;
+      }
+
+
       pcl::PointXYZ first_point = closest_pts[0];
       Vector3 depth_position = Vector3(first_point.x, first_point.y, first_point.z);
 
