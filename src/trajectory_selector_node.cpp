@@ -85,12 +85,12 @@ public:
 		// uncomment for bearing control
 		//SetGoalFromBearing();
 		
-		auto t1 = std::chrono::high_resolution_clock::now();
+		// auto t1 = std::chrono::high_resolution_clock::now();
 		trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
-		auto t2 = std::chrono::high_resolution_clock::now();
-		std::cout << "Computing best traj took "
-    	  << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-      		<< " microseconds\n"; 
+		// auto t2 = std::chrono::high_resolution_clock::now();
+		// std::cout << "Computing best traj took "
+  //   	  << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+  //     		<< " microseconds\n"; 
 
       	Eigen::Matrix<Scalar, 25, 1> collision_probabilities = trajectory_selector.getCollisionProbabilities();
 		trajectory_visualizer.setCollisionProbabilities(collision_probabilities);
@@ -188,6 +188,14 @@ private:
 		PublishOrthoBodyTransform(roll, pitch);
 		UpdateCarrotOrthoBodyFrame();
 		UpdateLaserRDFFramesFromPose();
+
+		SetPose(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
+	}
+
+	void SetPose(double x, double y, double z) {
+		pose_global_x = x;
+		pose_global_y = y;
+		pose_global_z = z;
 	}
 
 	void transformAccelerationsIntoLaserRDFFrames() {
@@ -295,6 +303,27 @@ private:
 		//ROS_INFO("GOT GLOBAL GOAL");
 		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.0; 
 		UpdateCarrotOrthoBodyFrame();
+
+		if (global_goal.pose.position.x - pose_global_x) {
+			bearing_azimuth_degrees = 180.0/M_PI*atan2(-(global_goal.pose.position.y - pose_global_y), global_goal.pose.position.x - pose_global_x);
+		}
+		std::cout << "bearing_azimuth_degrees is " << bearing_azimuth_degrees << std::endl;
+
+	}
+
+	Vector3 TransformOrthoBodyToWorld(Vector3 const& ortho_body_frame) {
+		geometry_msgs::TransformStamped tf;
+	    try {
+	      tf = tf_buffer_.lookupTransform("world", "ortho_body",
+	                                    ros::Time(0), ros::Duration(1/30.0));
+	    } catch (tf2::TransformException &ex) {
+	      ROS_ERROR("%s", ex.what());
+	      return Vector3::Zero();
+	    }
+
+	    Eigen::Quaternion<Scalar> quat(tf.transform.rotation.w, tf.transform.rotation.x, tf.transform.rotation.y, tf.transform.rotation.z);
+	    Matrix3 R = quat.toRotationMatrix();
+	    return R*ortho_body_frame;
 	}
 
 	void OnScan(sensor_msgs::PointCloud2 const& laser_point_cloud_msg) {
@@ -429,7 +458,7 @@ private:
 
 
 	void OnDepthImage(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
-		ROS_INFO("GOT POINT CLOUD");
+		// ROS_INFO("GOT POINT CLOUD");
 		DepthImageCollisionEvaluator* depth_image_collision_ptr = trajectory_selector.GetDepthImageCollisionEvaluatorPtr();
 
 		if (depth_image_collision_ptr != nullptr) {
@@ -467,8 +496,6 @@ private:
 			| mavros_msgs::AttitudeTarget::IGNORE_PITCH_RATE
 			| mavros_msgs::AttitudeTarget::IGNORE_YAW_RATE
 			;
-
-		double bearing_azimuth_degrees = 0.0;
 		
 		// uncomment below for bearing control
 		//nh.param("bearing_azimuth_degrees", bearing_azimuth_degrees, 0.0);
@@ -530,6 +557,8 @@ private:
 	double start_time = 0.0;
 	double final_time = 1.0;
 
+	double bearing_azimuth_degrees = 0.0;
+
 	Eigen::Vector4d pose_x_y_z_yaw;
 	Eigen::Matrix<double, 4, Eigen::Dynamic> waypoints_matrix;
 
@@ -545,6 +574,10 @@ private:
 
 	TrajectorySelector trajectory_selector;
 	AttitudeGenerator attitude_generator;
+
+	double pose_global_x = 0;
+	double pose_global_y = 0;
+	double pose_global_z = 0;
 
 
 	ros::NodeHandle nh;

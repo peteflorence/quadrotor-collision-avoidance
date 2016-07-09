@@ -10,12 +10,12 @@ void DepthImageCollisionEvaluator::UpdatePointCloudPtr(pcl::PointCloud<pcl::Poin
 }
 
 void DepthImageCollisionEvaluator::BuildKDTree() {
-  auto t1 = std::chrono::high_resolution_clock::now();
+  // auto t1 = std::chrono::high_resolution_clock::now();
   my_kd_tree.Initialize(xyz_cloud_ptr);
-  auto t2 = std::chrono::high_resolution_clock::now();
-  std::cout << "Building kd-tree took "
-      << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-      << " microseconds\n";  
+  // auto t2 = std::chrono::high_resolution_clock::now();
+  // std::cout << "Building kd-tree took "
+  //     << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+  //     << " microseconds\n";  
 }
  
 
