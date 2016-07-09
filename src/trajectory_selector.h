@@ -93,7 +93,7 @@ private:
 
   double soft_top_speed = 10.0;
 
-  double collision_reward = -10000;
+  double collision_reward = -100000;
 
 
 
