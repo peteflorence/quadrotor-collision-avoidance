@@ -204,7 +204,7 @@ void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) 
   double distance;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
     final_trajectory_position = trajectory->getTerminalStopPosition(time_to_eval);
-    // if (final_trajectory_position.norm() < initial_distance) {
+    // if (final_trajectory_position.norm() < initial_distance*1.5) {
     //    final_trajectory_position = trajectory->getPosition(time_to_eval);
     //  }
     distance = (final_trajectory_position - carrot_body_frame).norm();

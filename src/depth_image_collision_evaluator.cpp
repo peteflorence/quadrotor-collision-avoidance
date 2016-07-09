@@ -60,7 +60,7 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionOnePositionKDT
 
       double probability_of_collision = volume / denominator * std::exp(exponent);
 
-      if (robot_position.squaredNorm() > 1.0) {
+      if (robot_position.squaredNorm() > 0.5) {
     
         if (pi_x < 0 || pi_x > 159) {
           probability_of_collision += 0.5;

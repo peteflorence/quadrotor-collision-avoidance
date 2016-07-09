@@ -65,7 +65,7 @@ Vector3 Trajectory::getTerminalStopPosition(Scalar const& t) const {
     return position_end_of_jerk_stop;
   }
 
-  double realistic_stop_accel = a_max_horizontal*0.8;
+  double realistic_stop_accel = a_max_horizontal*0.65;
   double speed_after_jerk = velocity_end_of_jerk_stop.norm();
   double stop_t_after_jerk = (speed_after_jerk / realistic_stop_accel);
   //double extra_drift = speed_after_jerk*0.200;
