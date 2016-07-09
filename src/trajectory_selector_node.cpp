@@ -85,12 +85,14 @@ public:
 		// uncomment for bearing control
 		//SetGoalFromBearing();
 		
-		// auto t1 = std::chrono::high_resolution_clock::now();
+		mutex.lock();
+		auto t1 = std::chrono::high_resolution_clock::now();
 		trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
-		// auto t2 = std::chrono::high_resolution_clock::now();
-		// std::cout << "Computing best traj took "
-  //   	  << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-  //     		<< " microseconds\n"; 
+		auto t2 = std::chrono::high_resolution_clock::now();
+		std::cout << "Computing best traj took "
+    	  << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+      		<< " microseconds\n"; 
+      	mutex.unlock();
 
 
 		SetYawFromTrajetory();
@@ -487,7 +489,9 @@ private:
 	    	pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	    	pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
 
+	    	mutex.lock();
 			depth_image_collision_ptr->UpdatePointCloudPtr(xyz_cloud);
+			mutex.unlock();
 		}
 	
 	}

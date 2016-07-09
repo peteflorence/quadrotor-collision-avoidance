@@ -95,7 +95,7 @@ void TrajectorySelector::EvaluateObjectivesEuclid() {
 }
 
 double TrajectorySelector::EvaluateWeightedObjectiveEuclid(size_t const& trajectory_index) {
-  return goal_progress_evaluations(trajectory_index) + 1.0*terminal_velocity_evaluations(trajectory_index) + 0.001*(last_desired_acceleration - trajectory_library.getTrajectoryFromIndex(trajectory_index).getInitialAccelerationRDF()).norm();
+  return goal_progress_evaluations(trajectory_index) + 1.0*terminal_velocity_evaluations(trajectory_index);// + 0.001*(last_desired_acceleration - trajectory_library.getTrajectoryFromIndex(trajectory_index).getInitialAccelerationRDF()).norm();
 }
 
 
@@ -273,7 +273,7 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
     // if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionKDTree(robot_position, sigma_robot_position)) {
     //   return 1.0;
     // }
-    probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionKDTree(robot_position, sigma_robot_position);
+    probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionNPositionsKDTree(robot_position, sigma_robot_position);
 
     //probability_of_collision_one_step = laser_scan_collision_evaluator.computeProbabilityOfCollisionOnePosition(robot_position, sigma_robot_position);
     probability_no_collision_one_step = 1.0 - probability_of_collision_one_step;

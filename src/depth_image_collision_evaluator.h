@@ -11,6 +11,7 @@
 #include "kd_tree.h"
 
 #include <chrono>
+#include <algorithm> 
 
 class DepthImageCollisionEvaluator {
 public:
@@ -27,10 +28,11 @@ public:
   // One-position-only variants
   double computeProbabilityOfCollisionOnePosition(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
   bool computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
-  double computeProbabilityOfCollisionOnePositionKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
+  
 
 
   // Multiple-position variants
+  double computeProbabilityOfCollisionNPositionsKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
   double computeProbabilityOfCollisionOnePositionBlock(Vector3 const& robot_position, Vector3 const& sigma_robot_position, size_t const& block_increment);
   double computeProbabilityOfCollisionOnePositionBlockMarching(Vector3 const& robot_position, Vector3 const& sigma_robot_position, size_t const& block_increment);
   
