@@ -185,9 +185,9 @@ void TrajectorySelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) 
   double distance;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
     final_trajectory_position = trajectory->getTerminalStopPosition(time_to_eval);
-    if (final_trajectory_position.norm() < initial_distance) {
-       final_trajectory_position = trajectory->getPosition(time_to_eval);
-     }
+    // if (final_trajectory_position.norm() < initial_distance) {
+    //    final_trajectory_position = trajectory->getPosition(time_to_eval);
+    //  }
     distance = (final_trajectory_position - carrot_body_frame).norm();
     goal_progress_evaluations(i) = initial_distance - distance; 
     i++;
@@ -250,10 +250,10 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
     
     //probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlock(robot_position, sigma_robot_position, 30);
     //probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlockMarching(robot_position, sigma_robot_position, 50);
-    if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionKDTree(robot_position, sigma_robot_position)) {
-      return 1.0;
-    }
-    // probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionKDTree(robot_position, sigma_robot_position);
+    // if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionKDTree(robot_position, sigma_robot_position)) {
+    //   return 1.0;
+    // }
+    probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionKDTree(robot_position, sigma_robot_position);
 
     //probability_of_collision_one_step = laser_scan_collision_evaluator.computeProbabilityOfCollisionOnePosition(robot_position, sigma_robot_position);
     probability_no_collision_one_step = 1.0 - probability_of_collision_one_step;

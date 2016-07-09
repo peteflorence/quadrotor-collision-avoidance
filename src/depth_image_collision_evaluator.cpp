@@ -21,9 +21,13 @@ void DepthImageCollisionEvaluator::BuildKDTree() {
 
 bool DepthImageCollisionEvaluator::computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position) {
 
+  if (robot_position(2) < -1.0) {
+    return true;
+  }
+
   my_kd_tree.SearchForNearest<1>(robot_position[0], robot_position[1], robot_position[2], closest_pts, squared_distances);
   if (squared_distances.size() > 0) {
-    if (squared_distances[0] < 4.0) {
+    if (squared_distances[0] < 1.0) {
       return true;
     }
   }
@@ -45,8 +49,8 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionOnePositionKDT
       else if (pi_y < 0 || pi_y > 119) {
         return probability_of_collision_in_unknown;
       }
-      if (robot_position(2) < -2.0) {
-        return probability_of_collision_in_unknown;
+      if (robot_position(2) < -1.0) {
+        return 1.0;
       }
 
 

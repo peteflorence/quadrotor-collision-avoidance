@@ -90,9 +90,9 @@ private:
   Eigen::Matrix<Scalar, 25, 1> objectives_dijkstra;
   Eigen::Matrix<Scalar, 25, 1> objectives_euclid;
 
-  double soft_top_speed = 7.0;
+  double soft_top_speed = 2.5;
 
-  double collision_reward = -100;
+  double collision_reward = -10000;
 
 
 
