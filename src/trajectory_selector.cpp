@@ -18,7 +18,26 @@ DepthImageCollisionEvaluator* TrajectorySelector::GetDepthImageCollisionEvaluato
 
 
 void TrajectorySelector::InitializeLibrary(double const& final_time) {
-  trajectory_library.Initialize2DLibrary(final_time);
+  trajectory_library.Initialize2DLibrary();
+  this->final_time = final_time;
+
+  size_t num_samples = 10;
+  double sampling_time = 0;
+  double sampling_interval = (final_time - start_time) / num_samples;
+  for (size_t sample_index = 0; sample_index < num_samples; sample_index++) {
+      sampling_time = start_time + sampling_interval*(sample_index+1);
+      sampling_time_vector(sample_index) = sampling_time;
+  }
+
+  sampling_time = 0;
+  sampling_interval = (final_time - start_time) / num_samples_collision;
+  for (size_t sample_index = 0; sample_index < num_samples_collision; sample_index++) {
+      sampling_time = start_time + sampling_interval*(sample_index+1);
+      collision_sampling_time_vector(sample_index) = sampling_time;
+  }
+};
+
+void TrajectorySelector::UpdateTimeHorizon(double const& final_time) {
   this->final_time = final_time;
 
   size_t num_samples = 10;

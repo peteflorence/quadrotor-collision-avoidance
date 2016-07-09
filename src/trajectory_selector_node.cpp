@@ -274,6 +274,21 @@ private:
 		Vector3 velocity_world_frame(twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z);
 		Vector3 velocity_ortho_body_frame = TransformWorldToOrthoBody(velocity_world_frame);
 		UpdateTrajectoryLibraryVelocity(velocity_ortho_body_frame);
+		double speed = velocity_ortho_body_frame.norm();
+		//UpdateTimeHorizon(speed);
+		
+	}
+	void UpdateTimeHorizon(double speed) { 
+		
+		if (speed < 6.66) {
+			final_time = 1.5;
+		}
+		else { 
+			final_time = 10.0 / speed;
+		}
+		if (final_time < 1.0) { final_time = 1.0;}
+		trajectory_visualizer.UpdateTimeHorizon(final_time);
+		trajectory_selector.UpdateTimeHorizon(final_time);
 	}
 	
 	void OnGlobalGoal(geometry_msgs::PoseStamped const& global_goal) {
@@ -453,7 +468,7 @@ private:
 			| mavros_msgs::AttitudeTarget::IGNORE_YAW_RATE
 			;
 
-		double bearing_azimuth_degrees = 0;
+		double bearing_azimuth_degrees = 0.0;
 		
 		// uncomment below for bearing control
 		//nh.param("bearing_azimuth_degrees", bearing_azimuth_degrees, 0.0);

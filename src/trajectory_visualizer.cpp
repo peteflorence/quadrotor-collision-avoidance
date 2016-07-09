@@ -14,6 +14,11 @@ void TrajectoryVisualizer::initializeDrawingPaths() {
 	}
 }
 
+void TrajectoryVisualizer::UpdateTimeHorizon(double final_time) {
+	this->final_time = final_time;
+	createSamplingTimeVector();
+}
+
 void TrajectoryVisualizer::createSamplingTimeVector() {
 	num_samples = 10;
 	sampling_time_vector.resize(num_samples, 1);

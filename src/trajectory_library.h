@@ -9,7 +9,7 @@
 class TrajectoryLibrary {
 public:
 
-  void Initialize2DLibrary(double const& final_time);
+  void Initialize2DLibrary();
 
   void setInitialVelocity(Vector3 const& initialVelocity);
 
@@ -82,8 +82,6 @@ private:
   double roll = 0;
   double pitch = 0;
   double thrust = 0;
-
-  double final_time;
  
 };
 

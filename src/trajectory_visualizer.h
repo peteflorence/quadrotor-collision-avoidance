@@ -31,6 +31,7 @@ public:
 	};
 
   void TestVisualizer();
+  void UpdateTimeHorizon(double final_time);
   void createSamplingTimeVector();
 
   void initializeDrawingPaths();
@@ -58,9 +59,9 @@ private:
   TrajectorySelector* trajectory_selector;
 
   Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector;
-  size_t num_samples;
+  size_t num_samples = 0;
   double start_time = 0;
-  double final_time;
+  double final_time = 0;
 
   size_t* best_traj_index;
 

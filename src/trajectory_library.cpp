@@ -2,7 +2,7 @@
 #include <chrono>
 #include <math.h>
 
-void TrajectoryLibrary::Initialize2DLibrary(double const& final_time) {
+void TrajectoryLibrary::Initialize2DLibrary() {
 	//double a_max_horizontal = sqrt(a_max*a_max - 9.8*9.8);
 	double a_max_horizontal = 9.8*0.35;
 	Vector3 zero_initial_velocity = Vector3(0,0,0);
@@ -31,8 +31,6 @@ void TrajectoryLibrary::Initialize2DLibrary(double const& final_time) {
 		acceleration << cos(theta)*0.15*a_max_horizontal, sin(theta)*0.15*a_max_horizontal, 0;
 		trajectories.push_back(Trajectory( acceleration, zero_initial_velocity ));
 	}
-
-	this->final_time = final_time; 
 
 	for (size_t index = 0; index < trajectories.size(); index++) {
 		trajectories.at(index).setAccelerationMax(a_max_horizontal);

@@ -28,6 +28,7 @@ public:
 
   
   void InitializeLibrary(double const& final_time);
+  void UpdateTimeHorizon(double const& final_time);
   size_t getNumTrajectories();
   
   void computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration);
