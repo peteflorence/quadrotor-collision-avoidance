@@ -92,6 +92,9 @@ public:
   //   	  << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
   //     		<< " microseconds\n"; 
 
+
+		SetYawFromTrajetory();
+
       	Eigen::Matrix<Scalar, 25, 1> collision_probabilities = trajectory_selector.getCollisionProbabilities();
 		trajectory_visualizer.setCollisionProbabilities(collision_probabilities);
 
@@ -103,6 +106,18 @@ public:
 	}
 
 private:
+
+
+	void SetYawFromTrajetory() {
+		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
+		if (trajectory_library_ptr != nullptr) {
+			Vector3 final_position_ortho_body = trajectory_library_ptr->getTrajectoryFromIndex(best_traj_index).getPosition(final_time);
+			Vector3 final_position_world = TransformOrthoBodyToWorld(final_position_ortho_body);
+			if (carrot_ortho_body_frame.norm() > 5 && final_position_world(0) - pose_global_x) {
+				bearing_azimuth_degrees = 180.0/M_PI*atan2(-(final_position_world(1) - pose_global_y), final_position_world(0) - pose_global_x);
+			}
+		}
+	}
 
 	void SetGoalFromBearing() {
 		bool go;
@@ -321,9 +336,10 @@ private:
 	      return Vector3::Zero();
 	    }
 
-	    Eigen::Quaternion<Scalar> quat(tf.transform.rotation.w, tf.transform.rotation.x, tf.transform.rotation.y, tf.transform.rotation.z);
-	    Matrix3 R = quat.toRotationMatrix();
-	    return R*ortho_body_frame;
+	    geometry_msgs::PoseStamped pose_ortho_body_vector = PoseFromVector3(ortho_body_frame, "ortho_body");
+    	geometry_msgs::PoseStamped pose_vector_world_frame = PoseFromVector3(Vector3(0,0,0), "world");
+    	tf2::doTransform(pose_ortho_body_vector, pose_vector_world_frame, tf);
+    	return VectorFromPose(pose_vector_world_frame);
 	}
 
 	void OnScan(sensor_msgs::PointCloud2 const& laser_point_cloud_msg) {
