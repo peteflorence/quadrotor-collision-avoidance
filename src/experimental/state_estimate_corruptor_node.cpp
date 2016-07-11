@@ -29,8 +29,8 @@ public:
 		velocity_sub = nh.subscribe("/FLA_ACL02/vel", 1, &StateEstimateCorruptorNode::OnVelocity, this);
 
   	    // Publishers
-		corrupted_pose_pub = nh.advertise<geometry_msgs::PoseStamped>("corrupted_pose", 1);
-		corrupted_velocity_pub = nh.advertise<geometry_msgs::PoseStamped>("corrupted_vel", 1);
+		corrupted_pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/corrupted_pose", 1);
+		corrupted_velocity_pub = nh.advertise<geometry_msgs::PoseStamped>("/corrupted_vel", 1);
 
 		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);
 		srand ( time(NULL) ); //initialize the random seed
@@ -57,8 +57,8 @@ private:
 			double diff_actual_pose_global_y = - previous_actual_pose_global_y + actual_pose_global_y;
 			double diff_actual_pose_global_z = - previous_actual_pose_global_z + actual_pose_global_z;
 
-			corrupted_pose_global_x = corrupted_pose_global_x + diff_actual_pose_global_x + randomNoise(); // plus noise
-			corrupted_pose_global_y = corrupted_pose_global_y + diff_actual_pose_global_y + randomNoise();
+			corrupted_pose_global_x = corrupted_pose_global_x + diff_actual_pose_global_x + randomNoise()*actual_velocity_global_x; // plus noise
+			corrupted_pose_global_y = corrupted_pose_global_y + diff_actual_pose_global_y + randomNoise()*actual_velocity_global_y;
 			corrupted_pose_global_z = corrupted_pose_global_z + diff_actual_pose_global_z;
 		}
 		else {
@@ -79,13 +79,16 @@ private:
 		std::random_device rd;
 		std::mt19937 gen(rd());
 
-		std::normal_distribution<> d(0.0,0.05);
+		std::normal_distribution<> d(0.0,0.01);
 		return d(gen);
 	}
 
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
 		ROS_INFO("GOT VELOCITY");
+		actual_velocity_global_x = twist.twist.linear.x;
+		actual_velocity_global_y = twist.twist.linear.y;
+		actual_velocity_global_z = twist.twist.linear.z;
 	}
 	
 	void PublishCorruptedPose(geometry_msgs::PoseStamped const& pose) { 
@@ -123,10 +126,9 @@ private:
 	double corrupted_pose_global_y = 0;
 	double corrupted_pose_global_z = 0;
 
-
-
-
-
+	double actual_velocity_global_x = 0;
+	double actual_velocity_global_y = 0;
+	double actual_velocity_global_z = 0;
 
 	ros::NodeHandle nh;
 };

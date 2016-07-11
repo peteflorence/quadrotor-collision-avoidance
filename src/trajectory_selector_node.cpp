@@ -35,6 +35,7 @@ public:
 	TrajectorySelectorNode() {
 
 		// Subscribers
+		// pose_sub = nh.subscribe("/corrupted_pose", 1, &TrajectorySelectorNode::OnPose, this);
 		pose_sub = nh.subscribe("/FLA_ACL02/pose", 1, &TrajectorySelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/FLA_ACL02/vel", 1, &TrajectorySelectorNode::OnVelocity, this);
 		//waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
@@ -115,9 +116,11 @@ private:
 		if (trajectory_library_ptr != nullptr) {
 			Vector3 final_position_ortho_body = trajectory_library_ptr->getTrajectoryFromIndex(best_traj_index).getPosition(final_time);
 			Vector3 final_position_world = TransformOrthoBodyToWorld(final_position_ortho_body);
+			mutex.lock();
 			if (carrot_ortho_body_frame.norm() > 2 && (final_position_world(0) - pose_global_x)!= 0) {
 				bearing_azimuth_degrees = 180.0/M_PI*atan2(-(final_position_world(1) - pose_global_y), final_position_world(0) - pose_global_x);
 			}
+			mutex.unlock();
 		}
 	}
 
@@ -206,7 +209,9 @@ private:
 		UpdateCarrotOrthoBodyFrame();
 		UpdateLaserRDFFramesFromPose();
 
+		mutex.lock();
 		SetPose(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
+		mutex.unlock();
 	}
 
 	void SetPose(double x, double y, double z) {
