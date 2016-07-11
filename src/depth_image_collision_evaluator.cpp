@@ -36,7 +36,7 @@ bool DepthImageCollisionEvaluator::computeDeterministicCollisionOnePositionKDTre
 }
 
 double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position) {
-  size_t const n = 10;
+  size_t const n = 1;
   if (xyz_cloud_ptr != nullptr) {
     double probability_no_collision = 1.0;
     Vector3 projected = K * robot_position;
@@ -44,7 +44,7 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTr
     int pi_y = projected(1)/projected(2);
 
     if (robot_position(2) < -1.0) {
-      return 0.9;
+      return 0.999;
     }
     my_kd_tree.SearchForNearest<n>(robot_position[0], robot_position[1], robot_position[2], closest_pts, squared_distances);
     if (closest_pts.size() > 0) {

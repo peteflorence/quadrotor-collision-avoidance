@@ -115,7 +115,7 @@ private:
 		if (trajectory_library_ptr != nullptr) {
 			Vector3 final_position_ortho_body = trajectory_library_ptr->getTrajectoryFromIndex(best_traj_index).getPosition(final_time);
 			Vector3 final_position_world = TransformOrthoBodyToWorld(final_position_ortho_body);
-			if (carrot_ortho_body_frame.norm() > 5 && final_position_world(0) - pose_global_x) {
+			if (carrot_ortho_body_frame.norm() > 2 && (final_position_world(0) - pose_global_x)!= 0) {
 				bearing_azimuth_degrees = 180.0/M_PI*atan2(-(final_position_world(1) - pose_global_y), final_position_world(0) - pose_global_x);
 			}
 		}
@@ -321,7 +321,7 @@ private:
 		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.0; 
 		UpdateCarrotOrthoBodyFrame();
 
-		if (global_goal.pose.position.x - pose_global_x) {
+		if ((global_goal.pose.position.x - pose_global_x) != 0) {
 			bearing_azimuth_degrees = 180.0/M_PI*atan2(-(global_goal.pose.position.y - pose_global_y), global_goal.pose.position.x - pose_global_x);
 		}
 		std::cout << "bearing_azimuth_degrees is " << bearing_azimuth_degrees << std::endl;
