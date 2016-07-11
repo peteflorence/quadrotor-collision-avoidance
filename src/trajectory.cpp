@@ -193,6 +193,19 @@ Vector3 Trajectory::getPositionRDF(Scalar const& t) const {
   }
 };
 
+Vector3 Trajectory::getPositionRDF_MonteCarlo(Scalar const& t, Vector3 const& sampled_initial_velocity_rdf) const {
+  if (t < jerk_time) {
+    return 0.1666*jerk_rdf*t*t*t + 0.5*initial_acceleration_rdf*t*t + sampled_initial_velocity_rdf*t;
+  }
+  else {
+    Vector3 sampled_position_end_of_jerk_time_rdf = 0.1666*jerk_rdf*jerk_time*jerk_time*jerk_time + 0.5*initial_acceleration_rdf*jerk_time*jerk_time + sampled_initial_velocity_rdf*jerk_time;
+    //Vector3 sampled_velocity_end_of_jerk_time_rdf = 0.5*jerk_rdf*jerk_time*jerk_time + initial_acceleration_rdf*jerk_time + sampled_initial_velocity_rdf;
+    double t_left = t - jerk_time;
+    return sampled_position_end_of_jerk_time_rdf + 0.5*acceleration_rdf*t_left*t_left + sampled_initial_velocity_rdf*t_left;
+  }
+
+};
+
 Vector3 Trajectory::getTerminalStopPositionRDF(Scalar const& t) const {
   Vector3 position_end_of_trajectory = getPositionRDF(t);
   Vector3 velocity_end_of_trajectory = getVelocityRDF(t);

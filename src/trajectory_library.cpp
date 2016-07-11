@@ -123,11 +123,32 @@ void TrajectoryLibrary::setInitialVelocityRDF(Vector3 const& initial_velocity_rd
 	return;
 };
 
-Vector3 TrajectoryLibrary::getRDFSigmaAtTime(double const& t) {
+Vector3 TrajectoryLibrary::getRDFSigmaAtTime(double const& t) const {
 	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.5) + 0.1*(initial_velocity_rdf_frame.array().abs()).matrix());
 };
 
-Vector3 TrajectoryLibrary::getRDFInverseSigmaAtTime(double const& t) {
+std::vector<Vector3> TrajectoryLibrary::getRDFSampledInitialVelocity(size_t n) {
+	std::random_device rd;
+	std::mt19937 gen(rd());
+
+
+	double x_velocity = initial_velocity_rdf_frame(0);
+	double y_velocity = initial_velocity_rdf_frame(1);
+	double z_velocity = initial_velocity_rdf_frame(2);
+
+	sampled_velocities.clear();
+
+	for (int i = 0; i < n; i++) {
+		std::normal_distribution<> dx(x_velocity,0.05);
+		std::normal_distribution<> dy(y_velocity,0.05);
+		std::normal_distribution<> dz(z_velocity,0.05);
+		sampled_velocities.push_back(Vector3(dx(gen),dy(gen),dz(gen)));
+	}
+
+	return sampled_velocities;
+};
+
+Vector3 TrajectoryLibrary::getRDFInverseSigmaAtTime(double const& t) const {
 	Vector3 RDFsigma = getRDFSigmaAtTime(t);
 	return Vector3(1.0/RDFsigma(0), 1.0/RDFsigma(1), 1.0/RDFsigma(2));
 };

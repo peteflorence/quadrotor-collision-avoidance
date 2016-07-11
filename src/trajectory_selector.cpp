@@ -66,6 +66,7 @@ size_t TrajectorySelector::getNumTrajectories() {
 // Euclidean Evaluator
 void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
   EvaluateCollisionProbabilities();
+  std::cout << collision_probabilities << std::endl;
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
   EvaluateObjectivesEuclid();
@@ -248,7 +249,13 @@ void TrajectorySelector::EvaluateCollisionProbabilities() {
 
   size_t i = 0;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-    collision_probabilities(i) = computeProbabilityOfCollisionOneTrajectory(*trajectory);   
+
+    // size_t n = 100;
+    // std::vector<Vector3> sampled_initial_velocities = trajectory_library.getRDFSampledInitialVelocity(n); 
+    // collision_probabilities(i) = computeProbabilityOfCollisionOneTrajectory_MonteCarlo(*trajectory, sampled_initial_velocities, n);  
+
+    collision_probabilities(i) = computeProbabilityOfCollisionOneTrajectory(*trajectory); 
+
     i++;
   }
   for (int i = 0; i < 25; i++) {
@@ -283,6 +290,36 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
   if (probability_no_collision > 1.0) { probability_no_collision = 1.0;};
   if (probability_no_collision < 0.0) { probability_no_collision = 0.0;};
   return 1 - probability_no_collision;
+
+};
+
+double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory_MonteCarlo(Trajectory trajectory, std::vector<Vector3> sampled_initial_velocities, size_t n) {
+  
+  Vector3 robot_position;
+  size_t collision_count = 0;
+
+  for (size_t i = 0; i < n; i++) {
+
+    // auto t1 = std::chrono::high_resolution_clock::now();
+    for (size_t time_step_index = 0; time_step_index < num_samples_collision; time_step_index++) {
+      
+      robot_position = trajectory.getPositionRDF_MonteCarlo(collision_sampling_time_vector(time_step_index), sampled_initial_velocities[i]);
+      
+      if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionKDTree(robot_position)) {
+        collision_count++;
+        break;
+      }
+      
+    }
+    // auto t2 = std::chrono::high_resolution_clock::now();
+    // std::cout << "A deterministic collision check took "
+    //     << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+    //       << " microseconds\n";
+
+
+  }
+  
+  return (collision_count*1.0)/(n*1.0);
 
 };
 

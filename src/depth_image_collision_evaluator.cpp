@@ -19,7 +19,7 @@ void DepthImageCollisionEvaluator::BuildKDTree() {
 }
  
 
-bool DepthImageCollisionEvaluator::computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position) {
+bool DepthImageCollisionEvaluator::computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position) {
 
   if (robot_position(2) < -1.0) {
     return true;

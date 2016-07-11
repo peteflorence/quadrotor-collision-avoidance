@@ -53,6 +53,8 @@ public:
   Vector3 getInitialVelocityRDF() const;
   Vector3 getPositionRDF(Scalar const& t) const;
   Vector3 getTerminalStopPositionRDF(Scalar const& t) const;
+
+  Vector3 getPositionRDF_MonteCarlo(Scalar const& t, Vector3 const& sampled_initial_velcoity) const;
   
 
 

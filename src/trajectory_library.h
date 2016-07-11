@@ -6,6 +6,13 @@
 #include "trajectory.h"
 #include <vector>
 
+#include <iostream>
+#include <iomanip>
+#include <string>
+#include <map>
+#include <random>
+#include <cmath>
+
 class TrajectoryLibrary {
 public:
 
@@ -58,8 +65,10 @@ public:
   void setInitialAccelerationRDF(Vector3 const& initial_acceleration_laser_frame);
   void setInitialVelocityRDF(Vector3 const& initial_velocity_laser_frame);
 
-  Vector3 getRDFSigmaAtTime(double const& t);
-  Vector3 getRDFInverseSigmaAtTime(double const& t);
+  Vector3 getRDFSigmaAtTime(double const& t) const;
+  Vector3 getRDFInverseSigmaAtTime(double const& t) const;
+
+  std::vector<Vector3> getRDFSampledInitialVelocity(size_t n);
 
 
 
@@ -82,7 +91,9 @@ private:
   double roll = 0;
   double pitch = 0;
   double thrust = 0;
- 
+
+  std::vector<Vector3> sampled_velocities;
+
 };
 
 #endif

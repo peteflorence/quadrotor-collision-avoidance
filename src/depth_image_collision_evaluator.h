@@ -27,7 +27,7 @@ public:
 
   // One-position-only variants
   double computeProbabilityOfCollisionOnePosition(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
-  bool computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
+  bool computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position);
   
 
 

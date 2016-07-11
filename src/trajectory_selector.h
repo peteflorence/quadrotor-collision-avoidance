@@ -66,6 +66,7 @@ private:
   void EvaluateTerminalVelocityCost();
   void EvaluateCollisionProbabilities();
   double computeProbabilityOfCollisionOneTrajectory(Trajectory trajectory);
+  double computeProbabilityOfCollisionOneTrajectory_MonteCarlo(Trajectory trajectory, std::vector<Vector3> sampled_initial_velocities, size_t n);
 
 
   Eigen::Matrix<Scalar, 25, 1> FilterSmallProbabilities(Eigen::Matrix<Scalar, 25, 1> to_filter);
