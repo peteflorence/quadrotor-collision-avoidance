@@ -5,6 +5,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
+#include <algorithm>
 #include <chrono>
 
 
@@ -97,21 +98,20 @@ public:
 
 template <int n>
 void SearchForNearest(num_t x, num_t y, num_t z, std::vector<pcl::PointXYZ>& closest_pts, std::vector<num_t>& squared_distances) {
+	closest_pts.clear();
+	squared_distances.clear();
 	if (cloud.pts.size() > 0) {
-
-		closest_pts.clear();
-		squared_distances.clear();
-
 		num_t query_pt[3] = { x, y, z};
-
 	    size_t ret_index[n];
 	    num_t out_dist_sqr[n];
 	    nanoflann::KNNResultSet<num_t> resultSet(n);
 	    resultSet.init(&ret_index[0], &out_dist_sqr[0] );
 	    nanoflann::SearchParams params(10);
 	    index.findNeighbors(resultSet, &query_pt[0], params);
-
-	    for (size_t i = 0; i < n; i++) {
+	    int num_results = 0;
+	    if (cloud.pts.size() < n) { num_results = cloud.pts.size();}
+	    else if (cloud.pts.size() > n) { num_results = n;}
+	    for (size_t i = 0; i < num_results; i++) {
 	    	closest_pts.push_back(cloud.pts[ret_index[i]]);
 	    	squared_distances.push_back(out_dist_sqr[i]);
 	    }
