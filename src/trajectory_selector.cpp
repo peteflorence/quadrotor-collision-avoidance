@@ -66,7 +66,7 @@ size_t TrajectorySelector::getNumTrajectories() {
 // Euclidean Evaluator
 void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
   EvaluateCollisionProbabilities();
-  std::cout << collision_probabilities << std::endl;
+  // std::cout << collision_probabilities << std::endl;
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
   EvaluateObjectivesEuclid();
@@ -250,7 +250,7 @@ void TrajectorySelector::EvaluateCollisionProbabilities() {
   size_t i = 0;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
 
-    // size_t n = 100;
+    // size_t n = 10;
     // std::vector<Vector3> sampled_initial_velocities = trajectory_library.getRDFSampledInitialVelocity(n); 
     // collision_probabilities(i) = computeProbabilityOfCollisionOneTrajectory_MonteCarlo(*trajectory, sampled_initial_velocities, n);  
 
@@ -277,7 +277,7 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
     
     //probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlock(robot_position, sigma_robot_position, 30);
     //probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlockMarching(robot_position, sigma_robot_position, 50);
-    // if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionKDTree(robot_position, sigma_robot_position)) {
+    // if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionKDTree(robot_position)) {
     //   return 1.0;
     // }
     probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionNPositionsKDTree(robot_position, sigma_robot_position);

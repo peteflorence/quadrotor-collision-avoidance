@@ -27,7 +27,7 @@ bool DepthImageCollisionEvaluator::computeDeterministicCollisionOnePositionKDTre
 
   my_kd_tree.SearchForNearest<1>(robot_position[0], robot_position[1], robot_position[2], closest_pts, squared_distances);
   if (squared_distances.size() > 0) {
-    if (squared_distances[0] < 1.0) {
+    if (squared_distances[0] < 2.0) {
       return true;
     }
   }
