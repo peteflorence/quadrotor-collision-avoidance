@@ -519,10 +519,20 @@ private:
 		
 		// uncomment below for bearing control
 		//nh.param("bearing_azimuth_degrees", bearing_azimuth_degrees, 0.0);
-		if (abs(bearing_azimuth_degrees - set_bearing_azimuth_degrees) < 1) {
+		double bearing_error = bearing_azimuth_degrees - set_bearing_azimuth_degrees;
+
+		while(bearing_error > 180) { 
+			bearing_error -= 360;
+		}
+		while(bearing_error < -180) { 
+			bearing_error += 360;
+		}
+
+		if (abs(bearing_error) < 1) {
 			set_bearing_azimuth_degrees = bearing_azimuth_degrees;
 		}
-		else if ((bearing_azimuth_degrees - set_bearing_azimuth_degrees) < 0 && (bearing_azimuth_degrees - set_bearing_azimuth_degrees) > -180)  {
+
+		else if (bearing_error < 0)  {
 			set_bearing_azimuth_degrees -= 0.5;
 		}
 		else {
