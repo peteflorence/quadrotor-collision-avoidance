@@ -52,3 +52,7 @@ add_library( trajectory_selector src/trajectory_selector.cpp src/trajectory_libr
 
 add_executable( trajectory_selector_node src/trajectory_selector_node.cpp )
 target_link_libraries( trajectory_selector_node trajectory_selector ${catkin_LIBRARIES} ${PCL_LIBRARIES} orocos-kdl)
+
+add_executable( state_estimate_corruptor_node src/experimental/state_estimate_corruptor_node.cpp )
+target_link_libraries( state_estimate_corruptor_node  ${catkin_LIBRARIES})
+
