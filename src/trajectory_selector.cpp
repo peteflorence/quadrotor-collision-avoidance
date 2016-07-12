@@ -62,6 +62,31 @@ size_t TrajectorySelector::getNumTrajectories() {
   return trajectory_library.getNumTrajectories();
 };
 
+// Euclidean Evaluator
+void TrajectorySelector::computeTakeoffTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
+  for (int i = 0; i < 25; i++) {
+    no_collision_probabilities(i) = 1.0;
+    collision_probabilities(i) = 0.0;
+  }
+  EvaluateGoalProgress(carrot_body_frame); 
+  EvaluateTerminalVelocityCost();
+  EvaluateObjectivesEuclid();
+
+  desired_acceleration << 0,0,0;
+  best_traj_index = 0;
+  float current_objective_value;
+  float best_traj_objective_value = objectives_euclid(0);
+  for (size_t traj_index = 1; traj_index < 25; traj_index++) {
+    current_objective_value = objectives_euclid(traj_index);
+    if (current_objective_value > best_traj_objective_value) {
+      best_traj_index = traj_index;
+      best_traj_objective_value = current_objective_value;
+    }
+  }
+  desired_acceleration = trajectory_library.getTrajectoryFromIndex(best_traj_index).getAcceleration();
+  last_desired_acceleration = desired_acceleration;
+};
+
 
 // Euclidean Evaluator
 void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {

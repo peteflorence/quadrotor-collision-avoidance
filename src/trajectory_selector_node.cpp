@@ -87,16 +87,20 @@ public:
 		//SetGoalFromBearing();
 		
 		mutex.lock();
-		auto t1 = std::chrono::high_resolution_clock::now();
-		trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
-		auto t2 = std::chrono::high_resolution_clock::now();
-		std::cout << "Computing best traj took "
-    	  << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-      		<< " microseconds\n"; 
-      	mutex.unlock();
+		if (pose_global_z > 1.0) {
+			auto t1 = std::chrono::high_resolution_clock::now();
+			trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+			auto t2 = std::chrono::high_resolution_clock::now();
+			std::cout << "Computing best traj took "
+	    		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+	      		<< " microseconds\n"; 
+	     }
+	     else {
+	     	trajectory_selector.computeTakeoffTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+	     }
+	    mutex.unlock();
 
-
-		SetYawFromTrajetory();
+		SetYawFromTrajectory();
 
       	Eigen::Matrix<Scalar, 25, 1> collision_probabilities = trajectory_selector.getCollisionProbabilities();
 		trajectory_visualizer.setCollisionProbabilities(collision_probabilities);
@@ -111,7 +115,7 @@ public:
 private:
 
 
-	void SetYawFromTrajetory() {
+	void SetYawFromTrajectory() {
 		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
 		if (trajectory_library_ptr != nullptr) {
 			Vector3 final_position_ortho_body = trajectory_library_ptr->getTrajectoryFromIndex(best_traj_index).getPosition(final_time);
