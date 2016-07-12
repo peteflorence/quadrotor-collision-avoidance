@@ -57,8 +57,8 @@ private:
 			double diff_actual_pose_global_y = - previous_actual_pose_global_y + actual_pose_global_y;
 			double diff_actual_pose_global_z = - previous_actual_pose_global_z + actual_pose_global_z;
 
-			corrupted_pose_global_x = corrupted_pose_global_x + diff_actual_pose_global_x + randomNoise(); // plus noise
-			corrupted_pose_global_y = corrupted_pose_global_y + diff_actual_pose_global_y + randomNoise();
+			corrupted_pose_global_x = corrupted_pose_global_x + diff_actual_pose_global_x + randomNoise()*actual_velocity_global_x; // plus noise
+			corrupted_pose_global_y = corrupted_pose_global_y + diff_actual_pose_global_y + randomNoise()*actual_velocity_global_y;
 			corrupted_pose_global_z = actual_pose_global_z;
 		}
 		else {
@@ -79,7 +79,7 @@ private:
 		std::random_device rd;
 		std::mt19937 gen(rd());
 
-		std::normal_distribution<> d(0.0,0.01);
+		std::normal_distribution<> d(0.0,noise_scaling);
 		return d(gen);
 	}
 
@@ -110,6 +110,8 @@ private:
 
 		geometry_msgs::TwistStamped corrupted_twist;
 		corrupted_twist = twist;
+		corrupted_twist.twist.linear.x = twist.twist.linear.x * (1 + randomNoise());
+		corrupted_twist.twist.linear.y = twist.twist.linear.y * (1 + randomNoise());
 		corrupted_velocity_pub.publish( corrupted_twist );
 
 	}
@@ -158,6 +160,8 @@ private:
 	double actual_velocity_global_x = 0;
 	double actual_velocity_global_y = 0;
 	double actual_velocity_global_z = 0;
+
+	double noise_scaling = 0.05;
 
 	ros::NodeHandle nh;
 };
