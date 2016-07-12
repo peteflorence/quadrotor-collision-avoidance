@@ -1,0 +1,86 @@
+#!/usr/bin/env python 
+import rospy
+import math
+import os
+import sys
+import subprocess
+import re
+from geometry_msgs.msg import PoseStamped
+
+noisy_file = open('pose_noisy.txt', 'w')
+ground_truth_file = open('pose_ground_truth.txt', 'w')
+result_file = open('result.txt', 'w')
+start_time = 0
+
+goal_x = 215.0
+goal_y = 0.0
+
+def FindProcess( process_name ):
+  ps     = subprocess.Popen("ps -eaf | grep "+process_name, shell=True, stdout=subprocess.PIPE)
+  output = ps.stdout.read()
+  ps.stdout.close()
+  ps.wait()
+
+  return output
+
+# This is the function you can use
+def IsRunning( process_name ):
+  output = FindProcess( process_name )
+  if re.search('/home/drc/DepthForest_Long/'+process_name, output) is None:
+    return False
+  else:
+    return True
+
+def UnityRunning():
+  return IsRunning('DepthForest_Long.x86_64')
+
+def AtGoal(pose_x, pose_y, radius):
+  dx = pose_x - goal_x
+  dy = pose_y - goal_y
+  return dx * dx + dy * dy < radius * radius
+
+def Terminate(final_time, reason):
+  global noisy_file, result_file, ground_truth_file
+  print reason
+  total_time = final_time - start_time
+  result_file.write(str(total_time) + ',' + reason + "\n")
+  noisy_file.close()
+  ground_truth_file.close()
+  result_file.close()
+
+  rospy.signal_shutdown(reason)
+  sys.exit()
+
+def WritePoseToFile(pose_msg, file):
+  file.write(str(pose_msg.header.stamp.to_sec()) + ',')
+  file.write(str(pose_msg.pose.position.x) + ',')
+  file.write(str(pose_msg.pose.position.y) + ',')
+  file.write(str(pose_msg.pose.position.z) + '\n')
+
+def OnGoal(pose_msg):
+  global goal_x, goal_y
+  goal_x = pose_msg.pose.position.x
+  goal_y = pose_msg.pose.position.y
+
+def OnNoisyPose(pose_msg):
+  global noisy_file
+  WritePoseToFile(pose_msg, noisy_file);
+
+  if not UnityRunning():
+    Terminate(pose_msg.header.stamp.to_sec(), "FAIL")
+  elif AtGoal(pose_msg.pose.position.x, pose_msg.pose.position.y, 5.0):
+    Terminate(pose_msg.header.stamp.to_sec(), "SUCCESS")
+
+def OnRealPose(pose_msg):
+  global ground_truth_file, start_time
+  if start_time == 0 and pose_msg.pose.position.x > 0:
+    start_time = pose_msg.header.stamp.to_sec()
+
+  WritePoseToFile(pose_msg, ground_truth_file);
+
+
+rospy.init_node('experiment_logger')
+rospy.Subscriber('/FLA_ACL02/pose', PoseStamped, OnNoisyPose)
+rospy.Subscriber('/true_pose', PoseStamped, OnRealPose)
+rospy.Subscriber('/move_base_simple/goal', PoseStamped, OnGoal)
+rospy.spin()
