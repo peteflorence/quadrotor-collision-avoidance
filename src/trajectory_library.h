@@ -16,7 +16,7 @@
 class TrajectoryLibrary {
 public:
 
-  void Initialize2DLibrary();
+  void Initialize2DLibrary(double a_max_horizontal);
 
   void setInitialVelocity(Vector3 const& initialVelocity);
 
@@ -74,8 +74,6 @@ public:
 
 private:
   
-  double a_max = 9.8*2.4;  // 2.4 Thrust to weight ratio
-
   std::vector<Trajectory> trajectories;
   Trajectory trajectory1;
 

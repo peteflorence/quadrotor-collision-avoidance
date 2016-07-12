@@ -2,9 +2,8 @@
 #include <chrono>
 #include <math.h>
 
-void TrajectoryLibrary::Initialize2DLibrary() {
-	//double a_max_horizontal = sqrt(a_max*a_max - 9.8*9.8);
-	double a_max_horizontal = 9.8*0.45;
+void TrajectoryLibrary::Initialize2DLibrary(double a_max_horizontal) {
+	
 	Vector3 zero_initial_velocity = Vector3(0,0,0);
 
 	// Make first trajectory be zero accelerations

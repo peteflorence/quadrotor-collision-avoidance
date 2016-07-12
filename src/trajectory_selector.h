@@ -27,7 +27,7 @@ public:
   DepthImageCollisionEvaluator* GetDepthImageCollisionEvaluatorPtr();
 
   
-  void InitializeLibrary(double const& final_time);
+  void InitializeLibrary(double const& final_time, double soft_top_speed, double a_max_horizontal);
   void UpdateTimeHorizon(double const& final_time);
   size_t getNumTrajectories();
   
@@ -93,7 +93,7 @@ private:
   Eigen::Matrix<Scalar, 25, 1> objectives_dijkstra;
   Eigen::Matrix<Scalar, 25, 1> objectives_euclid;
 
-  double soft_top_speed = 7.0;
+  double soft_top_speed = 1.0;
 
   double collision_reward = -100000;
   //double collision_reward = -100000000; // PLAGUE setting

@@ -17,8 +17,9 @@ DepthImageCollisionEvaluator* TrajectorySelector::GetDepthImageCollisionEvaluato
 };
 
 
-void TrajectorySelector::InitializeLibrary(double const& final_time) {
-  trajectory_library.Initialize2DLibrary();
+void TrajectorySelector::InitializeLibrary(double const& final_time, double soft_top_speed, double a_max_horizontal) {
+  trajectory_library.Initialize2DLibrary(a_max_horizontal);
+  this->soft_top_speed = soft_top_speed;
   last_desired_acceleration << 0, 0, 0;
   this->final_time = final_time;
 

@@ -51,7 +51,11 @@ public:
 		//attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
 
 		// Initialization
-		trajectory_selector.InitializeLibrary(final_time);
+		double soft_top_speed;
+		double a_max_horizontal;
+		nh.getParam("soft_top_speed", soft_top_speed);
+		nh.getParam("a_max_horizontal", a_max_horizontal);
+		trajectory_selector.InitializeLibrary(final_time, soft_top_speed, a_max_horizontal);
 
 		trajectory_visualizer.initialize(&trajectory_selector, nh, &best_traj_index, final_time);
 		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);
