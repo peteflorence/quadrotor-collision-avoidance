@@ -47,6 +47,7 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTr
     if (robot_position(2) < -1.0) {
       return 0.999;
     }
+
     my_kd_tree_depth_image.SearchForNearest<num_nearest_neighbors>(robot_position[0], robot_position[1], robot_position[2]);
     double probability_of_collision = computeProbabilityOfCollisionNPositionsKDTree(robot_position, sigma_robot_position, my_kd_tree_depth_image.closest_pts);
 
@@ -59,6 +60,9 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTr
         probability_of_collision += 0.5;
       }
       else if (pi_y < 0) { // ignore if it's under because this is preventing me from slowing down
+        probability_of_collision += 0.5;
+      }
+      else if (robot_position(2) > 10.0) {
         probability_of_collision += 0.5;
       }
     }
