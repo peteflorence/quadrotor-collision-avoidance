@@ -1,6 +1,11 @@
 <launch>
-	<param name="soft_top_speed" value="10.0" type="double"/>
-	<param name="a_max_horizontal" value="4.5" type="double"/>
+	
+    <arg name="soft_top_speed" default="10.0"/>
+    <arg name="a_max_horizontal" default="4.5"/>
+
+	<param name="soft_top_speed" type="double" value="$(arg soft_top_speed)"/>
+	<param name="a_max_horizontal" type="double" value="$(arg a_max_horizontal)"/>
+
     <node pkg="trajectory_selector" type="trajectory_selector_node" name="trajectory_selector" output="screen">
       <remap from="/samros/pose" to="/FLA_ACL02/pose" />
       <remap from="/samros/twist" to="/FLA_ACL02/vel" />
