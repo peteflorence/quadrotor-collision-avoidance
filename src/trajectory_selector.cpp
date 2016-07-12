@@ -227,7 +227,7 @@ void TrajectorySelector::EvaluateTerminalVelocityCost() {
   double final_trajectory_speed;
   double distance;
   for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-    final_trajectory_speed = trajectory->getVelocity(0.5).norm();
+    final_trajectory_speed = trajectory->getVelocity(final_time).norm();
     terminal_velocity_evaluations(i) = 0;
     
     // cost on going too fast
