@@ -265,25 +265,26 @@ void TrajectorySelector::EvaluateCollisionProbabilities() {
 
 double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory trajectory) {
   double probability_no_collision = 1;
-  double probability_of_collision_one_step = 0.0;
   double probability_no_collision_one_step = 1.0;
   Vector3 robot_position;
   Vector3 sigma_robot_position;
 
   for (size_t time_step_index = 0; time_step_index < num_samples_collision; time_step_index++) {
+    sigma_robot_position = 0.1*trajectory_library.getLASERSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
+    robot_position = trajectory.getPositionLASER(collision_sampling_time_vector(time_step_index));
+    probability_no_collision_one_step = 1 - depth_image_collision_evaluator.computeProbabilityOfCollisionNPositionsKDTree_Laser(robot_position, sigma_robot_position);
+
     sigma_robot_position = 0.1*trajectory_library.getRDFSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
-    //sigma_robot_position = Vector3(0.01,0.01,0.01);
     robot_position = trajectory.getPositionRDF(collision_sampling_time_vector(time_step_index));
+    probability_no_collision_one_step = probability_no_collision_one_step * (1 - depth_image_collision_evaluator.computeProbabilityOfCollisionNPositionsKDTree_DepthImage(robot_position, sigma_robot_position));
     
     //probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlock(robot_position, sigma_robot_position, 30);
     //probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlockMarching(robot_position, sigma_robot_position, 50);
     // if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionKDTree(robot_position)) {
     //   return 1.0;
     // }
-    probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionNPositionsKDTree(robot_position, sigma_robot_position);
-
+    
     //probability_of_collision_one_step = laser_scan_collision_evaluator.computeProbabilityOfCollisionOnePosition(robot_position, sigma_robot_position);
-    probability_no_collision_one_step = 1.0 - probability_of_collision_one_step;
     probability_no_collision = probability_no_collision * probability_no_collision_one_step;
     
   }

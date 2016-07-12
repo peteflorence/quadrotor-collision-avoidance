@@ -23,6 +23,7 @@ public:
 	}
 	
   void UpdatePointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new);
+  void UpdateLaserPointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new);
   void BuildKDTree();
 
   // One-position-only variants
@@ -32,7 +33,10 @@ public:
 
 
   // Multiple-position variants
-  double computeProbabilityOfCollisionNPositionsKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
+  double computeProbabilityOfCollisionNPositionsKDTree_DepthImage(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
+  double computeProbabilityOfCollisionNPositionsKDTree_Laser(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
+  double computeProbabilityOfCollisionNPositionsKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position, std::vector<pcl::PointXYZ> const& closest_pts);
+
   double computeProbabilityOfCollisionOnePositionBlock(Vector3 const& robot_position, Vector3 const& sigma_robot_position, size_t const& block_increment);
   double computeProbabilityOfCollisionOnePositionBlockMarching(Vector3 const& robot_position, Vector3 const& sigma_robot_position, size_t const& block_increment);
   
@@ -47,6 +51,7 @@ public:
 
 private:
   pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud_ptr;
+  pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_laser_cloud_ptr;
 
   Vector3 sigma_depth_point = Vector3(0.1, 0.1, 0.1);
 
@@ -55,9 +60,7 @@ private:
   double probability_of_collision_in_unknown = 0.0;  // 0.05 is reasonable
 
   // For kd-tree version
-  KDTree<double> my_kd_tree;
-  std::vector<pcl::PointXYZ> closest_pts;
-  std::vector<double> squared_distances;
-
+  KDTree<double> my_kd_tree_depth_image;
+  KDTree<double> my_kd_tree_laser;
 
 };

@@ -49,6 +49,9 @@ struct PointCloud
 template <typename num_t>
 class KDTree {
 public:
+	std::vector<pcl::PointXYZ> closest_pts;
+	std::vector<num_t> squared_distances;
+
 	typedef nanoflann::KDTreeSingleIndexAdaptor<
 	nanoflann::L2_Simple_Adaptor<num_t, PointCloud<num_t> > ,
 	PointCloud<num_t>,
@@ -97,7 +100,7 @@ public:
 	}
 
 template <int n>
-void SearchForNearest(num_t x, num_t y, num_t z, std::vector<pcl::PointXYZ>& closest_pts, std::vector<num_t>& squared_distances) {
+void SearchForNearest(num_t x, num_t y, num_t z) {
 	closest_pts.clear();
 	squared_distances.clear();
 	if (cloud.pts.size() > 0) {

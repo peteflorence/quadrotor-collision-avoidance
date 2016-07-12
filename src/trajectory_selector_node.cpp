@@ -42,7 +42,7 @@ public:
   	    depth_image_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnDepthImage, this);
   	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
   	    //value_grid_sub = nh.subscribe("/value_grid", 1, &TrajectorySelectorNode::OnValueGrid, this);
-  	    //laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &TrajectorySelectorNode::OnScan, this);
+  	    laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &TrajectorySelectorNode::OnScan, this);
 
   	    // Publishers
 		carrot_pub = nh.advertise<visualization_msgs::Marker>( "carrot_marker", 0 );
@@ -351,9 +351,9 @@ private:
 
 	void OnScan(sensor_msgs::PointCloud2 const& laser_point_cloud_msg) {
 		//ROS_INFO("GOT SCAN");
-		LaserScanCollisionEvaluator* laser_scan_collision_ptr = trajectory_selector.GetLaserScanCollisionEvaluatorPtr();
+		DepthImageCollisionEvaluator* depth_image_collision_ptr = trajectory_selector.GetDepthImageCollisionEvaluatorPtr();
 
-		if (laser_scan_collision_ptr != nullptr) {
+		if (depth_image_collision_ptr != nullptr) {
 			
 			pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
 			pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
@@ -362,7 +362,7 @@ private:
 			pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
 			pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
 
-			laser_scan_collision_ptr->UpdatePointCloudPtr(xyz_cloud);
+			depth_image_collision_ptr->UpdateLaserPointCloudPtr(xyz_cloud);
 		}
 	}
 
@@ -498,6 +498,8 @@ private:
 			depth_image_collision_ptr->UpdatePointCloudPtr(xyz_cloud);
 			mutex.unlock();
 		}
+
+		ReactToSampledPointCloud();
 	
 	}
 
@@ -538,10 +540,10 @@ private:
 		}
 
 		else if (bearing_error < 0)  {
-			set_bearing_azimuth_degrees -= 0.5;
+			set_bearing_azimuth_degrees -= 3.0;
 		}
 		else {
-			set_bearing_azimuth_degrees += 0.5;
+			set_bearing_azimuth_degrees += 3.0;
 		}
 		if (set_bearing_azimuth_degrees > 180.0) {
 			set_bearing_azimuth_degrees -= 360.0;
@@ -654,7 +656,7 @@ int main(int argc, char* argv[]) {
 
 	while (ros::ok()) {
 		//t1 = std::chrono::high_resolution_clock::now();
-		trajectory_selector_node.ReactToSampledPointCloud();
+		//trajectory_selector_node.ReactToSampledPointCloud();
 		//t2 = std::chrono::high_resolution_clock::now();
 		// std::cout << "ReactToSampledPointCloud took "
   //     		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
