@@ -92,7 +92,7 @@ private:
   Eigen::Matrix<Scalar, 25, 1> objectives_dijkstra;
   Eigen::Matrix<Scalar, 25, 1> objectives_euclid;
 
-  double soft_top_speed = 15.0;
+  double soft_top_speed = 7.0;
 
   double collision_reward = -100000;
   //double collision_reward = -100000000; // PLAGUE setting
