@@ -26,7 +26,7 @@ def FindProcess( process_name ):
 # This is the function you can use
 def IsRunning( process_name ):
   output = FindProcess( process_name )
-  if re.search('/home/drc/DepthForest_Long/'+process_name, output) is None:
+  if re.search('/home/peteflo/Desktop/DepthForest_Long/'+process_name, output) is None:
     return False
   else:
     return True
