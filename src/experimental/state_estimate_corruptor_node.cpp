@@ -162,7 +162,7 @@ private:
 	double actual_velocity_global_y = 0;
 	double actual_velocity_global_z = 0;
 
-	double noise_scaling = 0.01;
+	double noise_scaling = 0.1;
 
 	ros::NodeHandle nh;
 };

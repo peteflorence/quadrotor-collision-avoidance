@@ -98,10 +98,10 @@ void TrajectorySelector::computeBestEuclideanTrajectory(Vector3 const& carrot_bo
   EvaluateObjectivesEuclid();
 
   desired_acceleration << 0,0,0;
-  best_traj_index = 0;
+  best_traj_index = 3;  // default to hard left
   float current_objective_value;
-  float best_traj_objective_value = objectives_euclid(0);
-  for (size_t traj_index = 1; traj_index < 25; traj_index++) {
+  float best_traj_objective_value = objectives_euclid(3);
+  for (size_t traj_index = 0; traj_index < 25; traj_index++) {
     current_objective_value = objectives_euclid(traj_index);
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;

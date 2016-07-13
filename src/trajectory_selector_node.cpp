@@ -52,7 +52,7 @@ public:
 
 		// Initialization
 		double soft_top_speed = 15.0;
-		double a_max_horizontal = 4.5;
+		double a_max_horizontal = 7.0;
 		// nh.getParam("soft_top_speed", soft_top_speed);
 		// nh.getParam("a_max_horizontal", a_max_horizontal);
 		trajectory_selector.InitializeLibrary(final_time, soft_top_speed, a_max_horizontal);
