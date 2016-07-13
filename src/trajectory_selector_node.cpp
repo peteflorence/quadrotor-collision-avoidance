@@ -51,7 +51,7 @@ public:
 		//attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
 
 		// Initialization
-		double soft_top_speed = 10.0;
+		double soft_top_speed = 5.0;
 		double a_max_horizontal = 7.0;
 		// nh.getParam("soft_top_speed", soft_top_speed);
 		// nh.getParam("a_max_horizontal", a_max_horizontal);
