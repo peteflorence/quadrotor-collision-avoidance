@@ -16,19 +16,28 @@ ground_truth_file_vel = open('vel_ground_truth.txt', 'w')
 result_file = open('result.txt', 'w')
 start_time = 0
 
-goal_x = 215.0
+goal_x = 250.0
 goal_y = 0.0
 
 last_speed_squared = 0
 
-def UnityRunning():
-  return True #os.path.exists("/proc/" str+ process_id)
+crashed = False
+
+starting_line = 5
+finish_line = 155
+
+def OnCrash(pose_msg):
+  global crashed
+  crashed = True
 
 def AtGoal(pose_x, pose_y, radius):
   dx = pose_x - goal_x
   dy = pose_y - goal_y 
   distance_to_goal_squared = dx * dx + dy * dy
   return ( distance_to_goal_squared < radius * radius) and (last_speed_squared < 4.0)
+
+def CrossedFinishLine(pose_x):
+  return pose_x > finish_line
 
 def Terminate(final_time, reason):
   global noisy_file, result_file, ground_truth_file
@@ -63,10 +72,7 @@ def OnNoisyPose(pose_msg):
   global noisy_file
   WritePoseToFile(pose_msg, noisy_file);
 
-  if not UnityRunning():
-    Terminate(pose_msg.header.stamp.to_sec(), "FAIL")
-  elif AtGoal(pose_msg.pose.position.x, pose_msg.pose.position.y, 5.0):
-    Terminate(pose_msg.header.stamp.to_sec(), "SUCCESS")
+
 
 def OnNoisyTwist(twist_msg):
   global noisy_file_vel
@@ -74,10 +80,18 @@ def OnNoisyTwist(twist_msg):
 
 def OnRealPose(pose_msg):
   global ground_truth_file, start_time
-  if start_time == 0 and pose_msg.pose.position.x > 5:
+  if start_time == 0 and pose_msg.pose.position.x > starting_line:
     start_time = pose_msg.header.stamp.to_sec()
+    print "CROSSED STARTING LINE"
 
   WritePoseToFile(pose_msg, ground_truth_file);
+
+  if crashed:
+    Terminate(pose_msg.header.stamp.to_sec(), "FAIL")
+    print "CRASH DETECTED"
+  elif CrossedFinishLine(pose_msg.pose.position.x):
+    print "CROSSED FINISH LINE"
+    Terminate(pose_msg.header.stamp.to_sec(), "SUCCESS")
 
 def OnRealTwist(twist_msg):
   global ground_truth_file_vel, last_speed_squared
@@ -91,4 +105,5 @@ rospy.Subscriber('/FLA_ACL02/vel', TwistStamped, OnNoisyTwist)
 rospy.Subscriber('/true_pose', PoseStamped, OnRealPose)
 rospy.Subscriber('/true_vel', TwistStamped, OnRealTwist)
 rospy.Subscriber('/move_base_simple/goal', PoseStamped, OnGoal)
+rospy.Subscriber('/unity_crash', PoseStamped, OnCrash)
 rospy.spin()

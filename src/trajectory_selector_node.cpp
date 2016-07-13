@@ -51,7 +51,7 @@ public:
 		//attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
 
 		// Initialization
-		double soft_top_speed = 15.0;
+		double soft_top_speed = 10.0;
 		double a_max_horizontal = 7.0;
 		// nh.getParam("soft_top_speed", soft_top_speed);
 		// nh.getParam("a_max_horizontal", a_max_horizontal);
@@ -109,10 +109,14 @@ public:
       	Eigen::Matrix<Scalar, 25, 1> collision_probabilities = trajectory_selector.getCollisionProbabilities();
 		trajectory_visualizer.setCollisionProbabilities(collision_probabilities);
 
-		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
+		attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 
 		SetThrustForLibrary(attitude_thrust_desired(2));
 
+		PublishCurrentAttitudeSetpoint();
+	}
+
+	void PublishCurrentAttitudeSetpoint() {
 		PublishAttitudeSetpoint(attitude_thrust_desired);
 	}
 
@@ -632,6 +636,7 @@ private:
 	Vector3 carrot_ortho_body_frame;
 
 	size_t best_traj_index = 0;
+	Vector3 attitude_thrust_desired;
 
 	TrajectorySelector trajectory_selector;
 	AttitudeGenerator attitude_generator;
@@ -669,6 +674,7 @@ int main(int argc, char* argv[]) {
 		// std::cout << "ReactToSampledPointCloud took "
   //     		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
   //     		<< " microseconds\n";
+		trajectory_selector_node.PublishCurrentAttitudeSetpoint();
       	
 
 		trajectory_selector_node.trajectory_visualizer.drawAll();
