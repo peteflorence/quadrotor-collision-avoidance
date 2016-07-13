@@ -32,7 +32,7 @@ public:
 		corrupted_pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/samros/pose", 1);
 		corrupted_velocity_pub = nh.advertise<geometry_msgs::TwistStamped>("/samros/twist", 1);
 
-		nh.getParam("noise_scaling", noise_scaling);
+		//nh.getParam("noise_scaling", noise_scaling);
 
 		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);
 		srand ( time(NULL) ); //initialize the random seed
@@ -46,8 +46,7 @@ private:
 
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
-		ROS_INFO("GOT POSE");
-
+		// ROS_INFO("GOT POSE");
 
 		actual_pose_global_x = pose.pose.position.x;
 		actual_pose_global_y = pose.pose.position.y;
@@ -87,7 +86,7 @@ private:
 
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
-		ROS_INFO("GOT VELOCITY");
+		//ROS_INFO("GOT VELOCITY");
 		actual_velocity_global_x = twist.twist.linear.x;
 		actual_velocity_global_y = twist.twist.linear.y;
 		actual_velocity_global_z = twist.twist.linear.z;
@@ -163,7 +162,7 @@ private:
 	double actual_velocity_global_y = 0;
 	double actual_velocity_global_z = 0;
 
-	double noise_scaling = 0.0;
+	double noise_scaling = 0.01;
 
 	ros::NodeHandle nh;
 };
@@ -178,9 +177,6 @@ int main(int argc, char* argv[]) {
 
 	std::cout << "Got through to here" << std::endl;
 
+	ros::spin();
 
-
-	while (ros::ok()) {
-		ros::spinOnce();
-	}
 }

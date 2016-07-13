@@ -6,38 +6,29 @@ import sys
 import subprocess
 import re
 from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import TwistStamped
 
-noisy_file = open('pose_noisy.txt', 'w')
-ground_truth_file = open('pose_ground_truth.txt', 'w')
+noisy_file            = open('pose_noisy.txt', 'w')
+noisy_file_vel        = open('vel_noisy.txt', 'w')
+ground_truth_file     = open('pose_ground_truth.txt', 'w')
+ground_truth_file_vel = open('vel_ground_truth.txt', 'w')
+
 result_file = open('result.txt', 'w')
 start_time = 0
 
 goal_x = 215.0
 goal_y = 0.0
 
-def FindProcess( process_name ):
-  ps     = subprocess.Popen("ps -eaf | grep "+process_name, shell=True, stdout=subprocess.PIPE)
-  output = ps.stdout.read()
-  ps.stdout.close()
-  ps.wait()
-
-  return output
-
-# This is the function you can use
-def IsRunning( process_name ):
-  output = FindProcess( process_name )
-  if re.search('/home/peteflo/Desktop/DepthForest_Long/'+process_name, output) is None:
-    return False
-  else:
-    return True
+last_speed_squared = 0
 
 def UnityRunning():
-  return IsRunning('DepthForest_Long.x86_64')
+  return True #os.path.exists("/proc/" str+ process_id)
 
 def AtGoal(pose_x, pose_y, radius):
   dx = pose_x - goal_x
-  dy = pose_y - goal_y
-  return dx * dx + dy * dy < radius * radius
+  dy = pose_y - goal_y 
+  distance_to_goal_squared = dx * dx + dy * dy
+  return ( distance_to_goal_squared < radius * radius) and (last_speed_squared < 4.0)
 
 def Terminate(final_time, reason):
   global noisy_file, result_file, ground_truth_file
@@ -57,6 +48,12 @@ def WritePoseToFile(pose_msg, file):
   file.write(str(pose_msg.pose.position.y) + ',')
   file.write(str(pose_msg.pose.position.z) + '\n')
 
+def WriteTwistToFile(twist_msg, file):
+  file.write(str(twist_msg.header.stamp.to_sec()) + ',')
+  file.write(str(twist_msg.twist.linear.x) + ',')
+  file.write(str(twist_msg.twist.linear.y) + ',')
+  file.write(str(twist_msg.twist.linear.z) + '\n')
+
 def OnGoal(pose_msg):
   global goal_x, goal_y
   goal_x = pose_msg.pose.position.x
@@ -71,16 +68,27 @@ def OnNoisyPose(pose_msg):
   elif AtGoal(pose_msg.pose.position.x, pose_msg.pose.position.y, 5.0):
     Terminate(pose_msg.header.stamp.to_sec(), "SUCCESS")
 
+def OnNoisyTwist(twist_msg):
+  global noisy_file_vel
+  WriteTwistToFile(twist_msg, noisy_file_vel);
+
 def OnRealPose(pose_msg):
   global ground_truth_file, start_time
-  if start_time == 0 and pose_msg.pose.position.x > 0:
+  if start_time == 0 and pose_msg.pose.position.x > 5:
     start_time = pose_msg.header.stamp.to_sec()
 
   WritePoseToFile(pose_msg, ground_truth_file);
 
+def OnRealTwist(twist_msg):
+  global ground_truth_file_vel, last_speed_squared
+
+  last_speed_squared = twist_msg.twist.linear.x*twist_msg.twist.linear.x + twist_msg.twist.linear.y*twist_msg.twist.linear.y 
+  WriteTwistToFile(twist_msg, ground_truth_file_vel)
 
 rospy.init_node('experiment_logger')
 rospy.Subscriber('/FLA_ACL02/pose', PoseStamped, OnNoisyPose)
+rospy.Subscriber('/FLA_ACL02/vel', TwistStamped, OnNoisyTwist)
 rospy.Subscriber('/true_pose', PoseStamped, OnRealPose)
+rospy.Subscriber('/true_vel', TwistStamped, OnRealTwist)
 rospy.Subscriber('/move_base_simple/goal', PoseStamped, OnGoal)
 rospy.spin()

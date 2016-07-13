@@ -51,10 +51,10 @@ public:
 		//attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
 
 		// Initialization
-		double soft_top_speed;
-		double a_max_horizontal;
-		nh.getParam("soft_top_speed", soft_top_speed);
-		nh.getParam("a_max_horizontal", a_max_horizontal);
+		double soft_top_speed = 15.0;
+		double a_max_horizontal = 4.5;
+		// nh.getParam("soft_top_speed", soft_top_speed);
+		// nh.getParam("a_max_horizontal", a_max_horizontal);
 		trajectory_selector.InitializeLibrary(final_time, soft_top_speed, a_max_horizontal);
 
 		trajectory_visualizer.initialize(&trajectory_selector, nh, &best_traj_index, final_time);
