@@ -72,7 +72,8 @@ def OnNoisyPose(pose_msg):
   global noisy_file
   WritePoseToFile(pose_msg, noisy_file);
 
-
+def Crashed():
+  return os.path.isfile('/home/peteflo/crashed.txt');
 
 def OnNoisyTwist(twist_msg):
   global noisy_file_vel
@@ -86,7 +87,7 @@ def OnRealPose(pose_msg):
 
   WritePoseToFile(pose_msg, ground_truth_file);
 
-  if crashed:
+  if Crashed():
     Terminate(pose_msg.header.stamp.to_sec(), "FAIL")
     print "CRASH DETECTED"
   elif CrossedFinishLine(pose_msg.pose.position.x):

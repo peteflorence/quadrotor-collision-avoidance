@@ -32,7 +32,7 @@ public:
 		corrupted_pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/samros/pose", 1);
 		corrupted_velocity_pub = nh.advertise<geometry_msgs::TwistStamped>("/samros/twist", 1);
 
-		//nh.getParam("noise_scaling", noise_scaling);
+		nh.param("noise_scaling", noise_scaling, 0.0);
 
 		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);
 		srand ( time(NULL) ); //initialize the random seed
@@ -162,7 +162,7 @@ private:
 	double actual_velocity_global_y = 0;
 	double actual_velocity_global_z = 0;
 
-	double noise_scaling = 0.0;
+	double noise_scaling = 0.01;
 
 	ros::NodeHandle nh;
 };
