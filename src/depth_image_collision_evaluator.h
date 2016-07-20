@@ -24,7 +24,6 @@ public:
 	
   void UpdatePointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new);
   void UpdateLaserPointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new);
-  void BuildKDTree();
 
   // One-position-only variants
   double computeProbabilityOfCollisionOnePosition(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
@@ -43,7 +42,6 @@ public:
   bool computeDeterministicCollisionOnePositionBlock(Vector3 const& robot_position, Vector3 const& sigma_robot_position, size_t const& block_increment);
   //double computeProbabilityOfCollisionKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
 
-
   bool IsNoReturn(pcl::PointXYZ point);
 
   Eigen::Matrix<Scalar, 100, 3> DebugPointsToDraw();
@@ -53,7 +51,7 @@ private:
   pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud_ptr;
   pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_laser_cloud_ptr;
 
-  Vector3 sigma_depth_point = Vector3(0.1, 0.1, 0.1);
+  Vector3 sigma_depth_point = Vector3(0.1, 0.1, 0.0);
 
   Eigen::Matrix<double, 3, 3> K;
 

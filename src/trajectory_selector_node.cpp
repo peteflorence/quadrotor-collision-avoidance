@@ -35,7 +35,6 @@ public:
 	TrajectorySelectorNode() {
 
 		// Subscribers
-		// pose_sub = nh.subscribe("/corrupted_pose", 1, &TrajectorySelectorNode::OnPose, this);
 		pose_sub = nh.subscribe("/FLA_ACL02/pose", 1, &TrajectorySelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/FLA_ACL02/vel", 1, &TrajectorySelectorNode::OnVelocity, this);
 		//waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
@@ -51,10 +50,12 @@ public:
 		//attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
 
 		// Initialization
-		double a_max_horizontal = 6.0;
+		double a_max_horizontal;
 		double soft_top_speed;
 
 		nh.param("soft_top_speed", soft_top_speed, 2.0);
+		nh.param("a_max_horizontal", a_max_horizontal, 3.5);
+		nh.param("yaw_on", yaw_on, false);
 
 		// nh.getParam("soft_top_speed", soft_top_speed);
 		// nh.getParam("a_max_horizontal", a_max_horizontal);
@@ -94,7 +95,7 @@ public:
 		//SetGoalFromBearing();
 		
 		mutex.lock();
-		if (pose_global_z > 1.0) {
+		if (pose_global_z > 0.2) {
 			auto t1 = std::chrono::high_resolution_clock::now();
 			trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 			auto t2 = std::chrono::high_resolution_clock::now();
@@ -107,8 +108,10 @@ public:
 	     }
 	    mutex.unlock();
 
-		SetYawFromTrajectory();
-
+	    if (yaw_on) {
+	    	SetYawFromTrajectory();
+	    } 
+		
       	Eigen::Matrix<Scalar, 25, 1> collision_probabilities = trajectory_selector.getCollisionProbabilities();
 		trajectory_visualizer.setCollisionProbabilities(collision_probabilities);
 
@@ -341,8 +344,10 @@ private:
 		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.0; 
 		UpdateCarrotOrthoBodyFrame();
 
-		if (carrot_world_frame.norm() > 5 && (global_goal.pose.position.x - pose_global_x) != 0) {
-			bearing_azimuth_degrees = 180.0/M_PI*atan2(-(global_goal.pose.position.y - pose_global_y), global_goal.pose.position.x - pose_global_x);
+		if (yaw_on) {
+			if (carrot_world_frame.norm() > 5 && (global_goal.pose.position.x - pose_global_x) != 0) {
+				bearing_azimuth_degrees = 180.0/M_PI*atan2(-(global_goal.pose.position.y - pose_global_y), global_goal.pose.position.x - pose_global_x);
+			}
 		}
 		std::cout << "bearing_azimuth_degrees is " << bearing_azimuth_degrees << std::endl;
 
@@ -379,6 +384,8 @@ private:
 
 			depth_image_collision_ptr->UpdateLaserPointCloudPtr(xyz_cloud);
 		}
+
+
 	}
 
 	void UpdateValueGrid(nav_msgs::OccupancyGrid value_grid_msg) {
@@ -513,8 +520,9 @@ private:
 			depth_image_collision_ptr->UpdatePointCloudPtr(xyz_cloud);
 			mutex.unlock();
 		}
-
 		ReactToSampledPointCloud();
+
+		
 	
 	}
 
@@ -648,6 +656,8 @@ private:
 	double pose_global_y = 0;
 	double pose_global_z = 0;
 
+	bool yaw_on = false;
+
 
 	ros::NodeHandle nh;
 
@@ -665,7 +675,7 @@ int main(int argc, char* argv[]) {
 	TrajectorySelectorNode trajectory_selector_node;
 
 	std::cout << "Got through to here" << std::endl;
-	ros::Rate spin_rate(100);
+	ros::Rate spin_rate(30);
 
 	auto t1 = std::chrono::high_resolution_clock::now();
 	auto t2 = std::chrono::high_resolution_clock::now();
@@ -678,6 +688,7 @@ int main(int argc, char* argv[]) {
   //     		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
   //     		<< " microseconds\n";
 		trajectory_selector_node.PublishCurrentAttitudeSetpoint();
+		//trajectory_selector_node.ReactToSampledPointCloud();
       	
 
 		trajectory_selector_node.trajectory_visualizer.drawAll();

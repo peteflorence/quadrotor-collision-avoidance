@@ -95,7 +95,7 @@ private:
 
   double soft_top_speed;
 
-  double collision_reward = -100000;
+  double collision_reward = -10000;
   //double collision_reward = -100000000; // PLAGUE setting
 
   Vector3 last_desired_acceleration;
