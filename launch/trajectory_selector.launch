@@ -1,8 +1,8 @@
 <launch>
 	
-    <arg name="soft_top_speed" default="2.0"/>
-    <arg name="a_max_horizontal" default="3.5"/>
-    <arg name="yaw_on" default="false"/>
+    <arg name="soft_top_speed" default="7.0"/>
+    <arg name="a_max_horizontal" default="5.5"/>
+    <arg name="yaw_on" default="true"/>
 
 	<param name="soft_top_speed" type="double" value="$(arg soft_top_speed)"/>
 	<param name="a_max_horizontal" type="double" value="$(arg a_max_horizontal)"/>

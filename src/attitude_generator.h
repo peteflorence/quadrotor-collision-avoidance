@@ -16,7 +16,7 @@ public:
 private:
   
   double z = 0.0;
-  double z_setpoint = 1.0;
+  double z_setpoint = 1.8;
   
   double z_velocity = 0;
   double z_velocity_setpoint = 0;
