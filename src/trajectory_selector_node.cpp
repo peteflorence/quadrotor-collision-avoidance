@@ -89,24 +89,24 @@ public:
 	}
 
 	void ReactToSampledPointCloud() {
-		Vector3 desired_acceleration;
 
 		// uncomment for bearing control
 		//SetGoalFromBearing();
 		
+		auto t1 = std::chrono::high_resolution_clock::now();
 		mutex.lock();
-		if (pose_global_z > 0.2) {
-			auto t1 = std::chrono::high_resolution_clock::now();
+		if (pose_global_z > 0.35) {
 			trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
-			auto t2 = std::chrono::high_resolution_clock::now();
-			std::cout << "Computing best traj took "
-	    		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-	      		<< " microseconds\n"; 
 	     }
 	     else {
 	     	trajectory_selector.computeTakeoffTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 	     }
 	    mutex.unlock();
+
+	    auto t2 = std::chrono::high_resolution_clock::now();
+		std::cout << "Computing best traj took "
+    		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+      		<< " microseconds\n"; 
 
 	    if (yaw_on) {
 	    	SetYawFromTrajectory();
@@ -115,14 +115,12 @@ public:
       	Eigen::Matrix<Scalar, 25, 1> collision_probabilities = trajectory_selector.getCollisionProbabilities();
 		trajectory_visualizer.setCollisionProbabilities(collision_probabilities);
 
-		attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
-
-		SetThrustForLibrary(attitude_thrust_desired(2));
-
 		PublishCurrentAttitudeSetpoint();
 	}
 
 	void PublishCurrentAttitudeSetpoint() {
+		attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
+		SetThrustForLibrary(attitude_thrust_desired(2));
 		PublishAttitudeSetpoint(attitude_thrust_desired);
 	}
 
@@ -650,6 +648,7 @@ private:
 	Vector3 carrot_ortho_body_frame;
 
 	size_t best_traj_index = 0;
+	Vector3 desired_acceleration;
 	Vector3 attitude_thrust_desired;
 
 	TrajectorySelector trajectory_selector;
@@ -678,7 +677,7 @@ int main(int argc, char* argv[]) {
 	TrajectorySelectorNode trajectory_selector_node;
 
 	std::cout << "Got through to here" << std::endl;
-	ros::Rate spin_rate(30);
+	ros::Rate spin_rate(100);
 
 	auto t1 = std::chrono::high_resolution_clock::now();
 	auto t2 = std::chrono::high_resolution_clock::now();
