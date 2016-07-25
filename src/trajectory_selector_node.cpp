@@ -133,6 +133,9 @@ private:
 		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
 		if (trajectory_library_ptr != nullptr) {
 			Vector3 final_position_ortho_body = trajectory_library_ptr->getTrajectoryFromIndex(best_traj_index).getPosition(final_time);
+			if (final_position_ortho_body.norm() < 1.0) { 
+				return;
+			}
 			Vector3 final_position_world = TransformOrthoBodyToWorld(final_position_ortho_body);
 			mutex.lock();
 			if (carrot_ortho_body_frame.norm() > 3 && (final_position_world(0) - pose_global_x)!= 0) {

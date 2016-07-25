@@ -79,7 +79,7 @@ void TrajectoryVisualizer::NormalizeCollisions() {
 
 
 void TrajectoryVisualizer::drawCollisionIndicator(int const& id, Vector3 const& position, double const& collision_prob) {
-	NormalizeCollisions();
+	//NormalizeCollisions();
 
 	visualization_msgs::Marker marker;
 	marker.header.frame_id = drawing_frame;
@@ -91,9 +91,9 @@ void TrajectoryVisualizer::drawCollisionIndicator(int const& id, Vector3 const& 
 	marker.pose.position.x = position(0);
 	marker.pose.position.y = position(1);
 	marker.pose.position.z = position(2);
-	marker.scale.x = 0.4;
-	marker.scale.y = 0.4;
-	marker.scale.z = 0.4;
+	marker.scale.x = 0.8;
+	marker.scale.y = 0.8;
+	marker.scale.z = 0.8;
 	marker.color.a = 0.15; // Don't forget to set the alpha!
 
 	if (collision_prob > 0.5) {
@@ -185,7 +185,7 @@ void TrajectoryVisualizer::drawAll() {
 		// if (trajectory_index == *best_traj_index) {
 		// 	drawFinalStoppingPosition(num_samples-1, sample_points_xyz_over_time.row(num_samples-1));
 		// }
-		drawCollisionIndicator(trajectory_index, sample_points_xyz_over_time.row(num_samples-1), normalized_collision_probabilities(trajectory_index));
+		drawCollisionIndicator(trajectory_index, sample_points_xyz_over_time.row(num_samples-1), collision_probabilities(trajectory_index));
 
 		action_paths_pubs.at(trajectory_index).publish(action_samples_msg);
 	}
