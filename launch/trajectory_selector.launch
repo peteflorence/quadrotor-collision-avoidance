@@ -1,6 +1,6 @@
 <launch>
 	
-    <arg name="soft_top_speed" default="7.0"/>
+    <arg name="soft_top_speed" default="6.0"/>
     <arg name="a_max_horizontal" default="5.5"/>
     <arg name="yaw_on" default="true"/>
 
