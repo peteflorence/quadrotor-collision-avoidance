@@ -116,8 +116,6 @@ void TrajectorySelector::EvaluateObjectivesEuclid() {
   for (int i = 0; i < 25; i++) {
     objectives_euclid(i) = EvaluateWeightedObjectiveEuclid(i);
   }
-  //objectives_euclid = MakeAllGreaterThan1(objectives_euclid);
-  //no_collision_probabilities = Normalize0to1(no_collision_probabilities);
   objectives_euclid = objectives_euclid.cwiseProduct(no_collision_probabilities) + collision_reward*collision_probabilities;
 }
 
@@ -153,16 +151,12 @@ void TrajectorySelector::EvaluateObjectivesDijkstra() {
   for (int i = 0; i < 25; i++) {
     objectives_dijkstra(i) = EvaluateWeightedObjectiveDijkstra(i);
   }
-  objectives_dijkstra = MakeAllGreaterThan1(objectives_dijkstra);
-  no_collision_probabilities = Normalize0to1(no_collision_probabilities);
-  objectives_dijkstra = objectives_dijkstra.cwiseProduct(no_collision_probabilities);
+  objectives_dijkstra = objectives_dijkstra.cwiseProduct(no_collision_probabilities) + collision_reward*collision_probabilities;
 }
 
 
-
-
 double TrajectorySelector::EvaluateWeightedObjectiveDijkstra(size_t index) {
-  return dijkstra_evaluations(index) + 0.2*goal_progress_evaluations(index) + 1.0*terminal_velocity_evaluations(index);
+  return dijkstra_evaluations(index) + 1.0*terminal_velocity_evaluations(index);
 }
 
 
@@ -209,11 +203,6 @@ void TrajectorySelector::EvaluateDijkstraCost(Vector3 const& carrot_world_frame,
   }
   //std::cout << "At the end of all this, my Dijkstra evaluations are: " << dijkstra_evaluations << std::endl;
 };
-
-
-
-
-
 
 
 

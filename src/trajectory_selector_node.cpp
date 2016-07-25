@@ -97,6 +97,10 @@ public:
 		mutex.lock();
 		if (pose_global_z > 0.35) {
 			trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+
+			// geometry_msgs::TransformStamped tf = GetTransformToWorld();
+			// trajectory_selector.computeBestDijkstraTrajectory(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
+
 	     }
 	     else {
 	     	trajectory_selector.computeTakeoffTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
