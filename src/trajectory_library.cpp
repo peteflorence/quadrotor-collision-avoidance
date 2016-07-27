@@ -98,7 +98,7 @@ void TrajectoryLibrary::setInitialVelocityLASER(Vector3 const& initial_velocity_
 };
 
 Vector3 TrajectoryLibrary::getLASERSigmaAtTime(double const& t) {
-	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.5) + 0.1*(initial_velocity_laser_frame.array().abs()).matrix());
+	return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity_laser_frame.array().abs()).matrix());
 };
 
 Vector3 TrajectoryLibrary::getLASERInverseSigmaAtTime(double const& t) {
@@ -123,7 +123,7 @@ void TrajectoryLibrary::setInitialVelocityRDF(Vector3 const& initial_velocity_rd
 };
 
 Vector3 TrajectoryLibrary::getRDFSigmaAtTime(double const& t) const {
-	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.5) + 0.1*(initial_velocity_rdf_frame.array().abs()).matrix());
+	return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity_rdf_frame.array().abs()).matrix());
 };
 
 std::vector<Vector3> TrajectoryLibrary::getRDFSampledInitialVelocity(size_t n) {

@@ -37,7 +37,7 @@ public:
 		// Subscribers
 		pose_sub = nh.subscribe("/FLA_ACL02/pose", 1, &TrajectorySelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/FLA_ACL02/vel", 1, &TrajectorySelectorNode::OnVelocity, this);
-		//waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
+		waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
   	    depth_image_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnDepthImage, this);
   	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
   	    //value_grid_sub = nh.subscribe("/value_grid", 1, &TrajectorySelectorNode::OnValueGrid, this);
@@ -56,6 +56,8 @@ public:
 		nh.param("soft_top_speed", soft_top_speed, 2.0);
 		nh.param("a_max_horizontal", a_max_horizontal, 3.5);
 		nh.param("yaw_on", yaw_on, false);
+
+		this->soft_top_speed_max = soft_top_speed;
 
 		// nh.getParam("soft_top_speed", soft_top_speed);
 		// nh.getParam("a_max_horizontal", a_max_horizontal);
@@ -112,9 +114,11 @@ public:
     		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
       		<< " microseconds\n"; 
 
+      	mutex.lock();
 	    if (yaw_on) {
 	    	SetYawFromTrajectory();
 	    } 
+	    mutex.unlock();
 		
       	Eigen::Matrix<Scalar, 25, 1> collision_probabilities = trajectory_selector.getCollisionProbabilities();
 		trajectory_visualizer.setCollisionProbabilities(collision_probabilities);
@@ -134,16 +138,56 @@ private:
 	void SetYawFromTrajectory() {
 		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
 		if (trajectory_library_ptr != nullptr) {
-			Vector3 final_position_ortho_body = trajectory_library_ptr->getTrajectoryFromIndex(best_traj_index).getPosition(final_time);
-			if (final_position_ortho_body.norm() < 1.0) { 
+
+			// get position at t=0
+			Vector3 initial_position_ortho_body = trajectory_library_ptr->getTrajectoryFromIndex(best_traj_index).getPosition(0.0);
+			// get velocity at t=0
+			Vector3 initial_velocity_ortho_body = trajectory_library_ptr->getTrajectoryFromIndex(best_traj_index).getVelocity(0.5);
+			Vector3 final_velocity_ortho_body = trajectory_library_ptr->getTrajectoryFromIndex(best_traj_index).getVelocity(0.5);
+			// normalize velocity
+			double speed_initial = initial_velocity_ortho_body.norm();
+			double speed_final = final_velocity_ortho_body.norm();
+			if (speed_final != 0) {
+				final_velocity_ortho_body = final_velocity_ortho_body / speed_final;
+			}
+
+			// add normalized velocity to position to get a future position
+			Vector3 final_position_ortho_body = initial_position_ortho_body + initial_velocity_ortho_body;
+			// yaw towards future position using below
+
+			Vector3 final_position_world = TransformOrthoBodyToWorld(final_position_ortho_body);
+			
+			if (speed_initial < 2.0 && carrot_ortho_body_frame.norm() < 2.0) {
+				trajectory_selector.SetSoftTopSpeed(soft_top_speed_max);
 				return;
 			}
-			Vector3 final_position_world = TransformOrthoBodyToWorld(final_position_ortho_body);
-			mutex.lock();
-			if (carrot_ortho_body_frame.norm() > 3 && (final_position_world(0) - pose_global_x)!= 0) {
-				bearing_azimuth_degrees = 180.0/M_PI*atan2(-(final_position_world(1) - pose_global_y), final_position_world(0) - pose_global_x);
+			if ((final_position_world(0) - pose_global_x)!= 0) {
+				double potential_bearing_azimuth_degrees = 180.0/M_PI*atan2(-(final_position_world(1) - pose_global_y), final_position_world(0) - pose_global_x);
+				double actual_bearing_azimuth_degrees = -pose_global_yaw * 180.0/M_PI;
+				double bearing_error = potential_bearing_azimuth_degrees - actual_bearing_azimuth_degrees;
+				while(bearing_error > 180) { 
+					bearing_error -= 360;
+				}
+				while(bearing_error < -180) { 
+					bearing_error += 360;
+				}
+				ROS_WARN("set_bearing_azimuth_degrees %f", set_bearing_azimuth_degrees);
+				ROS_WARN("bearing_azimuth_degrees %f", bearing_azimuth_degrees);
+				ROS_WARN("potential_bearing_azimuth_degrees %f", potential_bearing_azimuth_degrees);
+				ROS_WARN("bearing_error %f", bearing_error);
+				ROS_WARN("pose_global_yaw %f", pose_global_yaw);
+				ROS_WARN("actual_bearing_azimuth_degrees %f", actual_bearing_azimuth_degrees);
+
+				if (abs(bearing_error) < 60.0)  {
+					trajectory_selector.SetSoftTopSpeed(soft_top_speed_max);
+					bearing_azimuth_degrees = potential_bearing_azimuth_degrees;
+					return;
+				}
+				trajectory_selector.SetSoftTopSpeed(0.1);
+				if (speed_initial < 0.5) {
+					bearing_azimuth_degrees = potential_bearing_azimuth_degrees;
+				}
 			}
-			mutex.unlock();
 		}
 	}
 
@@ -233,14 +277,15 @@ private:
 		UpdateLaserRDFFramesFromPose();
 
 		mutex.lock();
-		SetPose(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
+		SetPose(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, yaw);
 		mutex.unlock();
 	}
 
-	void SetPose(double x, double y, double z) {
+	void SetPose(double x, double y, double z, double yaw) {
 		pose_global_x = x;
 		pose_global_y = y;
 		pose_global_z = z;
+		pose_global_yaw = yaw;
 	}
 
 	void transformAccelerationsIntoLaserRDFFrames() {
@@ -349,11 +394,11 @@ private:
 		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.0; 
 		UpdateCarrotOrthoBodyFrame();
 
-		if (yaw_on) {
-			if (carrot_world_frame.norm() > 5 && (global_goal.pose.position.x - pose_global_x) != 0) {
-				bearing_azimuth_degrees = 180.0/M_PI*atan2(-(global_goal.pose.position.y - pose_global_y), global_goal.pose.position.x - pose_global_x);
-			}
-		}
+		// if (yaw_on) {
+		// 	if (carrot_world_frame.norm() > 5 && (global_goal.pose.position.x - pose_global_x) != 0) {
+		// 		bearing_azimuth_degrees = 180.0/M_PI*atan2(-(global_goal.pose.position.y - pose_global_y), global_goal.pose.position.x - pose_global_x);
+		// 	}
+		// }
 		std::cout << "bearing_azimuth_degrees is " << bearing_azimuth_degrees << std::endl;
 
 	}
@@ -563,15 +608,15 @@ private:
 			bearing_error += 360;
 		}
 
-		if (abs(bearing_error) < 1) {
+		if (abs(bearing_error) < 1.0) {
 			set_bearing_azimuth_degrees = bearing_azimuth_degrees;
 		}
 
 		else if (bearing_error < 0)  {
-			set_bearing_azimuth_degrees -= 3.0;
+			set_bearing_azimuth_degrees -= 1.0;
 		}
 		else {
-			set_bearing_azimuth_degrees += 3.0;
+			set_bearing_azimuth_degrees += 1.0;
 		}
 		if (set_bearing_azimuth_degrees > 180.0) {
 			set_bearing_azimuth_degrees -= 360.0;
@@ -631,7 +676,7 @@ private:
 
 	nav_msgs::Path waypoints;
 	nav_msgs::Path previous_waypoints;
-	int max_waypoints = 6;
+	int max_waypoints = 5;
 	double carrot_distance;
 
 	double start_time = 0.0;
@@ -661,8 +706,10 @@ private:
 	double pose_global_x = 0;
 	double pose_global_y = 0;
 	double pose_global_z = 0;
+	double pose_global_yaw = 0;
 
 	bool yaw_on = false;
+	double soft_top_speed_max = 0.0;
 
 
 	ros::NodeHandle nh;

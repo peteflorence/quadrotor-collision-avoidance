@@ -32,6 +32,30 @@ bool DepthImageCollisionEvaluator::computeDeterministicCollisionOnePositionKDTre
 
 }
 
+double ThresholdSigmoid(double value) {
+    double probability_of_collision = value;
+    double sigmoid_threshold = 0.99;
+    if (probability_of_collision > sigmoid_threshold) { 
+      double sigmoid = 1.0 / (1.0 + exp(-probability_of_collision));
+      probability_of_collision = sigmoid_threshold + (1 - sigmoid_threshold) * sigmoid;
+    }
+    if (probability_of_collision < 0.0) { 
+      probability_of_collision = 0.0;
+    }
+    return probability_of_collision;
+}
+
+double ThresholdHard(double value) {
+    double probability_of_collision = value;
+    if (probability_of_collision > 0.9) { 
+      probability_of_collision = 0.9;
+    }
+    if (probability_of_collision < 0.0) { 
+      probability_of_collision = 0.0;
+    }
+    return probability_of_collision;
+}
+
 double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTree_DepthImage(Vector3 const& robot_position, Vector3 const& sigma_robot_position) {
   if (xyz_cloud_ptr != nullptr) {
     
@@ -58,15 +82,19 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTr
         probability_of_collision += 0.5;
       }
     }
-    return probability_of_collision;
+    //return probability_of_collision;
+    return ThresholdHard(probability_of_collision);
   }
   return 0.0;
 }
 
+
 double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTree_Laser(Vector3 const& robot_position, Vector3 const& sigma_robot_position) {
   if (xyz_laser_cloud_ptr != nullptr) {
     my_kd_tree_laser.SearchForNearest<num_nearest_neighbors>(robot_position[0], robot_position[1], robot_position[2]);
-    return computeProbabilityOfCollisionNPositionsKDTree(robot_position, sigma_robot_position, my_kd_tree_laser.closest_pts);
+    double probability_of_collision = computeProbabilityOfCollisionNPositionsKDTree(robot_position, sigma_robot_position, my_kd_tree_laser.closest_pts);
+    //return probability_of_collision;
+    return ThresholdHard(probability_of_collision);
   }
   return 0.0;
 }

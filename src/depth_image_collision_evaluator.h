@@ -51,7 +51,7 @@ private:
   pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud_ptr;
   pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_laser_cloud_ptr;
 
-  Vector3 sigma_depth_point = Vector3(0.1, 0.1, 0.0);
+  Vector3 sigma_depth_point = Vector3(0.01, 0.01, 0.01);
 
   Eigen::Matrix<double, 3, 3> K;
 

@@ -304,12 +304,7 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
     
   }
   double probability_of_collision = 1.0 - probability_no_collision;
-  double sigmoid_threshold = 0.99;
-  if (probability_of_collision > sigmoid_threshold) { 
-    double sigmoid = 1.0 / (1.0 + exp(-probability_of_collision));
-    probability_of_collision = sigmoid_threshold + (1 - sigmoid_threshold) * sigmoid;
-  }
-  if (probability_of_collision < 0.0) { probability_of_collision = 0.0;}
+
   return probability_of_collision;
 
 };

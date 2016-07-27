@@ -42,6 +42,8 @@ public:
     return collision_probabilities;
   }
 
+  void SetSoftTopSpeed(double top_speed) {this->soft_top_speed = top_speed;}
+
 private:
   
   TrajectoryLibrary trajectory_library;
@@ -95,7 +97,7 @@ private:
 
   double soft_top_speed;
 
-  double collision_reward = -200;
+  double collision_reward = -2000;
   //double collision_reward = -100000000; // PLAGUE setting
 
   Vector3 last_desired_acceleration;

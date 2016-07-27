@@ -43,9 +43,9 @@ void TrajectoryVisualizer::drawGaussianPropagation(int id, Vector3 position, Vec
 	marker.pose.position.x = position(0);
 	marker.pose.position.y = position(1);
 	marker.pose.position.z = position(2);
-	marker.scale.x = sigma(0);
-	marker.scale.y = sigma(1);
-	marker.scale.z = sigma(2);
+	marker.scale.x = sigma(0)*2;
+	marker.scale.y = sigma(1)*2;
+	marker.scale.z = sigma(2)*2;
 	marker.color.a = 0.30; // Don't forget to set the alpha!
 	marker.color.r = 0.9;
 	marker.color.g = 0.1;
