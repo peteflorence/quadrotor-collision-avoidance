@@ -87,15 +87,8 @@ void TrajectoryVisualizer::drawCollisionIndicator(int const& id, Vector3 const& 
 	marker.scale.y = 0.8;
 	marker.scale.z = 0.8;
 	marker.color.a = 0.15; // Don't forget to set the alpha!
-
-	if (collision_prob > 0.5) {
-		marker.color.r = collision_prob;
-		marker.color.g = 1.0 - collision_prob;
-	}
-	else {
-		marker.color.r = collision_prob;
-		marker.color.g = 1.0 - collision_prob;
-	}
+	marker.color.r = collision_prob;
+	marker.color.g = 1.0 - collision_prob;
 	marker.color.b = 0.0;
 	gaussian_pub.publish( marker );
 }
@@ -122,7 +115,6 @@ void TrajectoryVisualizer::drawFinalStoppingPosition(int id, Vector3 position) {
 }
 
 void TrajectoryVisualizer::drawAll() {
-	//drawDebugPoints();
 	size_t num_trajectories = trajectory_selector->getNumTrajectories(); 
 	TrajectoryLibrary* trajectory_library_ptr = trajectory_selector->GetTrajectoryLibraryPtr();
 
