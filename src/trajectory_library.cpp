@@ -1,6 +1,4 @@
 #include "trajectory_library.h"
-#include <chrono>
-#include <math.h>
 
 void TrajectoryLibrary::Initialize2DLibrary(double a_max_horizontal) {
 	

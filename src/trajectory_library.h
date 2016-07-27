@@ -1,16 +1,13 @@
 #ifndef TRAJECTORY_LIBRARY_H
 #define TRAJECTORY_LIBRARY_H
 
-
-#include <iostream>
 #include "trajectory.h"
 #include <vector>
 
-#include <iostream>
-#include <iomanip>
 #include <string>
 #include <map>
 #include <random>
+#include <math.h>
 #include <cmath>
 
 class TrajectoryLibrary {
@@ -75,7 +72,6 @@ public:
 private:
   
   std::vector<Trajectory> trajectories;
-  Trajectory trajectory1;
 
   Vector3 initial_velocity = Vector3(0,0,0);
   Vector3 initial_acceleration = Vector3(0,0,0);
