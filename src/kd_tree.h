@@ -1,4 +1,3 @@
-#include <iostream>
 #include "nanoflann.hpp"
 
 #include <pcl_conversions/pcl_conversions.h>

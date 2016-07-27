@@ -28,7 +28,7 @@ bool DepthImageCollisionEvaluator::computeDeterministicCollisionOnePositionKDTre
 double ThresholdSigmoid(double value) {
     double sigmoid_threshold = 0.99;
     if (value > sigmoid_threshold) { 
-      double sigmoid = 1.0 / (1.0 + exp(-probability_of_collision));
+      double sigmoid = 1.0 / (1.0 + exp(-value));
       return sigmoid_threshold + (1 - sigmoid_threshold) * sigmoid;
     }
     if (value < 0.0) { 

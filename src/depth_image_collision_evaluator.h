@@ -26,7 +26,6 @@ public:
   double computeProbabilityOfCollisionNPositionsKDTree_Laser(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
   double computeProbabilityOfCollisionNPositionsKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position, std::vector<pcl::PointXYZ> const& closest_pts);
 
-
   bool IsNoReturn(pcl::PointXYZ point);
 
 private:
@@ -36,8 +35,6 @@ private:
   Vector3 sigma_depth_point = Vector3(0.01, 0.01, 0.01);
 
   Eigen::Matrix<double, 3, 3> K;
-
-  double probability_of_collision_in_unknown = 0.0;  // 0.05 is reasonable
 
   // For kd-tree version
   KDTree<double> my_kd_tree_depth_image;
