@@ -1,5 +1,5 @@
-#include <iostream>
-#include <math.h>
+#include "trajectory.h"
+#include "kd_tree.h"
 
 #include "nanoflann.hpp"
 
@@ -7,9 +7,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
-#include "trajectory.h"
-#include "kd_tree.h"
-
+#include <math.h>
 #include <chrono>
 #include <algorithm> 
 
@@ -17,9 +15,6 @@ class DepthImageCollisionEvaluator {
 public:
 	DepthImageCollisionEvaluator() {
 		K << 142.58555603027344, 0.0, 79.5, 0.0, 142.58555603027344, 59.5, 0.0, 0.0, 1.0;
-		std::cout << "K is " << K << std::endl;
-		std::cout << "sigma_depth_point is " << sigma_depth_point << std::endl;
-
 	}
 	
   void UpdatePointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new);
@@ -29,8 +24,6 @@ public:
   double computeProbabilityOfCollisionOnePosition(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
   bool computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position);
   
-
-
   // Multiple-position variants
   double computeProbabilityOfCollisionNPositionsKDTree_DepthImage(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
   double computeProbabilityOfCollisionNPositionsKDTree_Laser(Vector3 const& robot_position, Vector3 const& sigma_robot_position);

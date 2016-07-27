@@ -3,19 +3,13 @@
 #define num_nearest_neighbors 1
 
 void DepthImageCollisionEvaluator::UpdatePointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new) {
-	
 	xyz_cloud_ptr = xyz_cloud_new;
   my_kd_tree_depth_image.Initialize(xyz_cloud_ptr);
-  // uncomment for kd-tree version
-  //BuildKDTree();
-  
 }
 
 void DepthImageCollisionEvaluator::UpdateLaserPointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new) {
-  
   xyz_laser_cloud_ptr = xyz_cloud_new;
   my_kd_tree_laser.Initialize(xyz_laser_cloud_ptr);
-  
 }
 
 bool DepthImageCollisionEvaluator::computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position) {
