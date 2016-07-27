@@ -1,39 +1,30 @@
 #ifndef TRAJECTORY_SELECTOR_H
 #define TRAJECTORY_SELECTOR_H
 
-#include <Eigen/Dense>
-#include <iostream>
-#include <math.h>
 #include "trajectory_library.h"
-#include "trajectory_evaluator.h"
-#include "laser_scan_collision_evaluator.h"
 #include "depth_image_collision_evaluator.h"
 #include "value_grid_evaluator.h"
 
+#include <Eigen/Dense>
+#include <math.h>
+
 // This ROS stuff should go.  Only temporary.
-#include <nav_msgs/OccupancyGrid.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include "geometry_msgs/PoseStamped.h"
-
-#include <chrono>
-
 
 class TrajectorySelector {
 public:
 
   TrajectoryLibrary* GetTrajectoryLibraryPtr();
   ValueGridEvaluator* GetValueGridEvaluatorPtr();
-  LaserScanCollisionEvaluator* GetLaserScanCollisionEvaluatorPtr();
   DepthImageCollisionEvaluator* GetDepthImageCollisionEvaluatorPtr();
 
-  
   void InitializeLibrary(double const& final_time, double soft_top_speed, double a_max_horizontal);
   void UpdateTimeHorizon(double const& final_time);
   size_t getNumTrajectories();
   
-  void computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration);
   void computeTakeoffTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration);
-  
+  void computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration);
   void computeBestDijkstraTrajectory(Vector3 const& carrot_body_frame, Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration);
 
   Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sampleTrajectoryForDrawing(size_t trajectory_index, Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector, size_t num_samples);
@@ -47,9 +38,7 @@ public:
 private:
   
   TrajectoryLibrary trajectory_library;
-  TrajectoryEvaluator trajectory_evaluator;
   ValueGridEvaluator value_grid_evaluator;
-  LaserScanCollisionEvaluator laser_scan_collision_evaluator;
   DepthImageCollisionEvaluator depth_image_collision_evaluator;
 
   // For Euclidean
@@ -60,9 +49,6 @@ private:
   void EvaluateObjectivesDijkstra();
   double EvaluateWeightedObjectiveDijkstra(size_t index);
   
-  
-  
-
   // Evaluate individual objectives
   void EvaluateDijkstraCost(Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf);
   void EvaluateGoalProgress(Vector3 const& carrot_body_frame);
@@ -101,8 +87,6 @@ private:
   //double collision_reward = -100000000; // PLAGUE setting
 
   Vector3 last_desired_acceleration;
-
-
 
 };
 

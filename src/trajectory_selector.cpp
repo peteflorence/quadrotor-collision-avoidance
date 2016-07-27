@@ -8,10 +8,6 @@ ValueGridEvaluator* TrajectorySelector::GetValueGridEvaluatorPtr() {
   return &value_grid_evaluator;
 };
 
-LaserScanCollisionEvaluator* TrajectorySelector::GetLaserScanCollisionEvaluatorPtr() {
-  return &laser_scan_collision_evaluator;
-};
-
 DepthImageCollisionEvaluator* TrajectorySelector::GetDepthImageCollisionEvaluatorPtr() {
   return &depth_image_collision_evaluator;
 };
@@ -315,28 +311,16 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory_MonteCarlo
   size_t collision_count = 0;
 
   for (size_t i = 0; i < n; i++) {
-
-    // auto t1 = std::chrono::high_resolution_clock::now();
     for (size_t time_step_index = 0; time_step_index < num_samples_collision; time_step_index++) {
-      
       robot_position = trajectory.getPositionRDF_MonteCarlo(collision_sampling_time_vector(time_step_index), sampled_initial_velocities[i]);
       
       if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionKDTree(robot_position)) {
         collision_count++;
         break;
       }
-      
     }
-    // auto t2 = std::chrono::high_resolution_clock::now();
-    // std::cout << "A deterministic collision check took "
-    //     << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-    //       << " microseconds\n";
-
-
   }
-  
   return (collision_count*1.0)/(n*1.0);
-
 };
 
 Eigen::Matrix<Scalar, 25, 1> TrajectorySelector::Normalize0to1(Eigen::Matrix<Scalar, 25, 1> cost) {
