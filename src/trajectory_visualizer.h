@@ -37,7 +37,6 @@ public:
   void setCollisionProbabilities(Eigen::Matrix<Scalar, 25, 1> const& collision_probabilities) {
   	this->collision_probabilities = collision_probabilities;
   }
-  void drawDebugPoints();
   
 
 private:
