@@ -1,13 +1,5 @@
 #include "trajectory_visualizer.h"
 
-
-void TrajectoryVisualizer::TestVisualizer() {
-
-  std::cout << "Printing from inside TrajectoryVisualizer " << std::endl;  
-
-}
-
-
 void TrajectoryVisualizer::initializeDrawingPaths() {
 	for (int i = 0; i < trajectory_selector->getNumTrajectories(); i++) {
 		action_paths_pubs.push_back(nh.advertise<nav_msgs::Path>("/poly_samples"+std::to_string(i), 1));
@@ -128,37 +120,6 @@ void TrajectoryVisualizer::drawFinalStoppingPosition(int id, Vector3 position) {
 	marker.color.b = 0.0;
 	gaussian_pub.publish( marker );
 }
-
-void TrajectoryVisualizer::drawDebugPoints() {
-	LaserScanCollisionEvaluator* laser_scan_collision_ptr = trajectory_selector->GetLaserScanCollisionEvaluatorPtr();
-	if (laser_scan_collision_ptr != nullptr) {
-		Eigen::Matrix<Scalar, 100, 3> points = laser_scan_collision_ptr->DebugPointsToDraw();
-
-		for (int i = 0; i<100; i++) {
-			visualization_msgs::Marker marker;
-			marker.header.frame_id = drawing_frame;
-			marker.header.stamp = ros::Time::now();
-			marker.ns = "my_namespace";
-			marker.id = 65+i;
-			marker.type = visualization_msgs::Marker::SPHERE;
-			marker.action = visualization_msgs::Marker::ADD;
-			marker.pose.position.x = points(i,0);
-			marker.pose.position.y = points(i,1);
-			marker.pose.position.z = points(i,2);
-			marker.scale.x = 0.2;
-			marker.scale.y = 0.2;
-			marker.scale.z = 0.2;
-			marker.color.a = 0.15; // Don't forget to set the alpha!
-			marker.color.r = 0.0;
-			marker.color.g = 0.0;
-			marker.color.b = 1.0;
-			gaussian_pub.publish( marker );
-
-		}	
-	}
-}
-
-
 
 void TrajectoryVisualizer::drawAll() {
 	//drawDebugPoints();

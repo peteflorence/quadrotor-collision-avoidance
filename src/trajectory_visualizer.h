@@ -5,10 +5,7 @@
 #include <nav_msgs/Path.h>
 #include <visualization_msgs/Marker.h>
 
-#include <iostream>
-
 #include "trajectory_selector.h"
-//#include "trajectory_selector_utils.h"
 
 class TrajectoryVisualizer {
 public:
@@ -24,13 +21,10 @@ public:
 
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
 
-		std::cout << "Visualizer was created with best_traj_index and final_time " << best_traj_index << " " << final_time << std::endl;
-
 		initializeDrawingPaths();
 		createSamplingTimeVector();
 	};
 
-  void TestVisualizer();
   void UpdateTimeHorizon(double final_time);
   void createSamplingTimeVector();
 
