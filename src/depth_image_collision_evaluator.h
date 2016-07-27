@@ -20,25 +20,14 @@ public:
   void UpdatePointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new);
   void UpdateLaserPointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new);
 
-  // One-position-only variants
-  double computeProbabilityOfCollisionOnePosition(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
   bool computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position);
   
-  // Multiple-position variants
   double computeProbabilityOfCollisionNPositionsKDTree_DepthImage(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
   double computeProbabilityOfCollisionNPositionsKDTree_Laser(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
   double computeProbabilityOfCollisionNPositionsKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position, std::vector<pcl::PointXYZ> const& closest_pts);
 
-  double computeProbabilityOfCollisionOnePositionBlock(Vector3 const& robot_position, Vector3 const& sigma_robot_position, size_t const& block_increment);
-  double computeProbabilityOfCollisionOnePositionBlockMarching(Vector3 const& robot_position, Vector3 const& sigma_robot_position, size_t const& block_increment);
-  
-  bool computeDeterministicCollisionOnePositionBlock(Vector3 const& robot_position, Vector3 const& sigma_robot_position, size_t const& block_increment);
-  //double computeProbabilityOfCollisionKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
 
   bool IsNoReturn(pcl::PointXYZ point);
-
-  Eigen::Matrix<Scalar, 100, 3> DebugPointsToDraw();
-  
 
 private:
   pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud_ptr;
