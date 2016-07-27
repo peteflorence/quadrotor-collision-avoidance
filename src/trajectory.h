@@ -56,9 +56,6 @@ public:
 
   Vector3 getPositionRDF_MonteCarlo(Scalar const& t, Vector3 const& sampled_initial_velcoity) const;
   
-
-
-
 private:
   
   Vector3 acceleration;
