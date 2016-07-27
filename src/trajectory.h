@@ -1,7 +1,6 @@
 #ifndef TRAJECTORY_H
 #define TRAJECTORY_H
 
-#include <iostream>
 #include <Eigen/Dense>
 
 typedef double Scalar;
@@ -17,7 +16,6 @@ public:
   Trajectory(Vector3 acceleration, Vector3 initial_velocity) {
   	this->acceleration = acceleration;
   	this->initial_velocity = initial_velocity; 
-  	std::cout << "I'm initializing trajecotories " << std::endl;
   };
 
 
