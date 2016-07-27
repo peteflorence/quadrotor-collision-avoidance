@@ -289,20 +289,12 @@ double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory(Trajectory
     robot_position = trajectory.getPositionRDF(collision_sampling_time_vector(time_step_index));
     probability_no_collision_one_step = probability_no_collision_one_step * (1 - depth_image_collision_evaluator.computeProbabilityOfCollisionNPositionsKDTree_DepthImage(robot_position, sigma_robot_position));
     
-    //probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlock(robot_position, sigma_robot_position, 30);
-    //probability_of_collision_one_step = depth_image_collision_evaluator.computeProbabilityOfCollisionOnePositionBlockMarching(robot_position, sigma_robot_position, 50);
     // if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionKDTree(robot_position)) {
     //   return 1.0;
     // }
-    
-    //probability_of_collision_one_step = laser_scan_collision_evaluator.computeProbabilityOfCollisionOnePosition(robot_position, sigma_robot_position);
-    probability_no_collision = probability_no_collision * probability_no_collision_one_step;
-    
+    probability_no_collision = probability_no_collision * probability_no_collision_one_step;    
   }
-  double probability_of_collision = 1.0 - probability_no_collision;
-
-  return probability_of_collision;
-
+  return 1.0 - probability_no_collision;
 };
 
 double TrajectorySelector::computeProbabilityOfCollisionOneTrajectory_MonteCarlo(Trajectory trajectory, std::vector<Vector3> sampled_initial_velocities, size_t n) {
@@ -378,7 +370,6 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> TrajectorySelector::sampleTrajectoryFor
   Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time(num_samples,3);
 
   for (size_t time_index = 0; time_index < num_samples; time_index++) {
-    //std::cout << "the position I sample is " << trajectory_to_sample.getPosition(sampling_time) << std::endl;
     sampling_time = sampling_time_vector(time_index);
     if (time_index < num_samples - 1) {
       sample_points_xyz_over_time.row(time_index) = trajectory_to_sample.getPositionRDF(sampling_time);

@@ -62,8 +62,6 @@ private:
   Eigen::Matrix<Scalar, 25, 1> Normalize0to1(Eigen::Matrix<Scalar, 25, 1> cost);
   Eigen::Matrix<Scalar, 25, 1> MakeAllGreaterThan1(Eigen::Matrix<Scalar, 25, 1> cost);
   
-  
-
   double final_time;
   double start_time = 0.0;
 
