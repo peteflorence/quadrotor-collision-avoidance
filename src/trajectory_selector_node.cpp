@@ -474,7 +474,7 @@ private:
 		//ROS_INFO("GOT WAYPOINTS");
 		int waypoints_to_check = std::min((int) waypoints.poses.size(), max_waypoints+6);
 		//nh.param("carrot_distance", carrot_distance, 4.0);
-		carrot_distance = 4.0;
+		carrot_distance = 8.0;
 
 		double current_carrot_distance = carrot_distance;
 
@@ -682,7 +682,7 @@ private:
 
 	nav_msgs::Path waypoints;
 	nav_msgs::Path previous_waypoints;
-	int max_waypoints = 5;
+	int max_waypoints = 3;
 	double carrot_distance;
 
 	double start_time = 0.0;
