@@ -472,8 +472,11 @@ private:
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
 		//ROS_INFO("GOT WAYPOINTS");
-		int waypoints_to_check = std::min((int) waypoints.poses.size(), max_waypoints);
-		nh.param("carrot_distance", carrot_distance, 0.5);
+		int waypoints_to_check = std::min((int) waypoints.poses.size(), max_waypoints+6);
+		//nh.param("carrot_distance", carrot_distance, 4.0);
+		carrot_distance = 4.0;
+
+		double current_carrot_distance = carrot_distance;
 
 		waypoints_matrix.resize(4, waypoints_to_check);
 		waypoints_matrix.col(0) << VectorFromPose(waypoints.poses[0]), 0.0;  // yaw is currently hard set to be 0
@@ -484,15 +487,18 @@ private:
 		Eigen::Vector3d p1, p2;
 		int i;
 		for (i = 0; i < waypoints_to_check - 1; i++){
+			if (i >= max_waypoints) {
+				current_carrot_distance = 2.0;
+			}
 			p1 = VectorFromPose(waypoints.poses[i]);
 			p2 = VectorFromPose(waypoints.poses[i+1]);
 			distance_to_add = (p2-p1).norm();
-			if ((distance_to_add + distance_so_far) < carrot_distance) {
+			if ((distance_to_add + distance_so_far) < current_carrot_distance) {
 				distance_so_far += distance_to_add;
 				waypoints_matrix.col(i + 1) << p2, 0.0; // yaw is currently hard set to be 0
 			}
 			else {
-				distance_left = carrot_distance - distance_so_far;
+				distance_left = current_carrot_distance - distance_so_far;
 				truncated_waypoint = p1 + (p2-p1) / distance_to_add * distance_left;
 				distance_so_far = distance_so_far + distance_left;
 				waypoints_matrix.col(i + 1) << truncated_waypoint, 0.0; // yaw is currently hard set to be 0
