@@ -171,12 +171,12 @@ private:
 				while(bearing_error < -180) { 
 					bearing_error += 360;
 				}
-				ROS_WARN("set_bearing_azimuth_degrees %f", set_bearing_azimuth_degrees);
-				ROS_WARN("bearing_azimuth_degrees %f", bearing_azimuth_degrees);
-				ROS_WARN("potential_bearing_azimuth_degrees %f", potential_bearing_azimuth_degrees);
-				ROS_WARN("bearing_error %f", bearing_error);
-				ROS_WARN("pose_global_yaw %f", pose_global_yaw);
-				ROS_WARN("actual_bearing_azimuth_degrees %f", actual_bearing_azimuth_degrees);
+				//ROS_WARN("set_bearing_azimuth_degrees %f", set_bearing_azimuth_degrees);
+				//ROS_WARN("bearing_azimuth_degrees %f", bearing_azimuth_degrees);
+				//ROS_WARN("potential_bearing_azimuth_degrees %f", potential_bearing_azimuth_degrees);
+				//ROS_WARN("bearing_error %f", bearing_error);
+				//ROS_WARN("pose_global_yaw %f", pose_global_yaw);
+				//ROS_WARN("actual_bearing_azimuth_degrees %f", actual_bearing_azimuth_degrees);
 
 				if (abs(bearing_error) < 60.0)  {
 					trajectory_selector.SetSoftTopSpeed(soft_top_speed_max);

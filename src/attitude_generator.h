@@ -19,7 +19,7 @@ public:
 private:
   
   double z = 0.0;
-  double z_setpoint = 1.8;
+  double z_setpoint = 1.5;
   
   double z_velocity = 0;
   double z_velocity_setpoint = 0;
@@ -30,7 +30,7 @@ private:
   double _dt = 1/100.0;
   double _max = 0.9;
   double _min = 0.3;
-  double _Kp = 1.2;
+  double _Kp = 1.0;
   double _Ki = 0.6;
   double _Kd = 0.5;
   double _integral = 0;
