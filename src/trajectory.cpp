@@ -6,6 +6,11 @@ void Trajectory::setAccelerationMax(double const& acceleration_max) {
 
 void Trajectory::setAcceleration(Vector3 const& acceleration) {
   this->acceleration = acceleration;
+  this->unscaled_acceleration = acceleration;
+};
+
+void Trajectory::ScaleAcceleration(double scale_factor) {
+  this->acceleration = unscaled_acceleration * scale_factor;
 };
 
 void Trajectory::setInitialAcceleration(Vector3 const& initial_acceleration_to_set) {
@@ -65,7 +70,7 @@ Vector3 Trajectory::getTerminalStopPosition(Scalar const& t) const {
     return position_end_of_jerk_stop;
   }
 
-  double realistic_stop_accel = a_max_horizontal*0.85;
+  double realistic_stop_accel = a_max_horizontal*0.65;
   double speed_after_jerk = velocity_end_of_jerk_stop.norm();
   double stop_t_after_jerk = (speed_after_jerk / realistic_stop_accel);
   //double extra_drift = speed_after_jerk*0.200;

@@ -371,15 +371,23 @@ private:
 		attitude_generator.setZvelocity(twist.twist.linear.z);
 		Vector3 velocity_world_frame(twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z);
 		Vector3 velocity_ortho_body_frame = TransformWorldToOrthoBody(velocity_world_frame);
+		velocity_ortho_body_frame(2) = 0.0;  // WARNING for 2D only
 		UpdateTrajectoryLibraryVelocity(velocity_ortho_body_frame);
 		double speed = velocity_ortho_body_frame.norm();
-		//UpdateTimeHorizon(speed);
-		
+		UpdateTimeHorizon(speed);
+		UpdateMaxAcceleration(speed);
 	}
+
+	void UpdateMaxAcceleration(double speed) {
+		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
+			if (trajectory_library_ptr != nullptr) {
+				trajectory_library_ptr->UpdateMaxAcceleration(speed);
+			}
+	}
+
 	void UpdateTimeHorizon(double speed) { 
-		
-		if (speed < 6.66) {
-			final_time = 1.5;
+		if (speed < 10.0) {
+			final_time = 1.0;
 		}
 		else { 
 			final_time = 10.0 / speed;

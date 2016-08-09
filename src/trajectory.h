@@ -15,11 +15,14 @@ public:
 
   Trajectory(Vector3 acceleration, Vector3 initial_velocity) {
   	this->acceleration = acceleration;
+    this->unscaled_acceleration = acceleration;
   	this->initial_velocity = initial_velocity; 
   };
 
 
   void setAccelerationMax(double const& acceleration_max);
+
+  void ScaleAcceleration(double scale_factor);
 
   void setAcceleration(Vector3 const& acceleration);
   void setInitialAcceleration(Vector3 const& initial_acceleration);
@@ -79,6 +82,8 @@ private:
 
   double a_max_horizontal;
   double jerk_time = 0.200;
+
+  Vector3 unscaled_acceleration;
 
 };
 

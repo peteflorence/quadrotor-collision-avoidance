@@ -31,6 +31,7 @@ public:
     return initial_acceleration;
   }
 
+  void UpdateMaxAcceleration(double speed);
 
   Trajectory getTrajectoryFromIndex(size_t index);
   size_t getNumTrajectories();
@@ -87,6 +88,8 @@ private:
   double thrust = 0;
 
   std::vector<Vector3> sampled_velocities;
+
+  double initial_max_acceleration = 0.0;
 
 };
 
