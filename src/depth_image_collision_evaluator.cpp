@@ -66,9 +66,9 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTr
       if (pi_x < 0 || pi_x > 159) {
         probability_of_collision += 0.5;
       }
-      else if (pi_y < 0) { // ignore if it's under because this is preventing me from slowing down
-        probability_of_collision += 0.5;
-      }
+      // else if (pi_y < 0) { // ignore if it's under because this is preventing me from slowing down
+      //   probability_of_collision += 0.5;
+      // }
       else if (robot_position(2) > 10.0) {
         probability_of_collision += 0.5;
       }
