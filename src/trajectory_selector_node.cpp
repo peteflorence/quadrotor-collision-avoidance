@@ -37,14 +37,13 @@ public:
 		// Subscribers
 		pose_sub = nh.subscribe("/pose", 1, &TrajectorySelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/twist", 1, &TrajectorySelectorNode::OnVelocity, this);
-		waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
   	    depth_image_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnDepthImage, this);
   	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
+  	    local_goal_sub = nh.subscribe("/local_goal", 1, &TrajectorySelectorNode::OnLocalGoal, this);
   	    //value_grid_sub = nh.subscribe("/value_grid", 1, &TrajectorySelectorNode::OnValueGrid, this);
   	    laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &TrajectorySelectorNode::OnScan, this);
 
   	    // Publishers
-		carrot_pub = nh.advertise<visualization_msgs::Marker>( "carrot_marker", 0 );
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
 		attitude_thrust_pub = nh.advertise<mavros_msgs::AttitudeTarget>("/mux_input_1", 1);
 		//attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
@@ -70,7 +69,7 @@ public:
 		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);
 		srand ( time(NULL) ); //initialize the random seed
 
-		ROS_INFO("Finished constructing the trajectory selector node, waiting for waypoints");
+		ROS_INFO("Finished constructing the trajectory selector node");
 	}
 
 	void SetThrustForLibrary(double thrust) {
@@ -490,93 +489,11 @@ private:
 	}
 
 
-	void OnWaypoints(nav_msgs::Path const& waypoints) {
-		//ROS_INFO("GOT WAYPOINTS");
-		int waypoints_to_check = std::min((int) waypoints.poses.size(), max_waypoints+6);
-		//nh.param("carrot_distance", carrot_distance, 4.0);
-		carrot_distance = 8.0;
-
-		double current_carrot_distance = carrot_distance;
-
-		waypoints_matrix.resize(4, waypoints_to_check);
-		waypoints_matrix.col(0) << VectorFromPose(waypoints.poses[0]), 0.0;  // yaw is currently hard set to be 0
-		double distance_so_far = 0.0;
-		double distance_to_add;
-		double distance_left;
-		Eigen::Vector3d truncated_waypoint;
-		Eigen::Vector3d p1, p2;
-		int i;
-		for (i = 0; i < waypoints_to_check - 1; i++){
-			if (i >= max_waypoints) {
-				current_carrot_distance = 2.0;
-			}
-			p1 = VectorFromPose(waypoints.poses[i]);
-			p2 = VectorFromPose(waypoints.poses[i+1]);
-			distance_to_add = (p2-p1).norm();
-			if ((distance_to_add + distance_so_far) < current_carrot_distance) {
-				distance_so_far += distance_to_add;
-				waypoints_matrix.col(i + 1) << p2, 0.0; // yaw is currently hard set to be 0
-			}
-			else {
-				distance_left = current_carrot_distance - distance_so_far;
-				truncated_waypoint = p1 + (p2-p1) / distance_to_add * distance_left;
-				distance_so_far = distance_so_far + distance_left;
-				waypoints_matrix.col(i + 1) << truncated_waypoint, 0.0; // yaw is currently hard set to be 0
-				i++;
-				break;
-
-			}
-		}
-		carrot_world_frame << waypoints_matrix(0, i), waypoints_matrix(1, i), waypoints_matrix(2, i); 
-		//attitude_generator.setZsetpoint(carrot_world_frame(2));
-		
-
-
-		geometry_msgs::TransformStamped tf;
-	    try {
-	      // Need to remove leading "/" if it exists.
-	      std::string pose_frame_id = waypoints.poses[0].header.frame_id;
-	      if (pose_frame_id[0] == '/') {
-	        pose_frame_id = pose_frame_id.substr(1, pose_frame_id.size()-1);
-	      }
-
-	      tf = tf_buffer_.lookupTransform("ortho_body", pose_frame_id, 
-	                                    ros::Time(0), ros::Duration(1/30.0));
-	    } catch (tf2::TransformException &ex) {
-	      ROS_ERROR("%s", ex.what());
-	      return;
-	    }
-
-	    geometry_msgs::PoseStamped pose_carrot_world_frame = PoseFromVector3(carrot_world_frame, "world");
-	    geometry_msgs::PoseStamped pose_carrot_ortho_body_frame = PoseFromVector3(carrot_ortho_body_frame, "ortho_body");
-	   
-	    tf2::doTransform(pose_carrot_world_frame, pose_carrot_ortho_body_frame, tf);
-
-	    carrot_ortho_body_frame = VectorFromPose(pose_carrot_ortho_body_frame);
-
-
-	    visualization_msgs::Marker marker;
-		marker.header.frame_id = "ortho_body";
-		marker.header.stamp = ros::Time::now();
-		marker.ns = "my_namespace";
-		marker.id = 0;
-		marker.type = visualization_msgs::Marker::SPHERE;
-		marker.action = visualization_msgs::Marker::ADD;
-		marker.pose.position.x = carrot_ortho_body_frame(0);
-		marker.pose.position.y = carrot_ortho_body_frame(1);
-		marker.pose.position.z = carrot_ortho_body_frame(2);
-		marker.scale.x = 0.5;
-		marker.scale.y = 0.5;
-		marker.scale.z = 0.5;
-		marker.color.a = 0.5; // Don't forget to set the alpha!
-		marker.color.r = 0.9;
-		marker.color.g = 0.4;
-		marker.color.b = 0.0;
-		carrot_pub.publish( marker );
-
+	void OnLocalGoal(geometry_msgs::PoseStamped const& local_goal) {
+		//ROS_INFO("GOT LOCAL GOAL");
+		carrot_world_frame << local_goal.pose.position.x, local_goal.pose.position.y, local_goal.pose.position.z+1.0; 
+		UpdateCarrotOrthoBodyFrame();
 	}
-
-
 
 	void OnDepthImage(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
 		// ROS_INFO("GOT POINT CLOUD");
@@ -682,15 +599,14 @@ private:
 	}
 
 
-	ros::Subscriber waypoints_sub;
 	ros::Subscriber pose_sub;
 	ros::Subscriber velocity_sub;
 	ros::Subscriber depth_image_sub;
 	ros::Subscriber global_goal_sub;
+	ros::Subscriber local_goal_sub;
 	ros::Subscriber value_grid_sub;
 	ros::Subscriber laser_scan_sub;
 
-	ros::Publisher carrot_pub;
 	ros::Publisher gaussian_pub;
 	ros::Publisher attitude_thrust_pub;
 	ros::Publisher attitude_setpoint_visualization_pub;
@@ -700,11 +616,6 @@ private:
 	std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 	tf2_ros::Buffer tf_buffer_;
 
-	nav_msgs::Path waypoints;
-	nav_msgs::Path previous_waypoints;
-	int max_waypoints = 3;
-	double carrot_distance;
-
 	double start_time = 0.0;
 	double final_time = 1.0;
 
@@ -712,7 +623,6 @@ private:
 	double set_bearing_azimuth_degrees = 0.0;
 
 	Eigen::Vector4d pose_x_y_z_yaw;
-	Eigen::Matrix<double, 4, Eigen::Dynamic> waypoints_matrix;
 
 	Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector;
 	size_t num_samples;
