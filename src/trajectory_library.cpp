@@ -1,7 +1,9 @@
 #include "trajectory_library.h"
 
-void TrajectoryLibrary::Initialize2DLibrary(double a_max_horizontal) {
+void TrajectoryLibrary::Initialize2DLibrary(double a_max_horizontal, double min_speed_at_max_acceleration_total, double max_acceleration_total) {
 
+        this->min_speed_at_max_acceleration_total = min_speed_at_max_acceleration_total;
+        this->max_acceleration_total = max_acceleration_total;
 	initial_max_acceleration = a_max_horizontal;
 	
 	Vector3 zero_initial_velocity = Vector3(0,0,0);
@@ -39,9 +41,6 @@ void TrajectoryLibrary::Initialize2DLibrary(double a_max_horizontal) {
 
 void TrajectoryLibrary::UpdateMaxAcceleration(double speed) {
 	double speed_truncated = speed;
-
-	double max_acceleration_total = 10.0;
-	double min_speed_at_max_acceleration_total = 10.0;
 
 	if (speed_truncated > min_speed_at_max_acceleration_total) {
 		speed_truncated = min_speed_at_max_acceleration_total;
@@ -172,3 +171,11 @@ Vector3 TrajectoryLibrary::getRDFInverseSigmaAtTime(double const& t) const {
 	Vector3 RDFsigma = getRDFSigmaAtTime(t);
 	return Vector3(1.0/RDFsigma(0), 1.0/RDFsigma(1), 1.0/RDFsigma(2));
 };
+
+void TrajectoryLibrary::setMaxAccelerationTotal(double max_accel) {
+  this->max_acceleration_total = max_accel;
+}
+
+void TrajectoryLibrary::setMinSpeedAtMaxAccelerationTotal(double speed) {
+  this->min_speed_at_max_acceleration_total = speed;
+}

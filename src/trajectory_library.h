@@ -13,7 +13,7 @@
 class TrajectoryLibrary {
 public:
 
-  void Initialize2DLibrary(double a_max_horizontal);
+  void Initialize2DLibrary(double a_max_horizontal, double, double);
 
   void setInitialVelocity(Vector3 const& initialVelocity);
 
@@ -30,6 +30,9 @@ public:
   Vector3 getInitialAcceleration() const{
     return initial_acceleration;
   }
+
+  void setMaxAccelerationTotal(double max_accel);
+  void setMinSpeedAtMaxAccelerationTotal(double speed);
 
   void UpdateMaxAcceleration(double speed);
 
@@ -90,6 +93,9 @@ private:
   std::vector<Vector3> sampled_velocities;
 
   double initial_max_acceleration = 0.0;
+
+  double min_speed_at_max_acceleration_total = 5.0;
+  double max_acceleration_total = 4.0;
 
 };
 

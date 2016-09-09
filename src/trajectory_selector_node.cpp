@@ -52,17 +52,19 @@ public:
 		// Initialization
 		double a_max_horizontal;
 		double soft_top_speed;
+                double min_speed_at_max_acceleration_total;
+                double max_acceleration_total;
 
 		nh.param("soft_top_speed", soft_top_speed, 2.0);
 		nh.param("a_max_horizontal", a_max_horizontal, 3.5);
 		nh.param("yaw_on", yaw_on, false);
 		nh.param("use_depth_image", use_depth_image, true);
+        nh.param("min_speed_at_max_acceleration_total", min_speed_at_max_acceleration_total, 10.0);
+        nh.param("max_acceleration_total", max_acceleration_total, 4.0);
 
 		this->soft_top_speed_max = soft_top_speed;
 
-		// nh.getParam("soft_top_speed", soft_top_speed);
-		// nh.getParam("a_max_horizontal", a_max_horizontal);
-		trajectory_selector.InitializeLibrary(final_time, soft_top_speed, a_max_horizontal);
+		trajectory_selector.InitializeLibrary(final_time, soft_top_speed, a_max_horizontal, min_speed_at_max_acceleration_total, max_acceleration_total);
 
 		trajectory_visualizer.initialize(&trajectory_selector, nh, &best_traj_index, final_time);
 		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);

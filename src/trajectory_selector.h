@@ -19,7 +19,7 @@ public:
   ValueGridEvaluator* GetValueGridEvaluatorPtr();
   DepthImageCollisionEvaluator* GetDepthImageCollisionEvaluatorPtr();
 
-  void InitializeLibrary(double const& final_time, double soft_top_speed, double a_max_horizontal);
+  void InitializeLibrary(double const& final_time, double soft_top_speed, double a_max_horizontal, double, double);
   void UpdateTimeHorizon(double const& final_time);
   size_t getNumTrajectories();
   
