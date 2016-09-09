@@ -35,8 +35,8 @@ public:
 	TrajectorySelectorNode() {
 
 		// Subscribers
-		pose_sub = nh.subscribe("/FLA_ACL02/pose", 1, &TrajectorySelectorNode::OnPose, this);
-		velocity_sub = nh.subscribe("/FLA_ACL02/vel", 1, &TrajectorySelectorNode::OnVelocity, this);
+		pose_sub = nh.subscribe("/pose", 1, &TrajectorySelectorNode::OnPose, this);
+		velocity_sub = nh.subscribe("/twist", 1, &TrajectorySelectorNode::OnVelocity, this);
 		waypoints_sub = nh.subscribe("/waypoint_list", 1, &TrajectorySelectorNode::OnWaypoints, this);
   	    depth_image_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnDepthImage, this);
   	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
@@ -46,7 +46,7 @@ public:
   	    // Publishers
 		carrot_pub = nh.advertise<visualization_msgs::Marker>( "carrot_marker", 0 );
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
-		attitude_thrust_pub = nh.advertise<mavros_msgs::AttitudeTarget>("/mavros/setpoint_raw/attitude", 1);
+		attitude_thrust_pub = nh.advertise<mavros_msgs::AttitudeTarget>("/mux_input_1", 1);
 		//attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
 
 		// Initialization
