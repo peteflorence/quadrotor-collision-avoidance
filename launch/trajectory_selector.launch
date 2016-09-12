@@ -3,6 +3,7 @@
     <arg name="soft_top_speed" default="3.0"/>
     <arg name="a_max_horizontal" default="2.0"/>
     <arg name="yaw_on" default="true"/>
+    <arg name="use_depth_image" default="true"/>
     <arg name="max_acceleration_total" default="3.0"/>
     <arg name="min_speed_at_max_acceleration_total" default="10.0"/>
 
