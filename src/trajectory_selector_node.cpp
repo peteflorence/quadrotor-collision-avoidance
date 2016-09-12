@@ -162,7 +162,7 @@ private:
 				return;
 			}
 			if ((final_position_world(0) - pose_global_x)!= 0) {
-				double potential_bearing_azimuth_degrees = 180.0/M_PI*atan2(-(final_position_world(1) - pose_global_y), final_position_world(0) - pose_global_x);
+				double potential_bearing_azimuth_degrees = CalculateYawFromPosition(final_position_world);
 				double actual_bearing_azimuth_degrees = -pose_global_yaw * 180.0/M_PI;
 				double bearing_error = potential_bearing_azimuth_degrees - actual_bearing_azimuth_degrees;
 				while(bearing_error > 180) { 
@@ -185,11 +185,16 @@ private:
 				}
 				trajectory_selector.SetSoftTopSpeed(0.1);
 				if (speed_initial < 0.5) {
-					bearing_azimuth_degrees = potential_bearing_azimuth_degrees;
+					bearing_azimuth_degrees = CalculateYawFromPosition(carrot_world_frame);
 				}
 			}
 		}
 	}
+
+	double CalculateYawFromPosition(Vector3 final_position) {
+		return 180.0/M_PI*atan2(-(final_position(1) - pose_global_y), final_position(0) - pose_global_x);	
+	}
+	
 
 	void SetGoalFromBearing() {
 		bool go;
