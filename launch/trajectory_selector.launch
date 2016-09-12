@@ -3,10 +3,12 @@
     <arg name="soft_top_speed" default="14.0"/>
     <arg name="a_max_horizontal" default="4.0"/>
     <arg name="yaw_on" default="true"/>
+    <arg name="use_depth_image" default="true"/>
 
 	<param name="soft_top_speed" type="double" value="$(arg soft_top_speed)"/>
 	<param name="a_max_horizontal" type="double" value="$(arg a_max_horizontal)"/>
 	<param name="yaw_on" type="bool" value="$(arg yaw_on)"/>
+  <param name="use_depth_image" type="bool" value="$(arg use_depth_image)"/>
 
     <node pkg="trajectory_selector" type="trajectory_selector_node" name="trajectory_selector" output="screen">
       <remap from="/samros/pose" to="/FLA_ACL02/pose" />

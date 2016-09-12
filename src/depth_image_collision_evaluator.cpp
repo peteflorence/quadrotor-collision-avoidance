@@ -49,10 +49,11 @@ double ThresholdHard(double value) {
 }
 
 double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTree_DepthImage(Vector3 const& robot_position, Vector3 const& sigma_robot_position) {
+  double probability_of_collision;
   if (xyz_cloud_ptr != nullptr) {
     
     my_kd_tree_depth_image.SearchForNearest<num_nearest_neighbors>(robot_position[0], robot_position[1], robot_position[2]);
-    double probability_of_collision = computeProbabilityOfCollisionNPositionsKDTree(robot_position, sigma_robot_position, my_kd_tree_depth_image.closest_pts);
+    probability_of_collision = computeProbabilityOfCollisionNPositionsKDTree(robot_position, sigma_robot_position, my_kd_tree_depth_image.closest_pts);
 
     if (robot_position(2) < -0.5) {
       return probability_of_collision += 0.5;
@@ -75,7 +76,22 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTr
     }
     return ThresholdHard(probability_of_collision);
   }
-  return 0.0;
+
+  probability_of_collision = 0.0;
+  if (robot_position(2) < -0.5) {
+    return probability_of_collision += 0.5;
+  }
+  Vector3 projected = K * robot_position;
+  int pi_x = projected(0)/projected(2); 
+  int pi_y = projected(1)/projected(2);
+
+  if (robot_position.squaredNorm() > 0.5) {   
+    if (pi_x < 0 || pi_x > 159) {
+      probability_of_collision += 0.5;
+    }
+  }
+
+  return ThresholdHard(probability_of_collision);
 }
 
 

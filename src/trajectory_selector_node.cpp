@@ -56,6 +56,7 @@ public:
 		nh.param("soft_top_speed", soft_top_speed, 2.0);
 		nh.param("a_max_horizontal", a_max_horizontal, 3.5);
 		nh.param("yaw_on", yaw_on, false);
+		nh.param("use_depth_image", use_depth_image, true);
 
 		this->soft_top_speed_max = soft_top_speed;
 
@@ -130,6 +131,10 @@ public:
 		attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 		SetThrustForLibrary(attitude_thrust_desired(2));
 		PublishAttitudeSetpoint(attitude_thrust_desired);
+	}
+
+	bool UseDepthImage() {
+		return use_depth_image;
 	}
 
 private:
@@ -729,6 +734,7 @@ private:
 
 	bool yaw_on = false;
 	double soft_top_speed_max = 0.0;
+	bool use_depth_image = true;
 
 
 	ros::NodeHandle nh;
@@ -752,6 +758,8 @@ int main(int argc, char* argv[]) {
 	auto t1 = std::chrono::high_resolution_clock::now();
 	auto t2 = std::chrono::high_resolution_clock::now();
 
+	size_t counter = 0;
+
 	while (ros::ok()) {
 		//t1 = std::chrono::high_resolution_clock::now();
 		//trajectory_selector_node.ReactToSampledPointCloud();
@@ -761,10 +769,16 @@ int main(int argc, char* argv[]) {
   //     		<< " microseconds\n";
 		trajectory_selector_node.PublishCurrentAttitudeSetpoint();
 		//trajectory_selector_node.ReactToSampledPointCloud();
+
+		counter++;
+		if (counter > 3) {
+			counter = 0;
+			trajectory_selector_node.trajectory_visualizer.drawAll();
+			if (!trajectory_selector_node.UseDepthImage()) {
+				trajectory_selector_node.ReactToSampledPointCloud();
+			}
+		}
       	
-
-		trajectory_selector_node.trajectory_visualizer.drawAll();
-
 		ros::spinOnce();
 		spin_rate.sleep();
 	}
