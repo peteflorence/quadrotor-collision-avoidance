@@ -21,12 +21,15 @@ public:
   void UpdateLaserPointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new);
 
   bool computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position);
+
+  bool IsBehind(Vector3 robot_position);
+  bool IsOutsideDeadBand(Vector3 robot_position);
+  bool IsOutsideFOV(Vector3 robot_position);
+  double AddOutsideFOVPenalty(Vector3 robot_position, double probability_of_collision);
   
   double computeProbabilityOfCollisionNPositionsKDTree_DepthImage(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
   double computeProbabilityOfCollisionNPositionsKDTree_Laser(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
   double computeProbabilityOfCollisionNPositionsKDTree(Vector3 const& robot_position, Vector3 const& sigma_robot_position, std::vector<pcl::PointXYZ> const& closest_pts);
-
-  bool IsNoReturn(pcl::PointXYZ point);
 
 private:
   pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud_ptr;
@@ -36,7 +39,6 @@ private:
 
   Eigen::Matrix<double, 3, 3> K;
 
-  // For kd-tree version
   KDTree<double> my_kd_tree_depth_image;
   KDTree<double> my_kd_tree_laser;
 
