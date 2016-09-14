@@ -19,7 +19,6 @@ find_package(catkin REQUIRED COMPONENTS
   acl_fsw
   message_generation
   sensor_msgs
-  PCL REQUIRED
   mavros_msgs
 )
 
@@ -28,6 +27,7 @@ generate_messages( DEPENDENCIES std_msgs nav_msgs)
 
 find_package( Eigen3 REQUIRED )
 find_package(OpenCV 2.4.8 REQUIRED)
+find_package(PCL REQUIRED)
 
 include_directories ( src )
 include_directories( ${EIGEN3_INCLUDE_DIR} )

@@ -14,7 +14,7 @@
     <param name="max_acceleration_total" type="double" value="$(arg max_acceleration_total)"/>
     <param name="min_speed_at_max_acceleration_total" type="double" value="$(arg min_speed_at_max_acceleration_total)"/>
 
-    <node pkg="motion_selector" type="motion_selector_node" name="motion_selector" output="screen">
+    <node pkg="motion_primitives" type="motion_selector_node" name="motion_selector" output="screen">
     </node>
    
 </launch>
