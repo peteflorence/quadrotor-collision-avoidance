@@ -61,7 +61,7 @@ bool DepthImageCollisionEvaluator::IsOutsideFOV(Vector3 robot_position) {
     int pi_x = projected(0)/projected(2); 
     int pi_y = projected(1)/projected(2);
 
-    if (pi_x < 0 || pi_x > 159) {
+    if (pi_x < 0 || pi_x > (num_x_pixels - 1)) {
         return true;
     }
     // else if (pi_y < 0) { // ignore if it's under because this is preventing me from slowing down
