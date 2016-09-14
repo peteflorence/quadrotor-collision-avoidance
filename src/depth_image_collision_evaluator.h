@@ -38,6 +38,8 @@ private:
   Vector3 sigma_depth_point = Vector3(0.01, 0.01, 0.01);
 
   Eigen::Matrix<double, 3, 3> K;
+  double num_x_pixels = 160;
+  double num_y_pixels = 120;
 
   KDTree<double> my_kd_tree_depth_image;
   KDTree<double> my_kd_tree_laser;
