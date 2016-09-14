@@ -35,13 +35,15 @@ public:
 	MotionSelectorNode() {
 
 		// Subscribers
+
 		pose_sub = nh.subscribe("/pose", 1, &MotionSelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/twist", 1, &MotionSelectorNode::OnVelocity, this);
   	    depth_image_sub = nh.subscribe("/flight/xtion_depth/points", 1, &MotionSelectorNode::OnDepthImage, this);
-  	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &MotionSelectorNode::OnGlobalGoal, this);
+  	    //global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &MotionSelectorNode::OnGlobalGoal, this);
   	    local_goal_sub = nh.subscribe("/local_goal", 1, &MotionSelectorNode::OnLocalGoal, this);
   	    //value_grid_sub = nh.subscribe("/value_grid", 1, &MotionSelectorNode::OnValueGrid, this);
   	    laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &MotionSelectorNode::OnScan, this);
+
 
   	    // Publishers
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
