@@ -1,7 +1,7 @@
-#ifndef TRAJECTORY_SELECTOR_H
-#define TRAJECTORY_SELECTOR_H
+#ifndef MOTION_SELECTOR_H
+#define MOTION_SELECTOR_H
 
-#include "trajectory_library.h"
+#include "motion_library.h"
 #include "depth_image_collision_evaluator.h"
 #include "value_grid_evaluator.h"
 
@@ -12,10 +12,10 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include "geometry_msgs/PoseStamped.h"
 
-class TrajectorySelector {
+class MotionSelector {
 public:
 
-  TrajectoryLibrary* GetTrajectoryLibraryPtr();
+  MotionLibrary* GetMotionLibraryPtr();
   ValueGridEvaluator* GetValueGridEvaluatorPtr();
   DepthImageCollisionEvaluator* GetDepthImageCollisionEvaluatorPtr();
 
@@ -23,11 +23,11 @@ public:
   void UpdateTimeHorizon(double const& final_time);
   size_t getNumTrajectories();
   
-  void computeTakeoffTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration);
-  void computeBestEuclideanTrajectory(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration);
-  void computeBestDijkstraTrajectory(Vector3 const& carrot_body_frame, Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration);
+  void computeTakeoffMotion(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration);
+  void computeBestEuclideanMotion(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration);
+  void computeBestDijkstraMotion(Vector3 const& carrot_body_frame, Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf, size_t &best_traj_index, Vector3 &desired_acceleration);
 
-  Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sampleTrajectoryForDrawing(size_t trajectory_index, Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector, size_t num_samples);
+  Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sampleMotionForDrawing(size_t motion_index, Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector, size_t num_samples);
 
   Eigen::Matrix<Scalar, 25, 1> getCollisionProbabilities() {
     return collision_probabilities;
@@ -37,13 +37,13 @@ public:
 
 private:
   
-  TrajectoryLibrary trajectory_library;
+  MotionLibrary motion_library;
   ValueGridEvaluator value_grid_evaluator;
   DepthImageCollisionEvaluator depth_image_collision_evaluator;
 
   // For Euclidean
   void EvaluateObjectivesEuclid();
-  double EvaluateWeightedObjectiveEuclid(size_t const& trajectory_index);
+  double EvaluateWeightedObjectiveEuclid(size_t const& motion_index);
  
   // For Dijkstra
   void EvaluateObjectivesDijkstra();
@@ -54,8 +54,8 @@ private:
   void EvaluateGoalProgress(Vector3 const& carrot_body_frame);
   void EvaluateTerminalVelocityCost();
   void EvaluateCollisionProbabilities();
-  double computeProbabilityOfCollisionOneTrajectory(Trajectory trajectory);
-  double computeProbabilityOfCollisionOneTrajectory_MonteCarlo(Trajectory trajectory, std::vector<Vector3> sampled_initial_velocities, size_t n);
+  double computeProbabilityOfCollisionOneMotion(Motion motion);
+  double computeProbabilityOfCollisionOneMotion_MonteCarlo(Motion motion, std::vector<Vector3> sampled_initial_velocities, size_t n);
 
 
   Eigen::Matrix<Scalar, 25, 1> FilterSmallProbabilities(Eigen::Matrix<Scalar, 25, 1> to_filter);

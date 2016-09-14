@@ -24,24 +24,24 @@
 #include <stdlib.h>
 #include <chrono>
 
-#include "trajectory_selector.h"
+#include "motion_selector.h"
 #include "attitude_generator.h"
-#include "trajectory_visualizer.h"
+#include "motion_visualizer.h"
 
 
-class TrajectorySelectorNode {
+class MotionSelectorNode {
 public:
 
-	TrajectorySelectorNode() {
+	MotionSelectorNode() {
 
 		// Subscribers
-		pose_sub = nh.subscribe("/pose", 1, &TrajectorySelectorNode::OnPose, this);
-		velocity_sub = nh.subscribe("/twist", 1, &TrajectorySelectorNode::OnVelocity, this);
-  	    depth_image_sub = nh.subscribe("/flight/xtion_depth/points", 1, &TrajectorySelectorNode::OnDepthImage, this);
-  	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &TrajectorySelectorNode::OnGlobalGoal, this);
-  	    local_goal_sub = nh.subscribe("/local_goal", 1, &TrajectorySelectorNode::OnLocalGoal, this);
-  	    //value_grid_sub = nh.subscribe("/value_grid", 1, &TrajectorySelectorNode::OnValueGrid, this);
-  	    laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &TrajectorySelectorNode::OnScan, this);
+		pose_sub = nh.subscribe("/pose", 1, &MotionSelectorNode::OnPose, this);
+		velocity_sub = nh.subscribe("/twist", 1, &MotionSelectorNode::OnVelocity, this);
+  	    depth_image_sub = nh.subscribe("/flight/xtion_depth/points", 1, &MotionSelectorNode::OnDepthImage, this);
+  	    global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &MotionSelectorNode::OnGlobalGoal, this);
+  	    local_goal_sub = nh.subscribe("/local_goal", 1, &MotionSelectorNode::OnLocalGoal, this);
+  	    //value_grid_sub = nh.subscribe("/value_grid", 1, &MotionSelectorNode::OnValueGrid, this);
+  	    laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &MotionSelectorNode::OnScan, this);
 
   	    // Publishers
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
@@ -63,19 +63,19 @@ public:
 
 		this->soft_top_speed_max = soft_top_speed;
 
-		trajectory_selector.InitializeLibrary(final_time, soft_top_speed, a_max_horizontal, min_speed_at_max_acceleration_total, max_acceleration_total);
+		motion_selector.InitializeLibrary(final_time, soft_top_speed, a_max_horizontal, min_speed_at_max_acceleration_total, max_acceleration_total);
 
-		trajectory_visualizer.initialize(&trajectory_selector, nh, &best_traj_index, final_time);
+		motion_visualizer.initialize(&motion_selector, nh, &best_traj_index, final_time);
 		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);
 		srand ( time(NULL) ); //initialize the random seed
 
-		ROS_INFO("Finished constructing the trajectory selector node");
+		ROS_INFO("Finished constructing the motion selector node");
 	}
 
 	void SetThrustForLibrary(double thrust) {
-		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
-		if (trajectory_library_ptr != nullptr) {
-			trajectory_library_ptr->setThrust(thrust);
+		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
+		if (motion_library_ptr != nullptr) {
+			motion_library_ptr->setThrust(thrust);
 		}
 	}
 
@@ -100,14 +100,14 @@ public:
 		auto t1 = std::chrono::high_resolution_clock::now();
 		mutex.lock();
 		if (pose_global_z > 0.35) {
-			trajectory_selector.computeBestEuclideanTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+			motion_selector.computeBestEuclideanMotion(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 
 			// geometry_msgs::TransformStamped tf = GetTransformToWorld();
-			// trajectory_selector.computeBestDijkstraTrajectory(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
+			// motion_selector.computeBestDijkstraMotion(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
 
 	     }
 	     else {
-	     	trajectory_selector.computeTakeoffTrajectory(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+	     	motion_selector.computeTakeoffMotion(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 	     }
 	    mutex.unlock();
 
@@ -118,12 +118,12 @@ public:
 
       	mutex.lock();
 	    if (yaw_on) {
-	    	SetYawFromTrajectory();
+	    	SetYawFromMotion();
 	    } 
 	    mutex.unlock();
 		
-      	Eigen::Matrix<Scalar, 25, 1> collision_probabilities = trajectory_selector.getCollisionProbabilities();
-		trajectory_visualizer.setCollisionProbabilities(collision_probabilities);
+      	Eigen::Matrix<Scalar, 25, 1> collision_probabilities = motion_selector.getCollisionProbabilities();
+		motion_visualizer.setCollisionProbabilities(collision_probabilities);
 
 		PublishCurrentAttitudeSetpoint();
 	}
@@ -141,15 +141,15 @@ public:
 private:
 
 
-	void SetYawFromTrajectory() {
-		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
-		if (trajectory_library_ptr != nullptr) {
+	void SetYawFromMotion() {
+		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
+		if (motion_library_ptr != nullptr) {
 
 			// get position at t=0
-			Vector3 initial_position_ortho_body = trajectory_library_ptr->getTrajectoryFromIndex(best_traj_index).getPosition(0.0);
+			Vector3 initial_position_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getPosition(0.0);
 			// get velocity at t=0
-			Vector3 initial_velocity_ortho_body = trajectory_library_ptr->getTrajectoryFromIndex(best_traj_index).getVelocity(0.5);
-			Vector3 final_velocity_ortho_body = trajectory_library_ptr->getTrajectoryFromIndex(best_traj_index).getVelocity(0.5);
+			Vector3 initial_velocity_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getVelocity(0.5);
+			Vector3 final_velocity_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getVelocity(0.5);
 			// normalize velocity
 			double speed_initial = initial_velocity_ortho_body.norm();
 			double speed_final = final_velocity_ortho_body.norm();
@@ -164,7 +164,7 @@ private:
 			Vector3 final_position_world = TransformOrthoBodyToWorld(final_position_ortho_body);
 			
 			if (speed_initial < 2.0 && carrot_ortho_body_frame.norm() < 2.0) {
-				trajectory_selector.SetSoftTopSpeed(soft_top_speed_max);
+				motion_selector.SetSoftTopSpeed(soft_top_speed_max);
 				return;
 			}
 			if ((final_position_world(0) - pose_global_x)!= 0) {
@@ -185,11 +185,11 @@ private:
 				//ROS_WARN("actual_bearing_azimuth_degrees %f", actual_bearing_azimuth_degrees);
 
 				if (abs(bearing_error) < 60.0)  {
-					trajectory_selector.SetSoftTopSpeed(soft_top_speed_max);
+					motion_selector.SetSoftTopSpeed(soft_top_speed_max);
 					bearing_azimuth_degrees = potential_bearing_azimuth_degrees;
 					return;
 				}
-				trajectory_selector.SetSoftTopSpeed(0.1);
+				motion_selector.SetSoftTopSpeed(0.1);
 				if (speed_initial < 0.5) {
 					bearing_azimuth_degrees = CalculateYawFromPosition(carrot_world_frame);
 				}
@@ -213,10 +213,10 @@ private:
 		}
 	}
 
-	void UpdateTrajectoryLibraryRollPitch(double roll, double pitch) {
-		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
-		if (trajectory_library_ptr != nullptr) {
-			trajectory_library_ptr->setRollPitch(roll, pitch);
+	void UpdateMotionLibraryRollPitch(double roll, double pitch) {
+		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
+		if (motion_library_ptr != nullptr) {
+			motion_library_ptr->setRollPitch(roll, pitch);
 		}
 	}
 
@@ -264,11 +264,11 @@ private:
 
 	void UpdateLaserRDFFramesFromPose() {
 		transformAccelerationsIntoLaserRDFFrames();
-		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
-		Vector3 initial_acceleration = trajectory_library_ptr->getInitialAcceleration();
-    	if (trajectory_library_ptr != nullptr) {
-			trajectory_library_ptr->setInitialAccelerationLASER(transformOrthoBodyIntoLaserFrame(initial_acceleration));
-			trajectory_library_ptr->setInitialAccelerationRDF(transformOrthoBodyIntoRDFFrame(initial_acceleration));
+		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
+		Vector3 initial_acceleration = motion_library_ptr->getInitialAcceleration();
+    	if (motion_library_ptr != nullptr) {
+			motion_library_ptr->setInitialAccelerationLASER(transformOrthoBodyIntoLaserFrame(initial_acceleration));
+			motion_library_ptr->setInitialAccelerationRDF(transformOrthoBodyIntoRDFFrame(initial_acceleration));
 		}
 	}
 
@@ -281,7 +281,7 @@ private:
 		double roll, pitch, yaw;
 		tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
 
-		UpdateTrajectoryLibraryRollPitch(roll, pitch);
+		UpdateMotionLibraryRollPitch(roll, pitch);
 		UpdateAttitudeGeneratorRollPitch(roll, pitch);
 		PublishOrthoBodyTransform(roll, pitch);
 		UpdateCarrotOrthoBodyFrame();
@@ -300,25 +300,25 @@ private:
 	}
 
 	void transformAccelerationsIntoLaserRDFFrames() {
-		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
-		if (trajectory_library_ptr != nullptr) {
+		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
+		if (motion_library_ptr != nullptr) {
 
-			std::vector<Trajectory>::iterator trajectory_iterator_begin = trajectory_library_ptr->GetTrajectoryNonConstIteratorBegin();
-	  		std::vector<Trajectory>::iterator trajectory_iterator_end = trajectory_library_ptr->GetTrajectoryNonConstIteratorEnd();
+			std::vector<Motion>::iterator motion_iterator_begin = motion_library_ptr->GetMotionNonConstIteratorBegin();
+	  		std::vector<Motion>::iterator motion_iterator_end = motion_library_ptr->GetMotionNonConstIteratorEnd();
 
 	  		Vector3 acceleration_ortho_body;
 			Vector3 acceleration_laser_frame;
 			Vector3 acceleration_rdf_frame;
 
 
-	  		for (auto trajectory = trajectory_iterator_begin; trajectory != trajectory_iterator_end; trajectory++) {
-	  			acceleration_ortho_body = trajectory->getAcceleration();
+	  		for (auto motion = motion_iterator_begin; motion != motion_iterator_end; motion++) {
+	  			acceleration_ortho_body = motion->getAcceleration();
 
 	  			acceleration_laser_frame = transformOrthoBodyIntoLaserFrame(acceleration_ortho_body);
-	  			trajectory->setAccelerationLASER(acceleration_laser_frame);
+	  			motion->setAccelerationLASER(acceleration_laser_frame);
 
 	  			acceleration_rdf_frame = transformOrthoBodyIntoRDFFrame(acceleration_ortho_body);
-	  			trajectory->setAccelerationRDF(acceleration_rdf_frame);
+	  			motion->setAccelerationRDF(acceleration_rdf_frame);
 	  		} 
 	  	}
 	}
@@ -368,12 +368,12 @@ private:
 	    return R*world_frame;
 	}
 
-	void UpdateTrajectoryLibraryVelocity(Vector3 const& velocity_ortho_body_frame) {
-		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
-		if (trajectory_library_ptr != nullptr) {
-			trajectory_library_ptr->setInitialVelocity(velocity_ortho_body_frame);
-			trajectory_library_ptr->setInitialVelocityLASER(transformOrthoBodyIntoLaserFrame(velocity_ortho_body_frame));
-			trajectory_library_ptr->setInitialVelocityRDF(transformOrthoBodyIntoRDFFrame(velocity_ortho_body_frame));
+	void UpdateMotionLibraryVelocity(Vector3 const& velocity_ortho_body_frame) {
+		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
+		if (motion_library_ptr != nullptr) {
+			motion_library_ptr->setInitialVelocity(velocity_ortho_body_frame);
+			motion_library_ptr->setInitialVelocityLASER(transformOrthoBodyIntoLaserFrame(velocity_ortho_body_frame));
+			motion_library_ptr->setInitialVelocityRDF(transformOrthoBodyIntoRDFFrame(velocity_ortho_body_frame));
 		}
 	}
 
@@ -383,16 +383,16 @@ private:
 		Vector3 velocity_world_frame(twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z);
 		Vector3 velocity_ortho_body_frame = TransformWorldToOrthoBody(velocity_world_frame);
 		velocity_ortho_body_frame(2) = 0.0;  // WARNING for 2D only
-		UpdateTrajectoryLibraryVelocity(velocity_ortho_body_frame);
+		UpdateMotionLibraryVelocity(velocity_ortho_body_frame);
 		double speed = velocity_ortho_body_frame.norm();
 		UpdateTimeHorizon(speed);
 		UpdateMaxAcceleration(speed);
 	}
 
 	void UpdateMaxAcceleration(double speed) {
-		TrajectoryLibrary* trajectory_library_ptr = trajectory_selector.GetTrajectoryLibraryPtr();
-			if (trajectory_library_ptr != nullptr) {
-				trajectory_library_ptr->UpdateMaxAcceleration(speed);
+		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
+			if (motion_library_ptr != nullptr) {
+				motion_library_ptr->UpdateMaxAcceleration(speed);
 			}
 	}
 
@@ -404,8 +404,8 @@ private:
 			final_time = 10.0 / speed;
 		}
 		if (final_time < 1.0) { final_time = 1.0;}
-		trajectory_visualizer.UpdateTimeHorizon(final_time);
-		trajectory_selector.UpdateTimeHorizon(final_time);
+		motion_visualizer.UpdateTimeHorizon(final_time);
+		motion_selector.UpdateTimeHorizon(final_time);
 	}
 	
 	void OnGlobalGoal(geometry_msgs::PoseStamped const& global_goal) {
@@ -440,7 +440,7 @@ private:
 
 	void OnScan(sensor_msgs::PointCloud2 const& laser_point_cloud_msg) {
 		//ROS_INFO("GOT SCAN");
-		DepthImageCollisionEvaluator* depth_image_collision_ptr = trajectory_selector.GetDepthImageCollisionEvaluatorPtr();
+		DepthImageCollisionEvaluator* depth_image_collision_ptr = motion_selector.GetDepthImageCollisionEvaluatorPtr();
 
 		if (depth_image_collision_ptr != nullptr) {
 			
@@ -460,7 +460,7 @@ private:
 	void UpdateValueGrid(nav_msgs::OccupancyGrid value_grid_msg) {
 		auto t1 = std::chrono::high_resolution_clock::now();
 
-		ValueGridEvaluator* value_grid_evaluator_ptr = trajectory_selector.GetValueGridEvaluatorPtr();
+		ValueGridEvaluator* value_grid_evaluator_ptr = motion_selector.GetValueGridEvaluatorPtr();
 		if (value_grid_evaluator_ptr != nullptr) {
 			ValueGrid* value_grid_ptr = value_grid_evaluator_ptr->GetValueGridPtr();
 			if (value_grid_ptr != nullptr) {
@@ -470,7 +470,7 @@ private:
 				value_grid_ptr->SetOrigin(value_grid_msg.info.origin.position.x, value_grid_msg.info.origin.position.y);
 				value_grid_ptr->SetValues(value_grid_msg.data);
 
-				//trajectory_selector.PassInUpdatedValueGrid(&value_grid);
+				//motion_selector.PassInUpdatedValueGrid(&value_grid);
 				auto t2 = std::chrono::high_resolution_clock::now();
 				std::cout << "Whole value grid construction took "
 		      		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
@@ -497,7 +497,7 @@ private:
 
 	void OnDepthImage(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
 		// ROS_INFO("GOT POINT CLOUD");
-		DepthImageCollisionEvaluator* depth_image_collision_ptr = trajectory_selector.GetDepthImageCollisionEvaluatorPtr();
+		DepthImageCollisionEvaluator* depth_image_collision_ptr = motion_selector.GetDepthImageCollisionEvaluatorPtr();
 
 		if (depth_image_collision_ptr != nullptr) {
 
@@ -589,7 +589,7 @@ private:
 		// geometry_msgs::PoseStamped attitude_setpoint;
 		// attitude_setpoint.header.frame_id = "world";
 		// attitude_setpoint.header.stamp = ros::Time::now();
-		// Vector3 initial_acceleration = trajectory_selector.getInitialAcceleration();
+		// Vector3 initial_acceleration = motion_selector.getInitialAcceleration();
 		// attitude_setpoint.pose.position.x = initial_acceleration(0);
 		// attitude_setpoint.pose.position.y = initial_acceleration(1);
 		// attitude_setpoint.pose.position.z = initial_acceleration(2)+5;
@@ -636,7 +636,7 @@ private:
 	Vector3 desired_acceleration;
 	Vector3 attitude_thrust_desired;
 
-	TrajectorySelector trajectory_selector;
+	MotionSelector motion_selector;
 	AttitudeGenerator attitude_generator;
 
 	double pose_global_x = 0;
@@ -652,17 +652,17 @@ private:
 	ros::NodeHandle nh;
 
 public:
-	TrajectoryVisualizer trajectory_visualizer;
+	MotionVisualizer motion_visualizer;
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 
 int main(int argc, char* argv[]) {
-	std::cout << "Initializing trajectory_selector_node" << std::endl;
+	std::cout << "Initializing motion_selector_node" << std::endl;
 
-	ros::init(argc, argv, "TrajectorySelectorNode");
+	ros::init(argc, argv, "MotionSelectorNode");
 
-	TrajectorySelectorNode trajectory_selector_node;
+	MotionSelectorNode motion_selector_node;
 
 	std::cout << "Got through to here" << std::endl;
 	ros::Rate spin_rate(100);
@@ -674,20 +674,20 @@ int main(int argc, char* argv[]) {
 
 	while (ros::ok()) {
 		//t1 = std::chrono::high_resolution_clock::now();
-		//trajectory_selector_node.ReactToSampledPointCloud();
+		//motion_selector_node.ReactToSampledPointCloud();
 		//t2 = std::chrono::high_resolution_clock::now();
 		// std::cout << "ReactToSampledPointCloud took "
   //     		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
   //     		<< " microseconds\n";
-		trajectory_selector_node.PublishCurrentAttitudeSetpoint();
-		//trajectory_selector_node.ReactToSampledPointCloud();
+		motion_selector_node.PublishCurrentAttitudeSetpoint();
+		//motion_selector_node.ReactToSampledPointCloud();
 
 		counter++;
 		if (counter > 3) {
 			counter = 0;
-			trajectory_selector_node.trajectory_visualizer.drawAll();
-			if (!trajectory_selector_node.UseDepthImage()) {
-				trajectory_selector_node.ReactToSampledPointCloud();
+			motion_selector_node.motion_visualizer.drawAll();
+			if (!motion_selector_node.UseDepthImage()) {
+				motion_selector_node.ReactToSampledPointCloud();
 			}
 		}
       	

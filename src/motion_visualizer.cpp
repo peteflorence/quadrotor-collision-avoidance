@@ -1,17 +1,17 @@
-#include "trajectory_visualizer.h"
+#include "motion_visualizer.h"
 
-void TrajectoryVisualizer::initializeDrawingPaths() {
-	for (int i = 0; i < trajectory_selector->getNumTrajectories(); i++) {
+void MotionVisualizer::initializeDrawingPaths() {
+	for (int i = 0; i < motion_selector->getNumTrajectories(); i++) {
 		action_paths_pubs.push_back(nh.advertise<nav_msgs::Path>("/poly_samples"+std::to_string(i), 1));
 	}
 }
 
-void TrajectoryVisualizer::UpdateTimeHorizon(double final_time) {
+void MotionVisualizer::UpdateTimeHorizon(double final_time) {
 	this->final_time = final_time;
 	createSamplingTimeVector();
 }
 
-void TrajectoryVisualizer::createSamplingTimeVector() {
+void MotionVisualizer::createSamplingTimeVector() {
 	num_samples = 10;
 	sampling_time_vector.resize(num_samples, 1);
 
@@ -24,7 +24,7 @@ void TrajectoryVisualizer::createSamplingTimeVector() {
 }
 
 
-void TrajectoryVisualizer::drawGaussianPropagation(int id, Vector3 position, Vector3 sigma) {
+void MotionVisualizer::drawGaussianPropagation(int id, Vector3 position, Vector3 sigma) {
 	visualization_msgs::Marker marker;
 	marker.header.frame_id = drawing_frame;
 	marker.header.stamp = ros::Time::now();
@@ -45,7 +45,7 @@ void TrajectoryVisualizer::drawGaussianPropagation(int id, Vector3 position, Vec
 	gaussian_pub.publish( marker );
 }
 
-void TrajectoryVisualizer::NormalizeCollisions() {
+void MotionVisualizer::NormalizeCollisions() {
 	double max = collision_probabilities(0);
 	double min = collision_probabilities(0);
 	double current;
@@ -70,7 +70,7 @@ void TrajectoryVisualizer::NormalizeCollisions() {
 }
 
 
-void TrajectoryVisualizer::drawCollisionIndicator(int const& id, Vector3 const& position, double const& collision_prob) {
+void MotionVisualizer::drawCollisionIndicator(int const& id, Vector3 const& position, double const& collision_prob) {
 	//NormalizeCollisions();
 
 	visualization_msgs::Marker marker;
@@ -93,7 +93,7 @@ void TrajectoryVisualizer::drawCollisionIndicator(int const& id, Vector3 const& 
 	gaussian_pub.publish( marker );
 }
 
-void TrajectoryVisualizer::drawFinalStoppingPosition(int id, Vector3 position) {
+void MotionVisualizer::drawFinalStoppingPosition(int id, Vector3 position) {
 	visualization_msgs::Marker marker;
 	marker.header.frame_id = drawing_frame;
 	marker.header.stamp = ros::Time::now();
@@ -114,14 +114,14 @@ void TrajectoryVisualizer::drawFinalStoppingPosition(int id, Vector3 position) {
 	gaussian_pub.publish( marker );
 }
 
-void TrajectoryVisualizer::drawAll() {
-	size_t num_trajectories = trajectory_selector->getNumTrajectories(); 
-	TrajectoryLibrary* trajectory_library_ptr = trajectory_selector->GetTrajectoryLibraryPtr();
+void MotionVisualizer::drawAll() {
+	size_t num_trajectories = motion_selector->getNumTrajectories(); 
+	MotionLibrary* motion_library_ptr = motion_selector->GetMotionLibraryPtr();
 
 
-	for (size_t trajectory_index = 0; trajectory_index < num_trajectories; trajectory_index++) {
+	for (size_t motion_index = 0; motion_index < num_trajectories; motion_index++) {
 
-		Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  trajectory_selector->sampleTrajectoryForDrawing(trajectory_index, sampling_time_vector, num_samples);
+		Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  motion_selector->sampleMotionForDrawing(motion_index, sampling_time_vector, num_samples);
 
 		nav_msgs::Path action_samples_msg;
 		action_samples_msg.header.frame_id = drawing_frame;
@@ -129,17 +129,17 @@ void TrajectoryVisualizer::drawAll() {
 		Vector3 sigma;
 		for (size_t sample = 0; sample < num_samples; sample++) {
 			action_samples_msg.poses.push_back(PoseFromVector3(sample_points_xyz_over_time.row(sample), drawing_frame));
-			sigma = trajectory_library_ptr->getRDFSigmaAtTime(sampling_time_vector(sample));
-			if (trajectory_index == *best_traj_index) {
+			sigma = motion_library_ptr->getRDFSigmaAtTime(sampling_time_vector(sample));
+			if (motion_index == *best_traj_index) {
 				drawGaussianPropagation(sample, sample_points_xyz_over_time.row(sample), sigma);
 			}
 		}
 
-		// if (trajectory_index == *best_traj_index) {
+		// if (motion_index == *best_traj_index) {
 		// 	drawFinalStoppingPosition(num_samples-1, sample_points_xyz_over_time.row(num_samples-1));
 		// }
-		drawCollisionIndicator(trajectory_index, sample_points_xyz_over_time.row(num_samples-1), collision_probabilities(trajectory_index));
+		drawCollisionIndicator(motion_index, sample_points_xyz_over_time.row(num_samples-1), collision_probabilities(motion_index));
 
-		action_paths_pubs.at(trajectory_index).publish(action_samples_msg);
+		action_paths_pubs.at(motion_index).publish(action_samples_msg);
 	}
 }

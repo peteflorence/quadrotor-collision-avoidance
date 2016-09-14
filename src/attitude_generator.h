@@ -1,4 +1,4 @@
-#include "trajectory.h"
+#include "motion.h"
 #include <math.h>
 
 class AttitudeGenerator {

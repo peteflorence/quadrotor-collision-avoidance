@@ -1,7 +1,7 @@
 #ifndef VALUE_GRID_EVALUATOR_H
 #define VALUE_GRID_EVALUATOR_H
 
-#include "trajectory.h"
+#include "motion.h"
 #include "value_grid.h"
 
 class ValueGridEvaluator {

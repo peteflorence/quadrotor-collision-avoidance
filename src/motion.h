@@ -1,5 +1,5 @@
-#ifndef TRAJECTORY_H
-#define TRAJECTORY_H
+#ifndef MOTION_H
+#define MOTION_H
 
 #include <Eigen/Dense>
 
@@ -8,12 +8,12 @@ typedef Eigen::Matrix<Scalar, 3, 1> Vector3;
 typedef Eigen::Matrix<Scalar, 3, 3> Matrix3;
 typedef Eigen::Matrix<Scalar, 1, 1> Vector1;
 
-class Trajectory {
+class Motion {
 public:
  
-  Trajectory(){};
+  Motion(){};
 
-  Trajectory(Vector3 acceleration, Vector3 initial_velocity) {
+  Motion(Vector3 acceleration, Vector3 initial_velocity) {
   	this->acceleration = acceleration;
     this->unscaled_acceleration = acceleration;
   	this->initial_velocity = initial_velocity; 

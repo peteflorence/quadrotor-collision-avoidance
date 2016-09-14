@@ -1,7 +1,7 @@
-#ifndef TRAJECTORY_SELECTOR_UTILS_H
-#define TRAJECTORY_SELECTOR_UTILS_H
+#ifndef MOTION_SELECTOR_UTILS_H
+#define MOTION_SELECTOR_UTILS_H
 
-#include "trajectory.h"
+#include "motion.h"
 #include "geometry_msgs/PoseStamped.h"
 
 geometry_msgs::PoseStamped PoseFromVector3(Vector3 const& position, std::string const& frame);

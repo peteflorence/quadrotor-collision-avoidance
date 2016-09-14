@@ -1,4 +1,4 @@
-#include "trajectory.h"
+#include "motion.h"
 #include "kd_tree.h"
 
 #include "nanoflann.hpp"

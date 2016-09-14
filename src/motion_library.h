@@ -1,7 +1,7 @@
-#ifndef TRAJECTORY_LIBRARY_H
-#define TRAJECTORY_LIBRARY_H
+#ifndef MOTION_LIBRARY_H
+#define MOTION_LIBRARY_H
 
-#include "trajectory.h"
+#include "motion.h"
 #include <vector>
 
 #include <string>
@@ -10,7 +10,7 @@
 #include <math.h>
 #include <cmath>
 
-class TrajectoryLibrary {
+class MotionLibrary {
 public:
 
   void Initialize2DLibrary(double a_max_horizontal, double, double);
@@ -36,24 +36,24 @@ public:
 
   void UpdateMaxAcceleration(double speed);
 
-  Trajectory getTrajectoryFromIndex(size_t index);
+  Motion getMotionFromIndex(size_t index);
   size_t getNumTrajectories();
   Vector3 getSigmaAtTime(double const& t);
   Vector3 getInverseSigmaAtTime(double const& t);
 
-  std::vector<Trajectory>::const_iterator GetTrajectoryIteratorBegin() const {
+  std::vector<Motion>::const_iterator GetMotionIteratorBegin() const {
 	return trajectories.begin(); 
   };
 
-  std::vector<Trajectory>::const_iterator GetTrajectoryIteratorEnd() const {
+  std::vector<Motion>::const_iterator GetMotionIteratorEnd() const {
 	return trajectories.end(); 
   };
 
-  std::vector<Trajectory>::iterator GetTrajectoryNonConstIteratorBegin() {
+  std::vector<Motion>::iterator GetMotionNonConstIteratorBegin() {
   return trajectories.begin(); 
   };
 
-  std::vector<Trajectory>::iterator GetTrajectoryNonConstIteratorEnd() {
+  std::vector<Motion>::iterator GetMotionNonConstIteratorEnd() {
   return trajectories.end(); 
   };
 
@@ -75,7 +75,7 @@ public:
 
 private:
   
-  std::vector<Trajectory> trajectories;
+  std::vector<Motion> trajectories;
 
   Vector3 initial_velocity = Vector3(0,0,0);
   Vector3 initial_acceleration = Vector3(0,0,0);

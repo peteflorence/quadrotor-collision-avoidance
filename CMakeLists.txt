@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3")
-project(trajectory_selector)
+project(motion_primitives)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -47,11 +47,11 @@ find_library(OROCOS_KDL orocos-kdl)
 set(orocos_kdl_LIBRARIES ${OROCOS_KDL})
 
 
-add_library( trajectory_selector src/trajectory_selector.cpp src/trajectory_library.cpp src/trajectory.cpp src/attitude_generator.cpp src/trajectory_visualizer.cpp src/value_grid_evaluator.cpp src/value_grid.cpp src/trajectory_selector_utils.cpp src/depth_image_collision_evaluator.cpp)
+add_library( motion_selector src/motion_selector.cpp src/motion_library.cpp src/motion.cpp src/attitude_generator.cpp src/motion_visualizer.cpp src/value_grid_evaluator.cpp src/value_grid.cpp src/motion_selector_utils.cpp src/depth_image_collision_evaluator.cpp)
 
 
-add_executable( trajectory_selector_node src/trajectory_selector_node.cpp )
-target_link_libraries( trajectory_selector_node trajectory_selector ${catkin_LIBRARIES} ${PCL_LIBRARIES} orocos-kdl)
+add_executable( motion_selector_node src/motion_selector_node.cpp )
+target_link_libraries( motion_selector_node motion_selector ${catkin_LIBRARIES} ${PCL_LIBRARIES} orocos-kdl)
 
 add_executable( state_estimate_corruptor_node src/experimental/state_estimate_corruptor_node.cpp )
 target_link_libraries( state_estimate_corruptor_node  ${catkin_LIBRARIES})

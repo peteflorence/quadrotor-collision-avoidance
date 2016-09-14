@@ -1,4 +1,4 @@
-# Trajectory selector
+# Motion selector
 
 Implements:
 

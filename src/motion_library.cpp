@@ -1,6 +1,6 @@
-#include "trajectory_library.h"
+#include "motion_library.h"
 
-void TrajectoryLibrary::Initialize2DLibrary(double a_max_horizontal, double min_speed_at_max_acceleration_total, double max_acceleration_total) {
+void MotionLibrary::Initialize2DLibrary(double a_max_horizontal, double min_speed_at_max_acceleration_total, double max_acceleration_total) {
 
         this->min_speed_at_max_acceleration_total = min_speed_at_max_acceleration_total;
         this->max_acceleration_total = max_acceleration_total;
@@ -8,29 +8,29 @@ void TrajectoryLibrary::Initialize2DLibrary(double a_max_horizontal, double min_
 	
 	Vector3 zero_initial_velocity = Vector3(0,0,0);
 
-	// Make first trajectory be zero accelerations
+	// Make first motion be zero accelerations
 	Vector3 acceleration = Vector3(0,0,0);
-	trajectories.push_back(Trajectory( acceleration, zero_initial_velocity ));
+	trajectories.push_back(Motion( acceleration, zero_initial_velocity ));
 
 	// Make next 8 trajectories sample around maximum horizontal acceleration
 	for (double i = 1; i < 9; i++) {
 		double theta = (i-1)*2*M_PI/8.0;
 		acceleration << cos(theta)*a_max_horizontal, sin(theta)*a_max_horizontal, 0;
-		trajectories.push_back(Trajectory( acceleration, zero_initial_velocity ));
+		trajectories.push_back(Motion( acceleration, zero_initial_velocity ));
 	}
 
 	// Make next 8 trajectories sample around 0.6 * maximum horizontal acceleration
 	for (double i = 9; i < 17; i++) {
 		double theta = (i-1)*2*M_PI/8.0;
 		acceleration << cos(theta)*0.6*a_max_horizontal, sin(theta)*0.6*a_max_horizontal, 0;
-		trajectories.push_back(Trajectory( acceleration, zero_initial_velocity ));
+		trajectories.push_back(Motion( acceleration, zero_initial_velocity ));
 	}
 
 	// Make next 8 trajectories sample around 0.3 * maximum horizontal acceleration
 	for (double i = 17; i < 25; i++) {
 		double theta = (i-1)*2*M_PI/8.0;
 		acceleration << cos(theta)*0.15*a_max_horizontal, sin(theta)*0.15*a_max_horizontal, 0;
-		trajectories.push_back(Trajectory( acceleration, zero_initial_velocity ));
+		trajectories.push_back(Motion( acceleration, zero_initial_velocity ));
 	}
 
 	for (size_t index = 0; index < trajectories.size(); index++) {
@@ -39,7 +39,7 @@ void TrajectoryLibrary::Initialize2DLibrary(double a_max_horizontal, double min_
 
 };
 
-void TrajectoryLibrary::UpdateMaxAcceleration(double speed) {
+void MotionLibrary::UpdateMaxAcceleration(double speed) {
 	double speed_truncated = speed;
 
 	if (speed_truncated > min_speed_at_max_acceleration_total) {
@@ -57,7 +57,7 @@ void TrajectoryLibrary::UpdateMaxAcceleration(double speed) {
 	}
 }
 
-void TrajectoryLibrary::updateInitialAcceleration() {
+void MotionLibrary::updateInitialAcceleration() {
 	double acceleration_from_thrust = thrust * 9.8/0.7;
 	double a_x_initial = acceleration_from_thrust * sin(pitch);
 	double a_y_initial = -acceleration_from_thrust * cos(pitch)*sin(roll);
@@ -75,7 +75,7 @@ void TrajectoryLibrary::updateInitialAcceleration() {
 
 
 
-void TrajectoryLibrary::setInitialVelocity(Vector3 const& velocity) {
+void MotionLibrary::setInitialVelocity(Vector3 const& velocity) {
 	initial_velocity = velocity;
 	initial_velocity(2) = 0; // WARNING MUST GET RID OF THIS FOR 3D FLIGHT
 	for (size_t index = 0; index < trajectories.size(); index++) {
@@ -84,24 +84,24 @@ void TrajectoryLibrary::setInitialVelocity(Vector3 const& velocity) {
 };
 
 
-Trajectory TrajectoryLibrary::getTrajectoryFromIndex(size_t index) {
+Motion MotionLibrary::getMotionFromIndex(size_t index) {
 	return trajectories.at(index);
 };
 
-size_t TrajectoryLibrary::getNumTrajectories() {
+size_t MotionLibrary::getNumTrajectories() {
 	return trajectories.size();
 };
 
-Vector3 TrajectoryLibrary::getSigmaAtTime(double const& t) {
+Vector3 MotionLibrary::getSigmaAtTime(double const& t) {
 	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.5) + 0.1*(initial_velocity.array().abs()).matrix());
 };
 
-Vector3 TrajectoryLibrary::getInverseSigmaAtTime(double const& t) {
+Vector3 MotionLibrary::getInverseSigmaAtTime(double const& t) {
 	Vector3 sigma = getSigmaAtTime(t);
 	return Vector3(1.0/sigma(0), 1.0/sigma(1), 1.0/sigma(2));
 };
 
-void TrajectoryLibrary::setInitialAccelerationLASER(Vector3 const& initial_acceleration_laser_frame) {
+void MotionLibrary::setInitialAccelerationLASER(Vector3 const& initial_acceleration_laser_frame) {
 	this->initial_acceleration_laser_frame = initial_acceleration_laser_frame;
 	for (size_t index = 0; index < trajectories.size(); index++) {
 		trajectories.at(index).setInitialAccelerationLASER(initial_acceleration_laser_frame);
@@ -109,7 +109,7 @@ void TrajectoryLibrary::setInitialAccelerationLASER(Vector3 const& initial_accel
 	return;
 };
 
-void TrajectoryLibrary::setInitialVelocityLASER(Vector3 const& initial_velocity_laser_frame) {
+void MotionLibrary::setInitialVelocityLASER(Vector3 const& initial_velocity_laser_frame) {
 	this->initial_velocity_laser_frame = initial_velocity_laser_frame;
 	for (size_t index = 0; index < trajectories.size(); index++) {
 		trajectories.at(index).setInitialVelocityLASER(initial_velocity_laser_frame);
@@ -117,16 +117,16 @@ void TrajectoryLibrary::setInitialVelocityLASER(Vector3 const& initial_velocity_
 	return;
 };
 
-Vector3 TrajectoryLibrary::getLASERSigmaAtTime(double const& t) {
+Vector3 MotionLibrary::getLASERSigmaAtTime(double const& t) {
 	return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity_laser_frame.array().abs()).matrix());
 };
 
-Vector3 TrajectoryLibrary::getLASERInverseSigmaAtTime(double const& t) {
+Vector3 MotionLibrary::getLASERInverseSigmaAtTime(double const& t) {
 	Vector3 LASERsigma = getLASERSigmaAtTime(t);
 	return Vector3(1.0/LASERsigma(0), 1.0/LASERsigma(1), 1.0/LASERsigma(2));
 };
 
-void TrajectoryLibrary::setInitialAccelerationRDF(Vector3 const& initial_acceleration_rdf_frame) {
+void MotionLibrary::setInitialAccelerationRDF(Vector3 const& initial_acceleration_rdf_frame) {
 	this->initial_acceleration_laser_frame = initial_acceleration_laser_frame;
 	for (size_t index = 0; index < trajectories.size(); index++) {
 		trajectories.at(index).setInitialAccelerationLASER(initial_acceleration_laser_frame);
@@ -134,7 +134,7 @@ void TrajectoryLibrary::setInitialAccelerationRDF(Vector3 const& initial_acceler
 	return;
 };
 
-void TrajectoryLibrary::setInitialVelocityRDF(Vector3 const& initial_velocity_rdf_frame) {
+void MotionLibrary::setInitialVelocityRDF(Vector3 const& initial_velocity_rdf_frame) {
 	this->initial_velocity_rdf_frame = initial_velocity_rdf_frame;
 	for (size_t index = 0; index < trajectories.size(); index++) {
 		trajectories.at(index).setInitialVelocityRDF(initial_velocity_rdf_frame);
@@ -142,11 +142,11 @@ void TrajectoryLibrary::setInitialVelocityRDF(Vector3 const& initial_velocity_rd
 	return;
 };
 
-Vector3 TrajectoryLibrary::getRDFSigmaAtTime(double const& t) const {
+Vector3 MotionLibrary::getRDFSigmaAtTime(double const& t) const {
 	return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity_rdf_frame.array().abs()).matrix());
 };
 
-std::vector<Vector3> TrajectoryLibrary::getRDFSampledInitialVelocity(size_t n) {
+std::vector<Vector3> MotionLibrary::getRDFSampledInitialVelocity(size_t n) {
 	std::random_device rd;
 	std::mt19937 gen(rd());
 
@@ -167,15 +167,15 @@ std::vector<Vector3> TrajectoryLibrary::getRDFSampledInitialVelocity(size_t n) {
 	return sampled_velocities;
 };
 
-Vector3 TrajectoryLibrary::getRDFInverseSigmaAtTime(double const& t) const {
+Vector3 MotionLibrary::getRDFInverseSigmaAtTime(double const& t) const {
 	Vector3 RDFsigma = getRDFSigmaAtTime(t);
 	return Vector3(1.0/RDFsigma(0), 1.0/RDFsigma(1), 1.0/RDFsigma(2));
 };
 
-void TrajectoryLibrary::setMaxAccelerationTotal(double max_accel) {
+void MotionLibrary::setMaxAccelerationTotal(double max_accel) {
   this->max_acceleration_total = max_accel;
 }
 
-void TrajectoryLibrary::setMinSpeedAtMaxAccelerationTotal(double speed) {
+void MotionLibrary::setMinSpeedAtMaxAccelerationTotal(double speed) {
   this->min_speed_at_max_acceleration_total = speed;
 }

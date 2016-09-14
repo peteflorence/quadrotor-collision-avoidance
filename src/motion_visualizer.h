@@ -1,19 +1,19 @@
-#ifndef TRAJECTORY_VISUALIZER_H
-#define TRAJECTORY_VISUALIZER_H
+#ifndef MOTION_VISUALIZER_H
+#define MOTION_VISUALIZER_H
 
 #include <ros/ros.h>
 #include <nav_msgs/Path.h>
 #include <visualization_msgs/Marker.h>
 
-#include "trajectory_selector.h"
+#include "motion_selector.h"
 
-class TrajectoryVisualizer {
+class MotionVisualizer {
 public:
 	
-	TrajectoryVisualizer() {};
+	MotionVisualizer() {};
 
-	void initialize(TrajectorySelector* trajectory_selector, ros::NodeHandle & nh, size_t* best_traj_index, double const& final_time) {
-		this->trajectory_selector = trajectory_selector;
+	void initialize(MotionSelector* motion_selector, ros::NodeHandle & nh, size_t* best_traj_index, double const& final_time) {
+		this->motion_selector = motion_selector;
 		this->nh = nh;
 		this->best_traj_index = best_traj_index;
 		this->final_time = final_time;
@@ -49,7 +49,7 @@ private:
 	ros::Publisher gaussian_pub;
 	std::vector<ros::Publisher> action_paths_pubs;
 
-  TrajectorySelector* trajectory_selector;
+  MotionSelector* motion_selector;
 
   Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector;
   size_t num_samples = 0;
