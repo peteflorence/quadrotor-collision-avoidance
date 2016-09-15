@@ -1,7 +1,7 @@
 #include "motion_visualizer.h"
 
 void MotionVisualizer::initializeDrawingPaths() {
-	for (int i = 0; i < motion_selector->getNumTrajectories(); i++) {
+	for (int i = 0; i < motion_selector->getNummotions(); i++) {
 		action_paths_pubs.push_back(nh.advertise<nav_msgs::Path>("/poly_samples"+std::to_string(i), 1));
 	}
 }
@@ -115,11 +115,11 @@ void MotionVisualizer::drawFinalStoppingPosition(int id, Vector3 position) {
 }
 
 void MotionVisualizer::drawAll() {
-	size_t num_trajectories = motion_selector->getNumTrajectories(); 
+	size_t num_motions = motion_selector->getNummotions(); 
 	MotionLibrary* motion_library_ptr = motion_selector->GetMotionLibraryPtr();
 
 
-	for (size_t motion_index = 0; motion_index < num_trajectories; motion_index++) {
+	for (size_t motion_index = 0; motion_index < num_motions; motion_index++) {
 
 		Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  motion_selector->sampleMotionForDrawing(motion_index, sampling_time_vector, num_samples);
 

@@ -21,7 +21,7 @@ public:
 
   void InitializeLibrary(double const& final_time, double soft_top_speed, double a_max_horizontal, double, double);
   void UpdateTimeHorizon(double const& final_time);
-  size_t getNumTrajectories();
+  size_t getNummotions();
   
   void computeTakeoffMotion(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration);
   void computeBestEuclideanMotion(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration);

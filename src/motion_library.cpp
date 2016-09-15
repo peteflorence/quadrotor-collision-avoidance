@@ -2,39 +2,39 @@
 
 void MotionLibrary::Initialize2DLibrary(double a_max_horizontal, double min_speed_at_max_acceleration_total, double max_acceleration_total) {
 
-        this->min_speed_at_max_acceleration_total = min_speed_at_max_acceleration_total;
-        this->max_acceleration_total = max_acceleration_total;
+    this->min_speed_at_max_acceleration_total = min_speed_at_max_acceleration_total;
+    this->max_acceleration_total = max_acceleration_total;
 	initial_max_acceleration = a_max_horizontal;
 	
 	Vector3 zero_initial_velocity = Vector3(0,0,0);
 
 	// Make first motion be zero accelerations
 	Vector3 acceleration = Vector3(0,0,0);
-	trajectories.push_back(Motion( acceleration, zero_initial_velocity ));
+	motions.push_back(Motion( acceleration, zero_initial_velocity ));
 
-	// Make next 8 trajectories sample around maximum horizontal acceleration
+	// Make next 8 motions sample around maximum horizontal acceleration
 	for (double i = 1; i < 9; i++) {
 		double theta = (i-1)*2*M_PI/8.0;
 		acceleration << cos(theta)*a_max_horizontal, sin(theta)*a_max_horizontal, 0;
-		trajectories.push_back(Motion( acceleration, zero_initial_velocity ));
+		motions.push_back(Motion( acceleration, zero_initial_velocity ));
 	}
 
-	// Make next 8 trajectories sample around 0.6 * maximum horizontal acceleration
+	// Make next 8 motions sample around 0.6 * maximum horizontal acceleration
 	for (double i = 9; i < 17; i++) {
 		double theta = (i-1)*2*M_PI/8.0;
 		acceleration << cos(theta)*0.6*a_max_horizontal, sin(theta)*0.6*a_max_horizontal, 0;
-		trajectories.push_back(Motion( acceleration, zero_initial_velocity ));
+		motions.push_back(Motion( acceleration, zero_initial_velocity ));
 	}
 
-	// Make next 8 trajectories sample around 0.3 * maximum horizontal acceleration
+	// Make next 8 motions sample around 0.3 * maximum horizontal acceleration
 	for (double i = 17; i < 25; i++) {
 		double theta = (i-1)*2*M_PI/8.0;
 		acceleration << cos(theta)*0.15*a_max_horizontal, sin(theta)*0.15*a_max_horizontal, 0;
-		trajectories.push_back(Motion( acceleration, zero_initial_velocity ));
+		motions.push_back(Motion( acceleration, zero_initial_velocity ));
 	}
 
-	for (size_t index = 0; index < trajectories.size(); index++) {
-		trajectories.at(index).setAccelerationMax(a_max_horizontal);
+	for (size_t index = 0; index < motions.size(); index++) {
+		motions.at(index).setAccelerationMax(a_max_horizontal);
 	}
 
 };
@@ -51,9 +51,9 @@ void MotionLibrary::UpdateMaxAcceleration(double speed) {
 	double scale_max_acceleration = 1.0 + added_scale_max_acceleration;
 	double new_max_acceleration = initial_max_acceleration * scale_max_acceleration;
 
-	for (size_t index = 0; index < trajectories.size(); index++) {
-		trajectories.at(index).setAccelerationMax(new_max_acceleration);
-		trajectories.at(index).ScaleAcceleration(scale_max_acceleration);
+	for (size_t index = 0; index < motions.size(); index++) {
+		motions.at(index).setAccelerationMax(new_max_acceleration);
+		motions.at(index).ScaleAcceleration(scale_max_acceleration);
 	}
 }
 
@@ -66,8 +66,8 @@ void MotionLibrary::updateInitialAcceleration() {
 
 	initial_acceleration = Vector3(a_x_initial, a_y_initial, a_z_initial);
 
-	for (size_t index = 0; index < trajectories.size(); index++) {
-		trajectories.at(index).setInitialAcceleration(initial_acceleration);
+	for (size_t index = 0; index < motions.size(); index++) {
+		motions.at(index).setInitialAcceleration(initial_acceleration);
 	}
 
 	return;
@@ -78,18 +78,18 @@ void MotionLibrary::updateInitialAcceleration() {
 void MotionLibrary::setInitialVelocity(Vector3 const& velocity) {
 	initial_velocity = velocity;
 	initial_velocity(2) = 0; // WARNING MUST GET RID OF THIS FOR 3D FLIGHT
-	for (size_t index = 0; index < trajectories.size(); index++) {
-		trajectories.at(index).setInitialVelocity(initial_velocity);
+	for (size_t index = 0; index < motions.size(); index++) {
+		motions.at(index).setInitialVelocity(initial_velocity);
 	}
 };
 
 
 Motion MotionLibrary::getMotionFromIndex(size_t index) {
-	return trajectories.at(index);
+	return motions.at(index);
 };
 
-size_t MotionLibrary::getNumTrajectories() {
-	return trajectories.size();
+size_t MotionLibrary::getNummotions() {
+	return motions.size();
 };
 
 Vector3 MotionLibrary::getSigmaAtTime(double const& t) {
@@ -103,16 +103,16 @@ Vector3 MotionLibrary::getInverseSigmaAtTime(double const& t) {
 
 void MotionLibrary::setInitialAccelerationLASER(Vector3 const& initial_acceleration_laser_frame) {
 	this->initial_acceleration_laser_frame = initial_acceleration_laser_frame;
-	for (size_t index = 0; index < trajectories.size(); index++) {
-		trajectories.at(index).setInitialAccelerationLASER(initial_acceleration_laser_frame);
+	for (size_t index = 0; index < motions.size(); index++) {
+		motions.at(index).setInitialAccelerationLASER(initial_acceleration_laser_frame);
 	}
 	return;
 };
 
 void MotionLibrary::setInitialVelocityLASER(Vector3 const& initial_velocity_laser_frame) {
 	this->initial_velocity_laser_frame = initial_velocity_laser_frame;
-	for (size_t index = 0; index < trajectories.size(); index++) {
-		trajectories.at(index).setInitialVelocityLASER(initial_velocity_laser_frame);
+	for (size_t index = 0; index < motions.size(); index++) {
+		motions.at(index).setInitialVelocityLASER(initial_velocity_laser_frame);
 	}
 	return;
 };
@@ -128,16 +128,16 @@ Vector3 MotionLibrary::getLASERInverseSigmaAtTime(double const& t) {
 
 void MotionLibrary::setInitialAccelerationRDF(Vector3 const& initial_acceleration_rdf_frame) {
 	this->initial_acceleration_laser_frame = initial_acceleration_laser_frame;
-	for (size_t index = 0; index < trajectories.size(); index++) {
-		trajectories.at(index).setInitialAccelerationLASER(initial_acceleration_laser_frame);
+	for (size_t index = 0; index < motions.size(); index++) {
+		motions.at(index).setInitialAccelerationLASER(initial_acceleration_laser_frame);
 	}
 	return;
 };
 
 void MotionLibrary::setInitialVelocityRDF(Vector3 const& initial_velocity_rdf_frame) {
 	this->initial_velocity_rdf_frame = initial_velocity_rdf_frame;
-	for (size_t index = 0; index < trajectories.size(); index++) {
-		trajectories.at(index).setInitialVelocityRDF(initial_velocity_rdf_frame);
+	for (size_t index = 0; index < motions.size(); index++) {
+		motions.at(index).setInitialVelocityRDF(initial_velocity_rdf_frame);
 	}
 	return;
 };

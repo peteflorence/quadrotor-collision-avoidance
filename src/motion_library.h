@@ -37,24 +37,24 @@ public:
   void UpdateMaxAcceleration(double speed);
 
   Motion getMotionFromIndex(size_t index);
-  size_t getNumTrajectories();
+  size_t getNummotions();
   Vector3 getSigmaAtTime(double const& t);
   Vector3 getInverseSigmaAtTime(double const& t);
 
   std::vector<Motion>::const_iterator GetMotionIteratorBegin() const {
-	return trajectories.begin(); 
+	return motions.begin(); 
   };
 
   std::vector<Motion>::const_iterator GetMotionIteratorEnd() const {
-	return trajectories.end(); 
+	return motions.end(); 
   };
 
   std::vector<Motion>::iterator GetMotionNonConstIteratorBegin() {
-  return trajectories.begin(); 
+  return motions.begin(); 
   };
 
   std::vector<Motion>::iterator GetMotionNonConstIteratorEnd() {
-  return trajectories.end(); 
+  return motions.end(); 
   };
 
   void setInitialAccelerationLASER(Vector3 const& initial_acceleration_laser_frame);
@@ -75,7 +75,7 @@ public:
 
 private:
   
-  std::vector<Motion> trajectories;
+  std::vector<Motion> motions;
 
   Vector3 initial_velocity = Vector3(0,0,0);
   Vector3 initial_acceleration = Vector3(0,0,0);

@@ -55,8 +55,8 @@ void MotionSelector::UpdateTimeHorizon(double const& final_time) {
 };
 
 
-size_t MotionSelector::getNumTrajectories() {
-  return motion_library.getNumTrajectories();
+size_t MotionSelector::getNummotions() {
+  return motion_library.getNummotions();
 };
 
 // Euclidean Evaluator
@@ -169,7 +169,7 @@ void MotionSelector::EvaluateDijkstraCost(Vector3 const& carrot_world_frame, geo
   geometry_msgs::PoseStamped pose_ortho_body_frame_position;
   geometry_msgs::PoseStamped pose_world_frame_position = PoseFromVector3(Vector3(0,0,0), "world");
   int current_value;
-  // Iterate over trajectories
+  // Iterate over motions
   for (auto motion = motion_iterator_begin; motion != motion_iterator_end; motion++) {
     
    dijkstra_evaluations(i) = 0;
@@ -204,7 +204,7 @@ void MotionSelector::EvaluateDijkstraCost(Vector3 const& carrot_world_frame, geo
 
 void MotionSelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) {
 
-  // for each traj in motion_library.trajectories
+  // for each traj in motion_library.motions
   std::vector<Motion>::const_iterator motion_iterator_begin = motion_library.GetMotionIteratorBegin();
   std::vector<Motion>::const_iterator motion_iterator_end = motion_library.GetMotionIteratorEnd();
 
@@ -230,7 +230,7 @@ void MotionSelector::EvaluateGoalProgress(Vector3 const& carrot_body_frame) {
 
 void MotionSelector::EvaluateTerminalVelocityCost() {
 
-  // for each traj in motion_library.trajectories
+  // for each traj in motion_library.motions
   std::vector<Motion>::const_iterator motion_iterator_begin = motion_library.GetMotionIteratorBegin();
   std::vector<Motion>::const_iterator motion_iterator_end = motion_library.GetMotionIteratorEnd();
 
@@ -254,7 +254,7 @@ void MotionSelector::EvaluateTerminalVelocityCost() {
 
 void MotionSelector::EvaluateCollisionProbabilities() {
   
-  // for each traj in motion_library.trajectories
+  // for each traj in motion_library.motions
   std::vector<Motion>::const_iterator motion_iterator_begin = motion_library.GetMotionIteratorBegin();
   std::vector<Motion>::const_iterator motion_iterator_end = motion_library.GetMotionIteratorEnd();
 
