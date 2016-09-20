@@ -53,8 +53,9 @@ public:
 		// Initialization
 		double a_max_horizontal;
 		double soft_top_speed;
-                double min_speed_at_max_acceleration_total;
-                double max_acceleration_total;
+        double min_speed_at_max_acceleration_total;
+        double max_acceleration_total;
+        double flight_altitude;
 
 		nh.param("soft_top_speed", soft_top_speed, 2.0);
 		nh.param("a_max_horizontal", a_max_horizontal, 3.5);
@@ -62,10 +63,12 @@ public:
 		nh.param("use_depth_image", use_depth_image, true);
         nh.param("min_speed_at_max_acceleration_total", min_speed_at_max_acceleration_total, 10.0);
         nh.param("max_acceleration_total", max_acceleration_total, 4.0);
+        nh.param("flight_altitude", flight_altitude, 1.2);
 
 		this->soft_top_speed_max = soft_top_speed;
 
 		motion_selector.InitializeLibrary(final_time, soft_top_speed, a_max_horizontal, min_speed_at_max_acceleration_total, max_acceleration_total);
+		attitude_generator.setZsetpoint(flight_altitude);
 
 		motion_visualizer.initialize(&motion_selector, nh, &best_traj_index, final_time);
 		tf_listener_ = std::make_shared<tf2_ros::TransformListener>(tf_buffer_);
@@ -96,8 +99,6 @@ public:
 
 	void ReactToSampledPointCloud() {
 
-		// uncomment for bearing control
-		//SetGoalFromBearing();
 		
 		auto t1 = std::chrono::high_resolution_clock::now();
 		mutex.lock();
@@ -106,17 +107,12 @@ public:
 
 			// geometry_msgs::TransformStamped tf = GetTransformToWorld();
 			// motion_selector.computeBestDijkstraMotion(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
-
 	     }
 	     else {
 	     	motion_selector.computeTakeoffMotion(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 	     }
 	    mutex.unlock();
 
-	    auto t2 = std::chrono::high_resolution_clock::now();
-		std::cout << "Computing best traj took "
-    		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-      		<< " microseconds\n"; 
 
       	mutex.lock();
 	    if (yaw_on) {
