@@ -623,6 +623,26 @@ private:
 		
 		// uncomment below for bearing control
 		//nh.param("bearing_azimuth_degrees", bearing_azimuth_degrees, 0.0);
+
+		mutex.lock();
+
+		// // Limit size of bearing errors
+		double bearing_error_cap = 30;
+		double actual_bearing_azimuth_degrees = -pose_global_yaw * 180.0/M_PI;
+		double actual_bearing_error = bearing_azimuth_degrees - actual_bearing_azimuth_degrees;
+		while(actual_bearing_error > 180) { 
+			actual_bearing_error -= 360;
+		}
+		while(actual_bearing_error < -180) { 
+			actual_bearing_error += 360;
+		}
+		if (actual_bearing_error > bearing_error_cap) {
+			bearing_azimuth_degrees = actual_bearing_azimuth_degrees + bearing_error_cap;
+		}
+		if (actual_bearing_error < -bearing_error_cap) {
+			bearing_azimuth_degrees = actual_bearing_azimuth_degrees - bearing_error_cap;
+		}
+
 		double bearing_error = bearing_azimuth_degrees - set_bearing_azimuth_degrees;
 
 		while(bearing_error > 180) { 
@@ -649,10 +669,13 @@ private:
 			set_bearing_azimuth_degrees += 360.0;
 		}
 
+
 		Matrix3f m;
 		m =AngleAxisf(-set_bearing_azimuth_degrees*M_PI/180.0, Vector3f::UnitZ())
 		* AngleAxisf(roll_pitch_thrust(1), Vector3f::UnitY())
 		* AngleAxisf(-roll_pitch_thrust(0), Vector3f::UnitX());
+
+		mutex.unlock();
 
 		Quaternionf q(m);
 
