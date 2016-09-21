@@ -38,7 +38,7 @@ public:
 
 		pose_sub = nh.subscribe("/pose", 1, &MotionSelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/twist", 1, &MotionSelectorNode::OnVelocity, this);
-  	    depth_image_sub = nh.subscribe("/flight/xtion_depth/points", 1, &MotionSelectorNode::OnDepthImage, this);
+  	    depth_image_sub = nh.subscribe("/flight/r200/points_xyz", 1, &MotionSelectorNode::OnDepthImage, this);
   	    //global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &MotionSelectorNode::OnGlobalGoal, this);
   	    local_goal_sub = nh.subscribe("/local_goal", 1, &MotionSelectorNode::OnLocalGoal, this);
   	    //value_grid_sub = nh.subscribe("/value_grid", 1, &MotionSelectorNode::OnValueGrid, this);
@@ -379,14 +379,14 @@ private:
 	Vector3 transformOrthoBodyIntoRDFFrame(Vector3 const& ortho_body_vector) {
 		geometry_msgs::TransformStamped tf;
     	try {
-     		tf = tf_buffer_.lookupTransform("xtion_depth_optical_frame", "ortho_body", 
+     		tf = tf_buffer_.lookupTransform("r200_depth_optical_frame", "ortho_body", 
                                     ros::Time(0), ros::Duration(1/30.0));
    		} catch (tf2::TransformException &ex) {
      	 	ROS_ERROR("%s", ex.what());
       	return Vector3(0,0,0);
     	}
     	geometry_msgs::PoseStamped pose_ortho_body_vector = PoseFromVector3(ortho_body_vector, "ortho_body");
-    	geometry_msgs::PoseStamped pose_vector_rdf_frame = PoseFromVector3(Vector3(0,0,0), "xtion_depth_optical_frame");
+    	geometry_msgs::PoseStamped pose_vector_rdf_frame = PoseFromVector3(Vector3(0,0,0), "r200_depth_optical_frame");
     	tf2::doTransform(pose_ortho_body_vector, pose_vector_rdf_frame, tf);
     	return VectorFromPose(pose_vector_rdf_frame);
 	}

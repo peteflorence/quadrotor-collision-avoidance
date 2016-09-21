@@ -14,7 +14,7 @@
 class DepthImageCollisionEvaluator {
 public:
 	DepthImageCollisionEvaluator() {
-		K << 142.58555603027344, 0.0, 79.5, 0.0, 142.58555603027344, 59.5, 0.0, 0.0, 1.0;
+		K << 304.8, 0.0, 160.06, 0.0, 304.8, 119.85, 0.0, 0.0, 1.0;
 	}
 	
   void UpdatePointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new);
@@ -38,8 +38,8 @@ private:
   Vector3 sigma_depth_point = Vector3(0.01, 0.01, 0.01);
 
   Eigen::Matrix<double, 3, 3> K;
-  int num_x_pixels = 160;
-  int num_y_pixels = 120;
+  double num_x_pixels = 320;
+  double num_y_pixels = 240;
 
   KDTree<double> my_kd_tree_depth_image;
   KDTree<double> my_kd_tree_laser;

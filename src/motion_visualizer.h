@@ -44,7 +44,6 @@ private:
 	void NormalizeCollisions();
 
 	std::string drawing_frame = "ortho_body";
-
 	ros::NodeHandle nh;
 	ros::Publisher gaussian_pub;
 	std::vector<ros::Publisher> action_paths_pubs;
