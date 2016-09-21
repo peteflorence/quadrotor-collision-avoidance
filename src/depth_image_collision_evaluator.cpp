@@ -49,7 +49,7 @@ double ThresholdHard(double value) {
 }
 
 bool DepthImageCollisionEvaluator::IsBehind(Vector3 robot_position) {
-    return (robot_position(2) < 0.5);
+    return (robot_position(2) < -0.5);
 }
 
 bool DepthImageCollisionEvaluator::IsOutsideDeadBand(Vector3 robot_position) {
@@ -61,9 +61,10 @@ bool DepthImageCollisionEvaluator::IsOutsideFOV(Vector3 robot_position) {
     int pi_x = projected(0)/projected(2); 
     int pi_y = projected(1)/projected(2);
 
-    if (pi_x < 0 || pi_x > (num_x_pixels - 1)) {
+    if ( (pi_x < 0) || (pi_x > (num_x_pixels - 1)) ) {
         return true;
     }
+    return false;
     // else if (pi_y < 0) { // ignore if it's under because this is preventing me from slowing down
     //   return true;
     // }
@@ -74,7 +75,7 @@ bool DepthImageCollisionEvaluator::IsOutsideFOV(Vector3 robot_position) {
 
 double DepthImageCollisionEvaluator::AddOutsideFOVPenalty(Vector3 robot_position, double probability_of_collision) {
     if (IsBehind(robot_position)) {
-        return probability_of_collision += 0.5;
+      return probability_of_collision += 0.5;
     }
     if (IsOutsideDeadBand(robot_position)) {
       if (IsOutsideFOV(robot_position)) {
@@ -90,7 +91,7 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTr
     my_kd_tree_depth_image.SearchForNearest<num_nearest_neighbors>(robot_position[0], robot_position[1], robot_position[2]);
     probability_of_collision = computeProbabilityOfCollisionNPositionsKDTree(robot_position, sigma_robot_position, my_kd_tree_depth_image.closest_pts);
   }
-  AddOutsideFOVPenalty(robot_position, probability_of_collision);
+  probability_of_collision = AddOutsideFOVPenalty(robot_position, probability_of_collision);
   return ThresholdHard(probability_of_collision);
 }
 
