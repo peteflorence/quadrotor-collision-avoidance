@@ -1,10 +1,10 @@
 <launch>
 	
-    <arg name="soft_top_speed" default="2.0"/>
-    <arg name="a_max_horizontal" default="2.5"/>
+    <arg name="soft_top_speed" default="5.0"/>
+    <arg name="a_max_horizontal" default="3.5"/>
     <arg name="yaw_on" default="true"/>
     <arg name="use_depth_image" default="true"/>
-    <arg name="max_acceleration_total" default="3.0"/>
+    <arg name="max_acceleration_total" default="4.0"/>
     <arg name="min_speed_at_max_acceleration_total" default="10.0"/>
     <arg name="flight_altitude" default="1.4"/>
   
@@ -18,7 +18,7 @@
 
 
     <node pkg="motion_primitives" type="motion_selector_node" name="motion_selector" output="screen">
-        <!--remap from="/local_goal" to="/move_base_simple/goal" -->
+        <remap from="/local_goal" to="/move_base_simple/goal" />
     </node>
    
 </launch>
