@@ -46,6 +46,7 @@ public:
 
 
   	    // Publishers
+  	    carrot_pub = nh.advertise<visualization_msgs::Marker>( "carrot_marker", 0 );
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
 		attitude_thrust_pub = nh.advertise<mavros_msgs::AttitudeTarget>("/mux_input_1", 1);
 		//attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
@@ -161,10 +162,12 @@ private:
 
 			Vector3 final_position_world = TransformOrthoBodyToWorld(final_position_ortho_body);
 			
+			mutex.lock();
 			if (speed_initial < 2.0 && carrot_ortho_body_frame.norm() < 2.0) {
 				motion_selector.SetSoftTopSpeed(soft_top_speed_max);
 				return;
 			}
+			mutex.unlock();
 			if ((final_position_world(0) - pose_global_x)!= 0) {
 				double potential_bearing_azimuth_degrees = CalculateYawFromPosition(final_position_world);
 				double actual_bearing_azimuth_degrees = -pose_global_yaw * 180.0/M_PI;
@@ -253,7 +256,9 @@ private:
 	    geometry_msgs::PoseStamped pose_global_goal_ortho_body_frame = PoseFromVector3(Vector3(0,0,0), "ortho_body");
 	   
 	    tf2::doTransform(pose_global_goal_world_frame, pose_global_goal_ortho_body_frame, tf);
+	    mutex.lock();
 	    carrot_ortho_body_frame = VectorFromPose(pose_global_goal_ortho_body_frame);
+	    mutex.unlock();
 	}
 
 	void UpdateAttitudeGeneratorRollPitch(double roll, double pitch) {
@@ -491,6 +496,25 @@ private:
 		//ROS_INFO("GOT LOCAL GOAL");
 		carrot_world_frame << local_goal.pose.position.x, local_goal.pose.position.y, local_goal.pose.position.z+1.0; 
 		UpdateCarrotOrthoBodyFrame();
+
+		visualization_msgs::Marker marker;
+		marker.header.frame_id = "ortho_body";
+		marker.header.stamp = ros::Time::now();
+		marker.ns = "my_namespace";
+		marker.id = 0;
+		marker.type = visualization_msgs::Marker::SPHERE;
+		marker.action = visualization_msgs::Marker::ADD;
+		marker.pose.position.x = carrot_ortho_body_frame(0);
+		marker.pose.position.y = carrot_ortho_body_frame(1);
+		marker.pose.position.z = carrot_ortho_body_frame(2);
+		marker.scale.x = 0.5;
+		marker.scale.y = 0.5;
+		marker.scale.z = 0.5;
+		marker.color.a = 0.5; // Don't forget to set the alpha!
+		marker.color.r = 0.9;
+		marker.color.g = 0.4;
+		marker.color.b = 0.0;
+		carrot_pub.publish( marker );
 	}
 
 	void OnDepthImage(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
@@ -605,6 +629,7 @@ private:
 	ros::Subscriber value_grid_sub;
 	ros::Subscriber laser_scan_sub;
 
+	ros::Publisher carrot_pub;
 	ros::Publisher gaussian_pub;
 	ros::Publisher attitude_thrust_pub;
 	ros::Publisher attitude_setpoint_visualization_pub;
