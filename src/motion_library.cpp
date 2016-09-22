@@ -129,7 +129,7 @@ Vector3 MotionLibrary::getLASERInverseSigmaAtTime(double const& t) {
 void MotionLibrary::setInitialAccelerationRDF(Vector3 const& initial_acceleration_rdf_frame) {
 	this->initial_acceleration_laser_frame = initial_acceleration_laser_frame;
 	for (size_t index = 0; index < motions.size(); index++) {
-		motions.at(index).setInitialAccelerationLASER(initial_acceleration_laser_frame);
+		motions.at(index).setInitialAccelerationRDF(initial_acceleration_laser_frame);
 	}
 	return;
 };
