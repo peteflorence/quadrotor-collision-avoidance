@@ -243,7 +243,7 @@ void MotionSelector::EvaluateTerminalVelocityCost() {
     
     // cost on going too fast
     if (final_motion_speed > soft_top_speed) {
-      terminal_velocity_evaluations(i) -= 10*(soft_top_speed - final_motion_speed)*(soft_top_speed - final_motion_speed);
+      terminal_velocity_evaluations(i) -= 0*(soft_top_speed - final_motion_speed)*(soft_top_speed - final_motion_speed);
     }
 
     i++;
@@ -375,7 +375,7 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> MotionSelector::sampleMotionForDrawing(
       sample_points_xyz_over_time.row(time_index) = motion_to_sample.getPositionRDF(sampling_time);
     }
     else {
-      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getPositionRDF(sampling_time);
+      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getTerminalStopPositionRDF(sampling_time);
     }
   }
   return sample_points_xyz_over_time;

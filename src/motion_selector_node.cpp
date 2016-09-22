@@ -162,12 +162,10 @@ private:
 
 			Vector3 final_position_world = TransformOrthoBodyToWorld(final_position_ortho_body);
 			
-			mutex.lock();
 			if (speed_initial < 2.0 && carrot_ortho_body_frame.norm() < 2.0) {
 				motion_selector.SetSoftTopSpeed(soft_top_speed_max);
 				return;
 			}
-			mutex.unlock();
 			if ((final_position_world(0) - pose_global_x)!= 0) {
 				double potential_bearing_azimuth_degrees = CalculateYawFromPosition(final_position_world);
 				double actual_bearing_azimuth_degrees = -pose_global_yaw * 180.0/M_PI;
@@ -493,20 +491,22 @@ private:
 
 
 	void OnLocalGoal(geometry_msgs::PoseStamped const& local_goal) {
-		//ROS_INFO("GOT LOCAL GOAL");
+		ROS_INFO("GOT LOCAL GOAL");
 		carrot_world_frame << local_goal.pose.position.x, local_goal.pose.position.y, local_goal.pose.position.z+1.0; 
 		UpdateCarrotOrthoBodyFrame();
 
 		visualization_msgs::Marker marker;
 		marker.header.frame_id = "ortho_body";
 		marker.header.stamp = ros::Time::now();
-		marker.ns = "my_namespace";
-		marker.id = 0;
+		marker.ns = "carrot_namespace";
+		marker.id = 1;
 		marker.type = visualization_msgs::Marker::SPHERE;
 		marker.action = visualization_msgs::Marker::ADD;
+		mutex.lock();
 		marker.pose.position.x = carrot_ortho_body_frame(0);
 		marker.pose.position.y = carrot_ortho_body_frame(1);
 		marker.pose.position.z = carrot_ortho_body_frame(2);
+		mutex.unlock();
 		marker.scale.x = 0.5;
 		marker.scale.y = 0.5;
 		marker.scale.z = 0.5;

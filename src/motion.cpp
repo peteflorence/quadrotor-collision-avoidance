@@ -219,9 +219,9 @@ Vector3 Motion::getTerminalStopPositionRDF(Scalar const& t) const {
   
   Vector3 stopping_vector = -velocity_end_of_motion/speed;
   Vector3 max_stop_acceleration = a_max_horizontal*stopping_vector;
-  Vector3 stopping_jerk = (max_stop_acceleration - acceleration) / jerk_time;
-  Vector3 position_end_of_jerk_stop = 0.1666*stopping_jerk*jerk_time*jerk_time*jerk_time + 0.5*acceleration*jerk_time*jerk_time + velocity_end_of_motion*jerk_time + position_end_of_motion;
-  Vector3 velocity_end_of_jerk_stop = 0.5*stopping_jerk*jerk_time*jerk_time + acceleration*jerk_time + velocity_end_of_motion;
+  Vector3 stopping_jerk = (max_stop_acceleration - acceleration_rdf) / jerk_time;
+  Vector3 position_end_of_jerk_stop = 0.1666*stopping_jerk*jerk_time*jerk_time*jerk_time + 0.5*acceleration_rdf*jerk_time*jerk_time + velocity_end_of_motion*jerk_time + position_end_of_motion;
+  Vector3 velocity_end_of_jerk_stop = 0.5*stopping_jerk*jerk_time*jerk_time + acceleration_rdf*jerk_time + velocity_end_of_motion;
 
   // check if stopped during jerk time
   if (velocity_end_of_motion.dot(velocity_end_of_jerk_stop) < 0) {
