@@ -37,6 +37,10 @@ void MotionLibrary::Initialize2DLibrary(double a_max_horizontal, double min_spee
 		motions.at(index).setAccelerationMax(a_max_horizontal);
 	}
 
+	// Gold star motion
+	acceleration = Vector3(0,0,0);
+	motions.push_back(Motion( acceleration, zero_initial_velocity ));
+
 };
 
 void MotionLibrary::UpdateMaxAcceleration(double speed) {
@@ -49,12 +53,16 @@ void MotionLibrary::UpdateMaxAcceleration(double speed) {
 	double added_scale_max_acceleration = speed_truncated/min_speed_at_max_acceleration_total * (max_acceleration_total - initial_max_acceleration)/initial_max_acceleration;
 
 	double scale_max_acceleration = 1.0 + added_scale_max_acceleration;
-	double new_max_acceleration = initial_max_acceleration * scale_max_acceleration;
+	new_max_acceleration = initial_max_acceleration * scale_max_acceleration;
 
 	for (size_t index = 0; index < motions.size(); index++) {
 		motions.at(index).setAccelerationMax(new_max_acceleration);
 		motions.at(index).ScaleAcceleration(scale_max_acceleration);
 	}
+}
+
+double MotionLibrary::getNewMaxAcceleration() const {
+	return new_max_acceleration;
 }
 
 void MotionLibrary::updateInitialAcceleration() {
@@ -73,7 +81,9 @@ void MotionLibrary::updateInitialAcceleration() {
 	return;
 };
 
-
+void MotionLibrary::setBestAccelerationMotion(Vector3 best_acceleration) {
+	motions.at(26-1).setAcceleration(best_acceleration);
+}
 
 void MotionLibrary::setInitialVelocity(Vector3 const& velocity) {
 	initial_velocity = velocity;

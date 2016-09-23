@@ -61,7 +61,7 @@ size_t MotionSelector::getNummotions() {
 
 // Euclidean Evaluator
 void MotionSelector::computeTakeoffMotion(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
-  for (int i = 0; i < 25; i++) {
+  for (int i = 0; i < 26; i++) {
     no_collision_probabilities(i) = 1.0;
     collision_probabilities(i) = 0.0;
   }
@@ -73,7 +73,7 @@ void MotionSelector::computeTakeoffMotion(Vector3 const& carrot_body_frame, size
   best_traj_index = 0;
   float current_objective_value;
   float best_traj_objective_value = objectives_euclid(0);
-  for (size_t traj_index = 1; traj_index < 25; traj_index++) {
+  for (size_t traj_index = 1; traj_index < 26; traj_index++) {
     current_objective_value = objectives_euclid(traj_index);
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
@@ -97,7 +97,7 @@ void MotionSelector::computeBestEuclideanMotion(Vector3 const& carrot_body_frame
   best_traj_index = 0;
   float current_objective_value;
   float best_traj_objective_value = objectives_euclid(0);
-  for (size_t traj_index = 1; traj_index < 25; traj_index++) {
+  for (size_t traj_index = 1; traj_index < 26; traj_index++) {
     current_objective_value = objectives_euclid(traj_index);
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
@@ -109,7 +109,7 @@ void MotionSelector::computeBestEuclideanMotion(Vector3 const& carrot_body_frame
 };
 
 void MotionSelector::EvaluateObjectivesEuclid() {
-  for (int i = 0; i < 25; i++) {
+  for (int i = 0; i < 26; i++) {
     objectives_euclid(i) = EvaluateWeightedObjectiveEuclid(i);
   }
   objectives_euclid = objectives_euclid.cwiseProduct(no_collision_probabilities) + collision_reward*collision_probabilities;
@@ -132,7 +132,7 @@ void MotionSelector::computeBestDijkstraMotion(Vector3 const& carrot_body_frame,
   best_traj_index = 0;
   double current_objective_value;
   double best_traj_objective_value = objectives_dijkstra(0);
-  for (size_t traj_index = 1; traj_index < 25; traj_index++) {
+  for (size_t traj_index = 1; traj_index < 26; traj_index++) {
     current_objective_value = objectives_dijkstra(traj_index);
     if (current_objective_value > best_traj_objective_value) {
       best_traj_index = traj_index;
@@ -144,7 +144,7 @@ void MotionSelector::computeBestDijkstraMotion(Vector3 const& carrot_body_frame,
 }
 
 void MotionSelector::EvaluateObjectivesDijkstra() {
-  for (int i = 0; i < 25; i++) {
+  for (int i = 0; i < 26; i++) {
     objectives_dijkstra(i) = EvaluateWeightedObjectiveDijkstra(i);
   }
   objectives_dijkstra = objectives_dijkstra.cwiseProduct(no_collision_probabilities) + collision_reward*collision_probabilities;
@@ -243,7 +243,7 @@ void MotionSelector::EvaluateTerminalVelocityCost() {
     
     // cost on going too fast
     if (final_motion_speed > soft_top_speed) {
-      terminal_velocity_evaluations(i) -= 2.0*(soft_top_speed - final_motion_speed)*(soft_top_speed - final_motion_speed);
+      terminal_velocity_evaluations(i) -= 10.0*(soft_top_speed - final_motion_speed)*(soft_top_speed - final_motion_speed);
     }
 
     i++;
@@ -269,7 +269,7 @@ void MotionSelector::EvaluateCollisionProbabilities() {
 
     i++;
   }
-  for (int i = 0; i < 25; i++) {
+  for (int i = 0; i < 26; i++) {
     no_collision_probabilities(i) = 1.0 - collision_probabilities(i);
   }
 };
@@ -315,11 +315,11 @@ double MotionSelector::computeProbabilityOfCollisionOneMotion_MonteCarlo(Motion 
   return (collision_count*1.0)/(n*1.0);
 };
 
-Eigen::Matrix<Scalar, 25, 1> MotionSelector::Normalize0to1(Eigen::Matrix<Scalar, 25, 1> cost) {
+Eigen::Matrix<Scalar, 26, 1> MotionSelector::Normalize0to1(Eigen::Matrix<Scalar, 26, 1> cost) {
   double max = cost(0);
   double min = cost(0);
   double current;
-  for (int i = 1; i < 25; i++) {
+  for (int i = 1; i < 26; i++) {
     current = cost(i);
     if (current > max) {
       max = current;
@@ -333,30 +333,30 @@ Eigen::Matrix<Scalar, 25, 1> MotionSelector::Normalize0to1(Eigen::Matrix<Scalar,
     return cost;
   }
 
-  for (int i = 0; i < 25; i++) {
+  for (int i = 0; i < 26; i++) {
      cost(i) =  (cost(i)-min)/(max-min);
   }
   return cost;
 }
 
-Eigen::Matrix<Scalar, 25, 1> MotionSelector::MakeAllGreaterThan1(Eigen::Matrix<Scalar, 25, 1> cost) {
+Eigen::Matrix<Scalar, 26, 1> MotionSelector::MakeAllGreaterThan1(Eigen::Matrix<Scalar, 26, 1> cost) {
   double min = cost(0);
   double current;
-  for (int i = 1; i < 25; i++) {
+  for (int i = 1; i < 26; i++) {
     current = cost(i);
     if (current < min) {
       min = current;
     }
   }
 
-  for (int i = 0; i < 25; i++) {
+  for (int i = 0; i < 26; i++) {
      cost(i) =  cost(i)-min+1.0;
   }
   return cost;
 }
 
-Eigen::Matrix<Scalar, 25, 1> MotionSelector::FilterSmallProbabilities(Eigen::Matrix<Scalar, 25, 1> to_filter) {
-  for (size_t i = 0; i < 25; i++) {
+Eigen::Matrix<Scalar, 26, 1> MotionSelector::FilterSmallProbabilities(Eigen::Matrix<Scalar, 26, 1> to_filter) {
+  for (size_t i = 0; i < 26; i++) {
     if (to_filter(i) < 0.10) {
       to_filter(i) = 0.0;
     }

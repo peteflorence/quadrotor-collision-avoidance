@@ -34,7 +34,7 @@ public:
   void drawGaussianPropagation(int id, Vector3 position, Vector3 sigma);
   void drawFinalStoppingPosition(int id, Vector3 position);
   void drawCollisionIndicator(int const& id, Vector3 const& position, double const& collision_prob);
-  void setCollisionProbabilities(Eigen::Matrix<Scalar, 25, 1> const& collision_probabilities) {
+  void setCollisionProbabilities(Eigen::Matrix<Scalar, 26, 1> const& collision_probabilities) {
   	this->collision_probabilities = collision_probabilities;
   }
   
@@ -58,8 +58,8 @@ private:
 
   size_t* best_traj_index;
 
-  Eigen::Matrix<Scalar, 25, 1> collision_probabilities;
-  Eigen::Matrix<Scalar, 25, 1> normalized_collision_probabilities;
+  Eigen::Matrix<Scalar, 26, 1> collision_probabilities;
+  Eigen::Matrix<Scalar, 26, 1> normalized_collision_probabilities;
   
 };
 

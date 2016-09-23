@@ -29,7 +29,7 @@ public:
 
   Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sampleMotionForDrawing(size_t motion_index, Eigen::Matrix<Scalar, Eigen::Dynamic, 1> sampling_time_vector, size_t num_samples);
 
-  Eigen::Matrix<Scalar, 25, 1> getCollisionProbabilities() {
+  Eigen::Matrix<Scalar, 26, 1> getCollisionProbabilities() {
     return collision_probabilities;
   }
 
@@ -58,9 +58,9 @@ private:
   double computeProbabilityOfCollisionOneMotion_MonteCarlo(Motion motion, std::vector<Vector3> sampled_initial_velocities, size_t n);
 
 
-  Eigen::Matrix<Scalar, 25, 1> FilterSmallProbabilities(Eigen::Matrix<Scalar, 25, 1> to_filter);
-  Eigen::Matrix<Scalar, 25, 1> Normalize0to1(Eigen::Matrix<Scalar, 25, 1> cost);
-  Eigen::Matrix<Scalar, 25, 1> MakeAllGreaterThan1(Eigen::Matrix<Scalar, 25, 1> cost);
+  Eigen::Matrix<Scalar, 26, 1> FilterSmallProbabilities(Eigen::Matrix<Scalar, 26, 1> to_filter);
+  Eigen::Matrix<Scalar, 26, 1> Normalize0to1(Eigen::Matrix<Scalar, 26, 1> cost);
+  Eigen::Matrix<Scalar, 26, 1> MakeAllGreaterThan1(Eigen::Matrix<Scalar, 26, 1> cost);
   
   double final_time;
   double start_time = 0.0;
@@ -70,14 +70,14 @@ private:
   Eigen::Matrix<Scalar, 20, 1> collision_sampling_time_vector;
   size_t num_samples_collision = collision_sampling_time_vector.size();
 
-  Eigen::Matrix<Scalar, 25, 1> dijkstra_evaluations;
-  Eigen::Matrix<Scalar, 25, 1> goal_progress_evaluations;
-  Eigen::Matrix<Scalar, 25, 1> terminal_velocity_evaluations;
-  Eigen::Matrix<Scalar, 25, 1> collision_probabilities;
-  Eigen::Matrix<Scalar, 25, 1> no_collision_probabilities;
+  Eigen::Matrix<Scalar, 26, 1> dijkstra_evaluations;
+  Eigen::Matrix<Scalar, 26, 1> goal_progress_evaluations;
+  Eigen::Matrix<Scalar, 26, 1> terminal_velocity_evaluations;
+  Eigen::Matrix<Scalar, 26, 1> collision_probabilities;
+  Eigen::Matrix<Scalar, 26, 1> no_collision_probabilities;
 
-  Eigen::Matrix<Scalar, 25, 1> objectives_dijkstra;
-  Eigen::Matrix<Scalar, 25, 1> objectives_euclid;
+  Eigen::Matrix<Scalar, 26, 1> objectives_dijkstra;
+  Eigen::Matrix<Scalar, 26, 1> objectives_euclid;
 
   double soft_top_speed;
 
