@@ -155,7 +155,7 @@ public:
 
 			double distance_to_carrot = carrot_ortho_body_frame.norm();
 			if (stop_distance > distance_to_carrot) {
-				best_acceleration_norm = -0.5*(initial_velocity_ortho_body_towards_carrot*initial_velocity_ortho_body_towards_carrot)/distance_to_carrot/0.85;
+				best_acceleration_norm = -0.5*(initial_velocity_ortho_body_towards_carrot*initial_velocity_ortho_body_towards_carrot)/distance_to_carrot;
 				best_acceleration = normalized_vector_towards_carrot_ortho_body*best_acceleration_norm;
 				motion_library_ptr->setBestAccelerationMotion(best_acceleration);
 			} 
