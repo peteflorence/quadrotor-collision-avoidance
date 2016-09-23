@@ -70,7 +70,7 @@ Vector3 Motion::getTerminalStopPosition(Scalar const& t) const {
     return position_end_of_jerk_stop;
   }
 
-  double realistic_stop_accel = a_max_horizontal*0.65;
+  double realistic_stop_accel = a_max_horizontal*stopping_factor;
   double speed_after_jerk = velocity_end_of_jerk_stop.norm();
   double stop_t_after_jerk = (speed_after_jerk / realistic_stop_accel);
   //double extra_drift = speed_after_jerk*0.200;
@@ -141,7 +141,7 @@ Vector3 Motion::getTerminalStopPositionLASER(Scalar const& t) const {
     return position_end_of_jerk_stop;
   }
 
-  double realistic_stop_accel = a_max_horizontal*0.65;
+  double realistic_stop_accel = a_max_horizontal*stopping_factor;
   double speed_after_jerk = velocity_end_of_jerk_stop.norm();
   double stop_t_after_jerk = (speed_after_jerk / realistic_stop_accel);
   //double extra_drift = speed_after_jerk*0.200;
@@ -228,7 +228,7 @@ Vector3 Motion::getTerminalStopPositionRDF(Scalar const& t) const {
     return position_end_of_jerk_stop;
   }
 
-  double realistic_stop_accel = a_max_horizontal*0.65;
+  double realistic_stop_accel = a_max_horizontal*stopping_factor;
   double speed_after_jerk = velocity_end_of_jerk_stop.norm();
   double stop_t_after_jerk = (speed_after_jerk / realistic_stop_accel);
   //double extra_drift = speed_after_jerk*0.200;
