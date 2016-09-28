@@ -82,6 +82,7 @@ private:
 
   double a_max_horizontal;
   double jerk_time = 0.200;
+  double stopping_factor = 0.85;
 
   Vector3 unscaled_acceleration;
 

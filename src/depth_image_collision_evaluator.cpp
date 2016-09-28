@@ -92,7 +92,7 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTr
     probability_of_collision = computeProbabilityOfCollisionNPositionsKDTree(robot_position, sigma_robot_position, my_kd_tree_depth_image.closest_pts);
   }
   probability_of_collision = AddOutsideFOVPenalty(robot_position, probability_of_collision);
-  return ThresholdHard(probability_of_collision);
+  return ThresholdSigmoid(probability_of_collision);
 }
 
 

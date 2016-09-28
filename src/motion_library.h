@@ -34,6 +34,8 @@ public:
   void setMaxAccelerationTotal(double max_accel);
   void setMinSpeedAtMaxAccelerationTotal(double speed);
 
+  void setBestAccelerationMotion(Vector3 best_acceleration);
+
   void UpdateMaxAcceleration(double speed);
 
   Motion getMotionFromIndex(size_t index);
@@ -71,6 +73,8 @@ public:
 
   std::vector<Vector3> getRDFSampledInitialVelocity(size_t n);
 
+  double getNewMaxAcceleration() const;
+
 
 
 private:
@@ -93,6 +97,7 @@ private:
   std::vector<Vector3> sampled_velocities;
 
   double initial_max_acceleration = 0.0;
+  double new_max_acceleration;
 
   double min_speed_at_max_acceleration_total = 5.0;
   double max_acceleration_total = 4.0;

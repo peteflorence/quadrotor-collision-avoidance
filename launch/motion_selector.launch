@@ -1,6 +1,6 @@
 <launch>
 	
-    <arg name="soft_top_speed" default="2.0"/>
+    <arg name="soft_top_speed" default="5.0"/>
     <arg name="a_max_horizontal" default="2.5"/>
     <arg name="yaw_on" default="true"/>
     <arg name="use_depth_image" default="true"/>
@@ -18,7 +18,7 @@
 
 
     <node pkg="motion_primitives" type="motion_selector_node" name="motion_selector" output="screen">
-        <!--remap from="/local_goal" to="/move_base_simple/goal" -->
+        <remap from="/local_goal" to="/move_base_simple/goal" />
     </node>
    
 </launch>

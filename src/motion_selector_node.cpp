@@ -46,6 +46,7 @@ public:
 
 
   	    // Publishers
+  	    carrot_pub = nh.advertise<visualization_msgs::Marker>( "carrot_marker", 0 );
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
 		attitude_thrust_pub = nh.advertise<mavros_msgs::AttitudeTarget>("/mux_input_1", 1);
 		//attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
@@ -101,6 +102,7 @@ public:
 
 		
 		auto t1 = std::chrono::high_resolution_clock::now();
+		
 		mutex.lock();
 		if (pose_global_z > 0.35) {
 			motion_selector.computeBestEuclideanMotion(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
@@ -120,10 +122,46 @@ public:
 	    } 
 	    mutex.unlock();
 		
-      	Eigen::Matrix<Scalar, 25, 1> collision_probabilities = motion_selector.getCollisionProbabilities();
+      	Eigen::Matrix<Scalar, 26, 1> collision_probabilities = motion_selector.getCollisionProbabilities();
 		motion_visualizer.setCollisionProbabilities(collision_probabilities);
 
 		PublishCurrentAttitudeSetpoint();
+	}
+
+	void ComputeBestAccelerationMotion() {
+		mutex.lock();
+		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
+		if (motion_library_ptr != nullptr) {
+
+			Vector3 initial_velocity_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getVelocity(0.0);
+			Vector3 normalized_vector_towards_carrot_ortho_body = carrot_ortho_body_frame / (carrot_ortho_body_frame.norm());
+			double initial_velocity_ortho_body_towards_carrot = initial_velocity_ortho_body.dot(normalized_vector_towards_carrot_ortho_body);
+
+			double time_to_eval = 0.5;
+			double best_acceleration_norm = (soft_top_speed_max - initial_velocity_ortho_body_towards_carrot) / time_to_eval;
+			double current_max_acceleration = motion_library_ptr->getNewMaxAcceleration();
+
+			if (best_acceleration_norm > current_max_acceleration) {
+				best_acceleration_norm = current_max_acceleration;
+			}
+			if (best_acceleration_norm < -current_max_acceleration) {
+				best_acceleration_norm = -current_max_acceleration;
+			}
+			Vector3 best_acceleration = normalized_vector_towards_carrot_ortho_body*best_acceleration_norm;
+
+			motion_library_ptr->setBestAccelerationMotion(best_acceleration);
+			Vector3 stop_position = motion_library_ptr->getMotionFromIndex(26-1).getTerminalStopPosition(0.5);
+			double stop_distance = stop_position.dot(normalized_vector_towards_carrot_ortho_body);
+
+			double distance_to_carrot = carrot_ortho_body_frame.norm();
+			if (stop_distance > distance_to_carrot) {
+				best_acceleration_norm = -0.5*(initial_velocity_ortho_body_towards_carrot*initial_velocity_ortho_body_towards_carrot)/distance_to_carrot;
+				best_acceleration = normalized_vector_towards_carrot_ortho_body*best_acceleration_norm;
+				motion_library_ptr->setBestAccelerationMotion(best_acceleration);
+			} 
+
+		}
+		mutex.unlock();
 	}
 
 	void PublishCurrentAttitudeSetpoint() {
@@ -253,7 +291,9 @@ private:
 	    geometry_msgs::PoseStamped pose_global_goal_ortho_body_frame = PoseFromVector3(Vector3(0,0,0), "ortho_body");
 	   
 	    tf2::doTransform(pose_global_goal_world_frame, pose_global_goal_ortho_body_frame, tf);
+	    mutex.lock();
 	    carrot_ortho_body_frame = VectorFromPose(pose_global_goal_ortho_body_frame);
+	    mutex.unlock();
 	}
 
 	void UpdateAttitudeGeneratorRollPitch(double roll, double pitch) {
@@ -283,6 +323,7 @@ private:
 		UpdateAttitudeGeneratorRollPitch(roll, pitch);
 		PublishOrthoBodyTransform(roll, pitch);
 		UpdateCarrotOrthoBodyFrame();
+		ComputeBestAccelerationMotion();
 		UpdateLaserRDFFramesFromPose();
 
 		mutex.lock();
@@ -488,9 +529,30 @@ private:
 
 
 	void OnLocalGoal(geometry_msgs::PoseStamped const& local_goal) {
-		//ROS_INFO("GOT LOCAL GOAL");
+		ROS_INFO("GOT LOCAL GOAL");
 		carrot_world_frame << local_goal.pose.position.x, local_goal.pose.position.y, local_goal.pose.position.z+1.0; 
 		UpdateCarrotOrthoBodyFrame();
+
+		visualization_msgs::Marker marker;
+		marker.header.frame_id = "ortho_body";
+		marker.header.stamp = ros::Time::now();
+		marker.ns = "carrot_namespace";
+		marker.id = 1;
+		marker.type = visualization_msgs::Marker::SPHERE;
+		marker.action = visualization_msgs::Marker::ADD;
+		mutex.lock();
+		marker.pose.position.x = carrot_ortho_body_frame(0);
+		marker.pose.position.y = carrot_ortho_body_frame(1);
+		marker.pose.position.z = carrot_ortho_body_frame(2);
+		mutex.unlock();
+		marker.scale.x = 0.5;
+		marker.scale.y = 0.5;
+		marker.scale.z = 0.5;
+		marker.color.a = 0.5; // Don't forget to set the alpha!
+		marker.color.r = 0.9;
+		marker.color.g = 0.4;
+		marker.color.b = 0.0;
+		carrot_pub.publish( marker );
 	}
 
 	void OnDepthImage(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
@@ -605,6 +667,7 @@ private:
 	ros::Subscriber value_grid_sub;
 	ros::Subscriber laser_scan_sub;
 
+	ros::Publisher carrot_pub;
 	ros::Publisher gaussian_pub;
 	ros::Publisher attitude_thrust_pub;
 	ros::Publisher attitude_setpoint_visualization_pub;

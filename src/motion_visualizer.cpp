@@ -49,7 +49,7 @@ void MotionVisualizer::NormalizeCollisions() {
 	double max = collision_probabilities(0);
 	double min = collision_probabilities(0);
 	double current;
-	for (int i = 1; i < 25; i++) {
+	for (int i = 1; i < 26; i++) {
 		current = collision_probabilities(i);
 		if (current > max) {
 			max = current;
@@ -64,7 +64,7 @@ void MotionVisualizer::NormalizeCollisions() {
 		return;
 	};
 
-	for (int i = 0; i < 25; i++) {
+	for (int i = 0; i < 26; i++) {
 		normalized_collision_probabilities(i) = (collision_probabilities(i) - min) / (max - min);
 	}
 }
