@@ -1,10 +1,10 @@
 <launch>
 	
     <arg name="soft_top_speed" default="20.0"/>
-    <arg name="a_max_horizontal" default="6.0"/>
+    <arg name="a_max_horizontal" default="3.5"/>
     <arg name="yaw_on" default="true"/>
     <arg name="use_depth_image" default="false"/>
-    <arg name="max_acceleration_total" default="6.0"/>
+    <arg name="max_acceleration_total" default="8.0"/>
     <arg name="min_speed_at_max_acceleration_total" default="10.0"/>
     <arg name="flight_altitude" default="4.0"/>
   
