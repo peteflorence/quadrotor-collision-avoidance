@@ -56,7 +56,6 @@ public:
 		double soft_top_speed;
         double min_speed_at_max_acceleration_total;
         double max_acceleration_total;
-        double flight_altitude;
 
 		nh.param("soft_top_speed", soft_top_speed, 2.0);
 		nh.param("a_max_horizontal", a_max_horizontal, 3.5);
@@ -449,7 +448,7 @@ private:
 	
 	void OnGlobalGoal(geometry_msgs::PoseStamped const& global_goal) {
 		//ROS_INFO("GOT GLOBAL GOAL");
-		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.0; 
+		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, flight_altitude; 
 		UpdateCarrotOrthoBodyFrame();
 
 		// if (yaw_on) {
@@ -530,7 +529,7 @@ private:
 
 	void OnLocalGoal(geometry_msgs::PoseStamped const& local_goal) {
 		ROS_INFO("GOT LOCAL GOAL");
-		carrot_world_frame << local_goal.pose.position.x, local_goal.pose.position.y, local_goal.pose.position.z+1.0; 
+		carrot_world_frame << local_goal.pose.position.x, local_goal.pose.position.y, flight_altitude; 
 		UpdateCarrotOrthoBodyFrame();
 
 		visualization_msgs::Marker marker;
@@ -708,6 +707,7 @@ private:
 	bool yaw_on = false;
 	double soft_top_speed_max = 0.0;
 	bool use_depth_image = true;
+	double flight_altitude;
 
 
 	ros::NodeHandle nh;
