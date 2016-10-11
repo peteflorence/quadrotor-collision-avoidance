@@ -58,11 +58,11 @@ public:
         double max_acceleration_total;
 
 		nh.param("soft_top_speed", soft_top_speed, 2.0);
-		nh.param("a_max_horizontal", a_max_horizontal, 3.5);
+		nh.param("acceleration_interpolation_min", a_max_horizontal, 3.5);
 		nh.param("yaw_on", yaw_on, false);
 		nh.param("use_depth_image", use_depth_image, true);
-        nh.param("min_speed_at_max_acceleration_total", min_speed_at_max_acceleration_total, 10.0);
-        nh.param("max_acceleration_total", max_acceleration_total, 4.0);
+        nh.param("speed_at_acceleration_max", min_speed_at_max_acceleration_total, 10.0);
+        nh.param("acceleration_interpolation_max", max_acceleration_total, 4.0);
         nh.param("flight_altitude", flight_altitude, 1.2);
 
 		this->soft_top_speed_max = soft_top_speed;
@@ -528,7 +528,7 @@ private:
 
 
 	void OnLocalGoal(geometry_msgs::PoseStamped const& local_goal) {
-		ROS_INFO("GOT LOCAL GOAL");
+		//ROS_INFO("GOT LOCAL GOAL");
 		carrot_world_frame << local_goal.pose.position.x, local_goal.pose.position.y, flight_altitude; 
 		UpdateCarrotOrthoBodyFrame();
 
