@@ -38,7 +38,7 @@ public:
 
 		pose_sub = nh.subscribe("/pose", 1, &MotionSelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/twist", 1, &MotionSelectorNode::OnVelocity, this);
-  	    depth_image_sub = nh.subscribe("/flight/r200/points_xyz", 1, &MotionSelectorNode::OnDepthImage, this);
+  	    depth_image_sub = nh.subscribe("/flight/r200/points_xyz_filt", 1, &MotionSelectorNode::OnDepthImage, this);
   	    //global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &MotionSelectorNode::OnGlobalGoal, this);
   	    local_goal_sub = nh.subscribe("/local_goal", 1, &MotionSelectorNode::OnLocalGoal, this);
   	    //value_grid_sub = nh.subscribe("/value_grid", 1, &MotionSelectorNode::OnValueGrid, this);
