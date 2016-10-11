@@ -372,10 +372,10 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> MotionSelector::sampleMotionForDrawing(
   for (size_t time_index = 0; time_index < num_samples; time_index++) {
     sampling_time = sampling_time_vector(time_index);
     if (time_index < num_samples - 1) {
-      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getPositionRDF(sampling_time);
+      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getPosition(sampling_time);
     }
     else {
-      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getTerminalStopPositionRDF(sampling_time);
+      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getPosition(sampling_time);
     }
   }
   return sample_points_xyz_over_time;

@@ -38,11 +38,11 @@ public:
 
 		pose_sub = nh.subscribe("/pose", 1, &MotionSelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/twist", 1, &MotionSelectorNode::OnVelocity, this);
-  	    depth_image_sub = nh.subscribe("/flight/xtion_depth/points", 1, &MotionSelectorNode::OnDepthImage, this);
+  	    depth_image_sub = nh.subscribe("/flight/r200/points_xyz_filt", 1, &MotionSelectorNode::OnDepthImage, this);
   	    //global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &MotionSelectorNode::OnGlobalGoal, this);
   	    local_goal_sub = nh.subscribe("/local_goal", 1, &MotionSelectorNode::OnLocalGoal, this);
   	    //value_grid_sub = nh.subscribe("/value_grid", 1, &MotionSelectorNode::OnValueGrid, this);
-  	    laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &MotionSelectorNode::OnScan, this);
+  	    // laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &MotionSelectorNode::OnScan, this);
 
 
   	    // Publishers
@@ -56,14 +56,13 @@ public:
 		double soft_top_speed;
         double min_speed_at_max_acceleration_total;
         double max_acceleration_total;
-        double flight_altitude;
 
 		nh.param("soft_top_speed", soft_top_speed, 2.0);
-		nh.param("a_max_horizontal", a_max_horizontal, 3.5);
+		nh.param("acceleration_interpolation_min", a_max_horizontal, 3.5);
 		nh.param("yaw_on", yaw_on, false);
 		nh.param("use_depth_image", use_depth_image, true);
-        nh.param("min_speed_at_max_acceleration_total", min_speed_at_max_acceleration_total, 10.0);
-        nh.param("max_acceleration_total", max_acceleration_total, 4.0);
+        nh.param("speed_at_acceleration_max", min_speed_at_max_acceleration_total, 10.0);
+        nh.param("acceleration_interpolation_max", max_acceleration_total, 4.0);
         nh.param("flight_altitude", flight_altitude, 1.2);
 
 		this->soft_top_speed_max = soft_top_speed;
@@ -380,14 +379,14 @@ private:
 	Vector3 transformOrthoBodyIntoRDFFrame(Vector3 const& ortho_body_vector) {
 		geometry_msgs::TransformStamped tf;
     	try {
-     		tf = tf_buffer_.lookupTransform("xtion_depth_optical_frame", "ortho_body", 
+     		tf = tf_buffer_.lookupTransform("r200_depth_optical_frame", "ortho_body", 
                                     ros::Time(0), ros::Duration(1/30.0));
    		} catch (tf2::TransformException &ex) {
      	 	ROS_ERROR("%s", ex.what());
       	return Vector3(0,0,0);
     	}
     	geometry_msgs::PoseStamped pose_ortho_body_vector = PoseFromVector3(ortho_body_vector, "ortho_body");
-    	geometry_msgs::PoseStamped pose_vector_rdf_frame = PoseFromVector3(Vector3(0,0,0), "xtion_depth_optical_frame");
+    	geometry_msgs::PoseStamped pose_vector_rdf_frame = PoseFromVector3(Vector3(0,0,0), "r200_depth_optical_frame");
     	tf2::doTransform(pose_ortho_body_vector, pose_vector_rdf_frame, tf);
     	return VectorFromPose(pose_vector_rdf_frame);
 	}
@@ -449,7 +448,7 @@ private:
 	
 	void OnGlobalGoal(geometry_msgs::PoseStamped const& global_goal) {
 		//ROS_INFO("GOT GLOBAL GOAL");
-		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, global_goal.pose.position.z+1.0; 
+		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, flight_altitude; 
 		UpdateCarrotOrthoBodyFrame();
 
 		// if (yaw_on) {
@@ -529,8 +528,8 @@ private:
 
 
 	void OnLocalGoal(geometry_msgs::PoseStamped const& local_goal) {
-		ROS_INFO("GOT LOCAL GOAL");
-		carrot_world_frame << local_goal.pose.position.x, local_goal.pose.position.y, local_goal.pose.position.z+1.0; 
+		//ROS_INFO("GOT LOCAL GOAL");
+		carrot_world_frame << local_goal.pose.position.x, local_goal.pose.position.y, flight_altitude; 
 		UpdateCarrotOrthoBodyFrame();
 
 		visualization_msgs::Marker marker;
@@ -708,6 +707,7 @@ private:
 	bool yaw_on = false;
 	double soft_top_speed_max = 0.0;
 	bool use_depth_image = true;
+	double flight_altitude;
 
 
 	ros::NodeHandle nh;
