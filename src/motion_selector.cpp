@@ -375,7 +375,7 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> MotionSelector::sampleMotionForDrawing(
       sample_points_xyz_over_time.row(time_index) = motion_to_sample.getPosition(sampling_time);
     }
     else {
-      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getPosition(sampling_time);
+      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getTerminalStopPosition(sampling_time);
     }
   }
   return sample_points_xyz_over_time;
