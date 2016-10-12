@@ -1,12 +1,12 @@
 <launch>
 	
-    <arg name="soft_top_speed" default="15.0"/>
+    <arg name="soft_top_speed" default="20.0"/>
     <arg name="acceleration_interpolation_min" default="6.5"/>
-    <arg name="acceleration_interpolation_max"  default="7.5"/>
+    <arg name="acceleration_interpolation_max"  default="7.0"/>
     <arg name="speed_at_acceleration_max" default="10.0"/>
 
     <arg name="yaw_on" default="true"/>
-    <arg name="use_depth_image" default="true"/>
+    <arg name="use_depth_image" default="false"/>
 
     <arg name="flight_altitude" default="3.0"/>
   
