@@ -1,8 +1,8 @@
 <launch>
 	
-    <arg name="soft_top_speed" default="20.0"/>
-    <arg name="acceleration_interpolation_min" default="6.5"/>
-    <arg name="acceleration_interpolation_max"  default="7.5"/>
+    <arg name="soft_top_speed" default="5.0"/>
+    <arg name="acceleration_interpolation_min" default="3.5"/>
+    <arg name="acceleration_interpolation_max"  default="4.5"/>
     <arg name="speed_at_acceleration_max" default="10.0"/>
 
     <arg name="yaw_on" default="true"/>
