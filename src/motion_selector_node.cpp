@@ -121,8 +121,10 @@ public:
 	    } 
 	    mutex.unlock();
 		
+		mutex.lock();
       	Eigen::Matrix<Scalar, 26, 1> collision_probabilities = motion_selector.getCollisionProbabilities();
 		motion_visualizer.setCollisionProbabilities(collision_probabilities);
+		mutex.unlock();
 
 		PublishCurrentAttitudeSetpoint();
 	}
@@ -164,13 +166,21 @@ public:
 	}
 
 	void PublishCurrentAttitudeSetpoint() {
-		attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
+		mutex.lock();
+		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
+		mutex.unlock();
 		SetThrustForLibrary(attitude_thrust_desired(2));
 		PublishAttitudeSetpoint(attitude_thrust_desired);
 	}
 
 	bool UseDepthImage() {
 		return use_depth_image;
+	}
+
+	void drawAll() {
+		mutex.lock();
+		motion_visualizer.drawAll();
+		mutex.unlock();
 	}
 
 private:
@@ -694,7 +704,6 @@ private:
 
 	size_t best_traj_index = 0;
 	Vector3 desired_acceleration;
-	Vector3 attitude_thrust_desired;
 
 	MotionSelector motion_selector;
 	AttitudeGenerator attitude_generator;
@@ -746,7 +755,7 @@ int main(int argc, char* argv[]) {
 		counter++;
 		if (counter > 3) {
 			counter = 0;
-			motion_selector_node.motion_visualizer.drawAll();
+			motion_selector_node.drawAll();
 			if (!motion_selector_node.UseDepthImage()) {
 				motion_selector_node.ReactToSampledPointCloud();
 			}
