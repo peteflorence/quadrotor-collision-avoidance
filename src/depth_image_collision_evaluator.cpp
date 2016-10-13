@@ -79,7 +79,7 @@ double DepthImageCollisionEvaluator::AddOutsideFOVPenalty(Vector3 robot_position
     }
     if (IsOutsideDeadBand(robot_position)) {
       if (IsOutsideFOV(robot_position)) {
-          return probability_of_collision += 0.5;
+          return probability_of_collision += 0.1;
       }
     }
     return probability_of_collision;
