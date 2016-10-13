@@ -433,8 +433,10 @@ private:
 		velocity_ortho_body_frame(2) = 0.0;  // WARNING for 2D only
 		UpdateMotionLibraryVelocity(velocity_ortho_body_frame);
 		double speed = velocity_ortho_body_frame.norm();
+		mutex.lock();
 		UpdateTimeHorizon(speed);
 		UpdateMaxAcceleration(speed);
+		mutex.unlock();
 	}
 
 	void UpdateMaxAcceleration(double speed) {
