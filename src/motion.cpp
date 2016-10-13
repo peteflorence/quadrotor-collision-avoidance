@@ -49,7 +49,7 @@ Vector3 Motion::getPosition(Scalar const& t) const {
   }
   else {
     double t_left = t - jerk_time;
-    return position_end_of_jerk_time + 0.5*acceleration*t_left*t_left + initial_velocity*t_left;
+    return position_end_of_jerk_time + 0.5*acceleration*t_left*t_left + velocity_end_of_jerk_time*t_left;
   }
 };
 
@@ -120,7 +120,7 @@ Vector3 Motion::getPositionLASER(Scalar const& t) const {
   }
   else {
     double t_left = t - jerk_time;
-    return position_end_of_jerk_time_laser + 0.5*acceleration_laser*t_left*t_left + initial_velocity_laser*t_left;
+    return position_end_of_jerk_time_laser + 0.5*acceleration_laser*t_left*t_left + velocity_end_of_jerk_time_laser*t_left;
   }
 };
 
@@ -194,7 +194,7 @@ Vector3 Motion::getPositionRDF(Scalar const& t) const {
   }
   else {
     double t_left = t - jerk_time;
-    return position_end_of_jerk_time_rdf + 0.5*acceleration_rdf*t_left*t_left + initial_velocity_rdf*t_left;
+    return position_end_of_jerk_time_rdf + 0.5*acceleration_rdf*t_left*t_left + velocity_end_of_jerk_time_rdf*t_left;
   }
 };
 
