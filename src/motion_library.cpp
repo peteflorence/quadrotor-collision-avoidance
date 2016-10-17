@@ -104,7 +104,7 @@ size_t MotionLibrary::getNummotions() {
 };
 
 Vector3 MotionLibrary::getSigmaAtTime(double const& t) {
-	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.5) + 0.1*(initial_velocity.array().abs()).matrix());
+	return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity.array().abs()).matrix());
 };
 
 Vector3 MotionLibrary::getInverseSigmaAtTime(double const& t) {

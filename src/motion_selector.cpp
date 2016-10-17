@@ -243,7 +243,7 @@ void MotionSelector::EvaluateTerminalVelocityCost() {
     
     // cost on going too fast
     if (final_motion_speed > soft_top_speed) {
-      terminal_velocity_evaluations(i) -= 10.0*(soft_top_speed - final_motion_speed)*(soft_top_speed - final_motion_speed);
+      terminal_velocity_evaluations(i) -= 2.0*(soft_top_speed - final_motion_speed)*(soft_top_speed - final_motion_speed);
     }
 
     i++;
