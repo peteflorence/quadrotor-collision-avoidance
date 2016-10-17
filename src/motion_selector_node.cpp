@@ -556,25 +556,25 @@ private:
 
 	void OnDepthImage(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
 		// ROS_INFO("GOT POINT CLOUD");
-		DepthImageCollisionEvaluator* depth_image_collision_ptr = motion_selector.GetDepthImageCollisionEvaluatorPtr();
+		if (UseDepthImage()) {
+			DepthImageCollisionEvaluator* depth_image_collision_ptr = motion_selector.GetDepthImageCollisionEvaluatorPtr();
 
-		if (depth_image_collision_ptr != nullptr) {
+			if (depth_image_collision_ptr != nullptr) {
 
 
-			pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
-			pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
-			
-	    	pcl_conversions::toPCL(*point_cloud_msg, *cloud);
-	    	pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-	    	pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
+				pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
+				pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
+				
+		    	pcl_conversions::toPCL(*point_cloud_msg, *cloud);
+		    	pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+		    	pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
 
-	    	mutex.lock();
-			depth_image_collision_ptr->UpdatePointCloudPtr(xyz_cloud);
-			mutex.unlock();
+		    	mutex.lock();
+				depth_image_collision_ptr->UpdatePointCloudPtr(xyz_cloud);
+				mutex.unlock();
+			}
+			ReactToSampledPointCloud();
 		}
-		ReactToSampledPointCloud();
-
-		
 	
 	}
 
