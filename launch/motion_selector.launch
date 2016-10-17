@@ -1,31 +1,25 @@
 <launch>
-	
-    <arg name="soft_top_speed" default="3.0"/>
-    <arg name="acceleration_interpolation_min" default="3.5"/>
-    <arg name="acceleration_interpolation_max"  default="4.5"/>
-    <arg name="speed_at_acceleration_max" default="10.0"/>
 
-    <arg name="yaw_on" default="true"/>
-    <arg name="use_depth_image" default="false"/>
+  <arg name="use_global_planner" default="false"/>  
 
-    <arg name="flight_altitude" default="3.0"/>
-  
+  <arg name="soft_top_speed" default="3.0"/>
+  <arg name="acceleration_interpolation_min" default="3.5"/>
+  <arg name="acceleration_interpolation_max"  default="4.5"/>
+  <arg name="speed_at_acceleration_max" default="10.0"/>
+  <arg name="yaw_on" default="true"/>
+  <arg name="use_depth_image" default="false"/>
+  <arg name="flight_altitude" default="3.0"/>
 
-
-    <param name="soft_top_speed" type="double" value="$(arg soft_top_speed)"/>
+  <param name="soft_top_speed" type="double" value="$(arg soft_top_speed)"/>
 	<param name="acceleration_interpolation_min" type="double" value="$(arg acceleration_interpolation_min)"/>
-    <param name="acceleration_interpolation_max" type="double" value="$(arg acceleration_interpolation_max)"/>
-    <param name="speed_at_acceleration_max" type="double" value="$(arg speed_at_acceleration_max)"/>
-
+  <param name="acceleration_interpolation_max" type="double" value="$(arg acceleration_interpolation_max)"/>
+  <param name="speed_at_acceleration_max" type="double" value="$(arg speed_at_acceleration_max)"/>
 	<param name="yaw_on" type="bool" value="$(arg yaw_on)"/>
-    <param name="use_depth_image" type="bool" value="$(arg use_depth_image)"/>
-    
-    <param name="flight_altitude" type="double" value="$(arg flight_altitude)"/>
+  <param name="use_depth_image" type="bool" value="$(arg use_depth_image)"/>
+  <param name="flight_altitude" type="double" value="$(arg flight_altitude)"/>
 
-
-
-    <node pkg="motion_primitives" type="motion_selector_node" name="motion_selector" output="screen">
-        <remap from="/local_goal" to="/move_base_simple/goal" />
-    </node>
-   
+  <node pkg="motion_primitives" type="motion_selector_node" name="motion_selector" output="screen">
+    <remap from="/local_goal" to="/move_base_simple/goal" unless="$(arg use_global_planner)"/>
+  </node>
+ 
 </launch>
