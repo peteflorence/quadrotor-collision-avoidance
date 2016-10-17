@@ -2,7 +2,7 @@
 	
     <arg name="soft_top_speed" default="10.0"/>
     <arg name="acceleration_interpolation_min" default="1.5"/>
-    <arg name="acceleration_interpolation_max"  default="6.5"/>
+    <arg name="acceleration_interpolation_max"  default="3.5"/>
     <arg name="speed_at_acceleration_max" default="10.0"/>
 
     <arg name="yaw_on" default="true"/>

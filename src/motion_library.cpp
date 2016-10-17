@@ -49,7 +49,9 @@ void MotionLibrary::UpdateMaxAcceleration(double speed) {
 
 	for (size_t index = 0; index < motions.size(); index++) {
 		motions.at(index).setAccelerationMax(new_max_acceleration);
-		motions.at(index).ScaleAcceleration(new_max_acceleration/initial_max_acceleration);
+		if (index != 26-1) {
+			motions.at(index).ScaleAcceleration(new_max_acceleration/initial_max_acceleration);
+		}
 	}
 }
 
