@@ -135,22 +135,16 @@ public:
 		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
 		if (motion_library_ptr != nullptr) {
 
-			Vector3 initial_velocity_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getVelocity(0.0);
-			Vector3 normalized_vector_towards_carrot_ortho_body = carrot_ortho_body_frame / (carrot_ortho_body_frame.norm());
-			double initial_velocity_ortho_body_towards_carrot = initial_velocity_ortho_body.dot(normalized_vector_towards_carrot_ortho_body);
-
 			double time_to_eval = 0.5;
-			double best_acceleration_norm = (soft_top_speed_max - initial_velocity_ortho_body_towards_carrot) / time_to_eval;
+			Vector3 initial_velocity_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getVelocity(0.0);
+			Vector3 position_if_dont_accel = initial_velocity_ortho_body*time_to_eval;
+			Vector3 vector_towards_goal = (carrot_ortho_body_frame - position_if_dont_accel);
+			Vector3 best_acceleration = ((vector_towards_goal/vector_towards_goal.norm()) * soft_top_speed_max - initial_velocity_ortho_body) / time_to_eval;
 			double current_max_acceleration = motion_library_ptr->getNewMaxAcceleration();
-
-			if (best_acceleration_norm > current_max_acceleration) {
-				best_acceleration_norm = current_max_acceleration;
+			if (best_acceleration.norm() > current_max_acceleration) {
+				best_acceleration = best_acceleration * current_max_acceleration / best_acceleration.norm();
 			}
-			if (best_acceleration_norm < -current_max_acceleration) {
-				best_acceleration_norm = -current_max_acceleration;
-			}
-
-			Vector3 best_acceleration = normalized_vector_towards_carrot_ortho_body*best_acceleration_norm;
+		
 
 			motion_library_ptr->setBestAccelerationMotion(best_acceleration);
 		}
