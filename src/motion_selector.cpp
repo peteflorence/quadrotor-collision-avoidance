@@ -104,6 +104,20 @@ void MotionSelector::computeBestEuclideanMotion(Vector3 const& carrot_body_frame
       best_traj_objective_value = current_objective_value;
     }
   }
+
+  double angle_to_goal = 0;
+  if (carrot_body_frame(2) != 0) {
+    angle_to_goal = atan2(carrot_body_frame(1), carrot_body_frame(0));
+    if (angle_to_goal < 0.0) {
+      angle_to_goal = -1 * angle_to_goal;
+    }
+    angle_to_goal = 180.0/M_PI * angle_to_goal;
+  }
+
+  if ( (collision_probabilities(25) < 0.05) && (angle_to_goal < 2) && (carrot_body_frame.norm() > motion_library.getMotionFromIndex(25).getTerminalStopPosition(0.5).norm() ))  {
+    best_traj_index = 25;
+  }
+
   desired_acceleration = motion_library.getMotionFromIndex(best_traj_index).getAcceleration();
   last_desired_acceleration = desired_acceleration;
 };

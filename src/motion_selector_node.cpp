@@ -114,6 +114,7 @@ public:
 	     }
 	    mutex.unlock();
 
+	    std::cout << "best traj " << best_traj_index << std::endl;
 
       	mutex.lock();
 	    if (yaw_on) {
