@@ -114,8 +114,6 @@ public:
 	     }
 	    mutex.unlock();
 
-	    std::cout << "best traj " << best_traj_index << std::endl;
-
       	mutex.lock();
 	    if (yaw_on) {
 	    	SetYawFromMotion();
@@ -163,11 +161,13 @@ public:
 				// }
 
 				best_acceleration = best_acceleration * distance_to_carrot / stop_distance;
+				if (best_acceleration.norm() > current_max_acceleration) {
+					best_acceleration = best_acceleration * current_max_acceleration / best_acceleration.norm();
+				}
 				motion_library_ptr->setBestAccelerationMotion(best_acceleration);
 				stop_position = motion_library_ptr->getMotionFromIndex(26-1).getTerminalStopPosition(0.5);
 				stop_distance = stop_position.dot(vector_towards_goal/vector_towards_goal.norm());
 				counter_line_searches++;
-				std::cout << "searching " << counter_line_searches << std::endl;
 				
 			} 
 
