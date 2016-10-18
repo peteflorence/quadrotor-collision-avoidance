@@ -135,6 +135,7 @@ public:
 		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
 		if (motion_library_ptr != nullptr) {
 
+			// compute best acceleration in open field
 			double time_to_eval = 0.5;
 			Vector3 initial_velocity_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getVelocity(0.0);
 			Vector3 position_if_dont_accel = initial_velocity_ortho_body*time_to_eval;
@@ -144,9 +145,32 @@ public:
 			if (best_acceleration.norm() > current_max_acceleration) {
 				best_acceleration = best_acceleration * current_max_acceleration / best_acceleration.norm();
 			}
-		
-
 			motion_library_ptr->setBestAccelerationMotion(best_acceleration);
+
+			// if within stopping distance, compute best stopping acceleration
+			Vector3 stop_position = motion_library_ptr->getMotionFromIndex(26-1).getTerminalStopPosition(0.5);
+			double stop_distance = stop_position.dot(vector_towards_goal/vector_towards_goal.norm());
+			double distance_to_carrot = carrot_ortho_body_frame(0);
+			
+
+			int max_line_searches = 10;
+			int counter_line_searches = 0;
+			while ( (stop_distance > distance_to_carrot) && (counter_line_searches < max_line_searches) ) {
+				// double best_acceleration_magnitude = 2 * (distance_to_carrot - initial_velocity_ortho_body(0)*time_to_eval) / (time_to_eval*time_to_eval); 
+				// best_acceleration = best_acceleration * best_acceleration_magnitude / best_acceleration.norm();
+				// if (best_acceleration.norm() > current_max_acceleration) {
+				// 	best_acceleration = best_acceleration * current_max_acceleration / best_acceleration.norm();
+				// }
+
+				best_acceleration = best_acceleration * distance_to_carrot / stop_distance;
+				motion_library_ptr->setBestAccelerationMotion(best_acceleration);
+				stop_position = motion_library_ptr->getMotionFromIndex(26-1).getTerminalStopPosition(0.5);
+				stop_distance = stop_position.dot(vector_towards_goal/vector_towards_goal.norm());
+				counter_line_searches++;
+				std::cout << "searching " << counter_line_searches << std::endl;
+				
+			} 
+
 		}
 		mutex.unlock();
 	}
