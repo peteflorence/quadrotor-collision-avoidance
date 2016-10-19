@@ -114,15 +114,16 @@ public:
 	     }
 	    mutex.unlock();
 
-
       	mutex.lock();
 	    if (yaw_on) {
 	    	SetYawFromMotion();
 	    } 
 	    mutex.unlock();
 		
+		mutex.lock();
       	Eigen::Matrix<Scalar, 26, 1> collision_probabilities = motion_selector.getCollisionProbabilities();
 		motion_visualizer.setCollisionProbabilities(collision_probabilities);
+		mutex.unlock();
 
 		PublishCurrentAttitudeSetpoint();
 	}
@@ -132,31 +133,42 @@ public:
 		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
 		if (motion_library_ptr != nullptr) {
 
-			Vector3 initial_velocity_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getVelocity(0.0);
-			Vector3 normalized_vector_towards_carrot_ortho_body = carrot_ortho_body_frame / (carrot_ortho_body_frame.norm());
-			double initial_velocity_ortho_body_towards_carrot = initial_velocity_ortho_body.dot(normalized_vector_towards_carrot_ortho_body);
-
+			// compute best acceleration in open field
 			double time_to_eval = 0.5;
-			double best_acceleration_norm = (soft_top_speed_max - initial_velocity_ortho_body_towards_carrot) / time_to_eval;
+			Vector3 initial_velocity_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getVelocity(0.0);
+			Vector3 position_if_dont_accel = initial_velocity_ortho_body*time_to_eval;
+			Vector3 vector_towards_goal = (carrot_ortho_body_frame - position_if_dont_accel);
+			Vector3 best_acceleration = ((vector_towards_goal/vector_towards_goal.norm()) * soft_top_speed_max - initial_velocity_ortho_body) / time_to_eval;
 			double current_max_acceleration = motion_library_ptr->getNewMaxAcceleration();
-
-			if (best_acceleration_norm > current_max_acceleration) {
-				best_acceleration_norm = current_max_acceleration;
+			if (best_acceleration.norm() > current_max_acceleration) {
+				best_acceleration = best_acceleration * current_max_acceleration / best_acceleration.norm();
 			}
-			if (best_acceleration_norm < -current_max_acceleration) {
-				best_acceleration_norm = -current_max_acceleration;
-			}
-			Vector3 best_acceleration = normalized_vector_towards_carrot_ortho_body*best_acceleration_norm;
-
 			motion_library_ptr->setBestAccelerationMotion(best_acceleration);
-			Vector3 stop_position = motion_library_ptr->getMotionFromIndex(26-1).getTerminalStopPosition(0.5);
-			double stop_distance = stop_position.dot(normalized_vector_towards_carrot_ortho_body);
 
-			double distance_to_carrot = carrot_ortho_body_frame.norm();
-			if (stop_distance > distance_to_carrot) {
-				best_acceleration_norm = -0.5*(initial_velocity_ortho_body_towards_carrot*initial_velocity_ortho_body_towards_carrot)/distance_to_carrot;
-				best_acceleration = normalized_vector_towards_carrot_ortho_body*best_acceleration_norm;
+			// if within stopping distance, compute best stopping acceleration
+			Vector3 stop_position = motion_library_ptr->getMotionFromIndex(26-1).getTerminalStopPosition(0.5);
+			double stop_distance = stop_position.dot(vector_towards_goal/vector_towards_goal.norm());
+			double distance_to_carrot = carrot_ortho_body_frame(0);
+			
+
+			int max_line_searches = 10;
+			int counter_line_searches = 0;
+			while ( (stop_distance > distance_to_carrot) && (counter_line_searches < max_line_searches) ) {
+				// double best_acceleration_magnitude = 2 * (distance_to_carrot - initial_velocity_ortho_body(0)*time_to_eval) / (time_to_eval*time_to_eval); 
+				// best_acceleration = best_acceleration * best_acceleration_magnitude / best_acceleration.norm();
+				// if (best_acceleration.norm() > current_max_acceleration) {
+				// 	best_acceleration = best_acceleration * current_max_acceleration / best_acceleration.norm();
+				// }
+
+				best_acceleration = best_acceleration * distance_to_carrot / stop_distance;
+				if (best_acceleration.norm() > current_max_acceleration) {
+					best_acceleration = best_acceleration * current_max_acceleration / best_acceleration.norm();
+				}
 				motion_library_ptr->setBestAccelerationMotion(best_acceleration);
+				stop_position = motion_library_ptr->getMotionFromIndex(26-1).getTerminalStopPosition(0.5);
+				stop_distance = stop_position.dot(vector_towards_goal/vector_towards_goal.norm());
+				counter_line_searches++;
+				
 			} 
 
 		}
@@ -164,13 +176,21 @@ public:
 	}
 
 	void PublishCurrentAttitudeSetpoint() {
-		attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
+		mutex.lock();
+		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
+		mutex.unlock();
 		SetThrustForLibrary(attitude_thrust_desired(2));
 		PublishAttitudeSetpoint(attitude_thrust_desired);
 	}
 
 	bool UseDepthImage() {
 		return use_depth_image;
+	}
+
+	void drawAll() {
+		mutex.lock();
+		motion_visualizer.drawAll();
+		mutex.unlock();
 	}
 
 private:
@@ -423,8 +443,10 @@ private:
 		velocity_ortho_body_frame(2) = 0.0;  // WARNING for 2D only
 		UpdateMotionLibraryVelocity(velocity_ortho_body_frame);
 		double speed = velocity_ortho_body_frame.norm();
+		mutex.lock();
 		UpdateTimeHorizon(speed);
 		UpdateMaxAcceleration(speed);
+		mutex.unlock();
 	}
 
 	void UpdateMaxAcceleration(double speed) {
@@ -601,6 +623,26 @@ private:
 		
 		// uncomment below for bearing control
 		//nh.param("bearing_azimuth_degrees", bearing_azimuth_degrees, 0.0);
+
+		mutex.lock();
+
+		// // Limit size of bearing errors
+		double bearing_error_cap = 30;
+		double actual_bearing_azimuth_degrees = -pose_global_yaw * 180.0/M_PI;
+		double actual_bearing_error = bearing_azimuth_degrees - actual_bearing_azimuth_degrees;
+		while(actual_bearing_error > 180) { 
+			actual_bearing_error -= 360;
+		}
+		while(actual_bearing_error < -180) { 
+			actual_bearing_error += 360;
+		}
+		if (actual_bearing_error > bearing_error_cap) {
+			bearing_azimuth_degrees = actual_bearing_azimuth_degrees + bearing_error_cap;
+		}
+		if (actual_bearing_error < -bearing_error_cap) {
+			bearing_azimuth_degrees = actual_bearing_azimuth_degrees - bearing_error_cap;
+		}
+
 		double bearing_error = bearing_azimuth_degrees - set_bearing_azimuth_degrees;
 
 		while(bearing_error > 180) { 
@@ -627,10 +669,13 @@ private:
 			set_bearing_azimuth_degrees += 360.0;
 		}
 
+
 		Matrix3f m;
 		m =AngleAxisf(-set_bearing_azimuth_degrees*M_PI/180.0, Vector3f::UnitZ())
 		* AngleAxisf(roll_pitch_thrust(1), Vector3f::UnitY())
 		* AngleAxisf(-roll_pitch_thrust(0), Vector3f::UnitX());
+
+		mutex.unlock();
 
 		Quaternionf q(m);
 
@@ -694,7 +739,6 @@ private:
 
 	size_t best_traj_index = 0;
 	Vector3 desired_acceleration;
-	Vector3 attitude_thrust_desired;
 
 	MotionSelector motion_selector;
 	AttitudeGenerator attitude_generator;
@@ -746,7 +790,7 @@ int main(int argc, char* argv[]) {
 		counter++;
 		if (counter > 3) {
 			counter = 0;
-			motion_selector_node.motion_visualizer.drawAll();
+			motion_selector_node.drawAll();
 			if (!motion_selector_node.UseDepthImage()) {
 				motion_selector_node.ReactToSampledPointCloud();
 			}

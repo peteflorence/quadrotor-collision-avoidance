@@ -2,7 +2,7 @@
 
 void MotionLibrary::Initialize2DLibrary(double a_max_horizontal, double min_speed_at_max_acceleration_total, double max_acceleration_total) {
 
-    this->min_speed_at_max_acceleration_total = min_speed_at_max_acceleration_total;
+    this->speed_at_acceleration_max = min_speed_at_max_acceleration_total;
     this->max_acceleration_total = max_acceleration_total;
 	initial_max_acceleration = a_max_horizontal;
 	
@@ -44,21 +44,24 @@ void MotionLibrary::Initialize2DLibrary(double a_max_horizontal, double min_spee
 };
 
 void MotionLibrary::UpdateMaxAcceleration(double speed) {
-	double speed_truncated = speed;
 
-	if (speed_truncated > min_speed_at_max_acceleration_total) {
-		speed_truncated = min_speed_at_max_acceleration_total;
-	}
-
-	double added_scale_max_acceleration = speed_truncated/min_speed_at_max_acceleration_total * (max_acceleration_total - initial_max_acceleration)/initial_max_acceleration;
-
-	double scale_max_acceleration = 1.0 + added_scale_max_acceleration;
-	new_max_acceleration = initial_max_acceleration * scale_max_acceleration;
+	new_max_acceleration = ComputeNewMaxAcceleration(speed);
 
 	for (size_t index = 0; index < motions.size(); index++) {
 		motions.at(index).setAccelerationMax(new_max_acceleration);
-		motions.at(index).ScaleAcceleration(scale_max_acceleration);
+		if (index != 26-1) {
+			motions.at(index).ScaleAcceleration(new_max_acceleration/initial_max_acceleration);
+		}
 	}
+}
+
+double MotionLibrary::ComputeNewMaxAcceleration(double speed) {
+	if (speed > speed_at_acceleration_max) {
+		return max_acceleration_total;
+	}
+
+	return speed * (max_acceleration_total - initial_max_acceleration) / speed_at_acceleration_max + initial_max_acceleration;
+
 }
 
 double MotionLibrary::getNewMaxAcceleration() const {
@@ -103,7 +106,7 @@ size_t MotionLibrary::getNummotions() {
 };
 
 Vector3 MotionLibrary::getSigmaAtTime(double const& t) {
-	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.5) + 0.1*(initial_velocity.array().abs()).matrix());
+	return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity.array().abs()).matrix());
 };
 
 Vector3 MotionLibrary::getInverseSigmaAtTime(double const& t) {
@@ -187,5 +190,5 @@ void MotionLibrary::setMaxAccelerationTotal(double max_accel) {
 }
 
 void MotionLibrary::setMinSpeedAtMaxAccelerationTotal(double speed) {
-  this->min_speed_at_max_acceleration_total = speed;
+  this->speed_at_acceleration_max = speed;
 }

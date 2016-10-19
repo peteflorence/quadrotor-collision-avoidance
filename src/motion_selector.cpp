@@ -104,6 +104,20 @@ void MotionSelector::computeBestEuclideanMotion(Vector3 const& carrot_body_frame
       best_traj_objective_value = current_objective_value;
     }
   }
+
+  double angle_to_goal = 0;
+  if (carrot_body_frame(2) != 0) {
+    angle_to_goal = atan2(carrot_body_frame(1), carrot_body_frame(0));
+    if (angle_to_goal < 0.0) {
+      angle_to_goal = -1 * angle_to_goal;
+    }
+    angle_to_goal = 180.0/M_PI * angle_to_goal;
+  }
+
+  if ( (collision_probabilities(25) < 0.05) && (angle_to_goal < 10) && (carrot_body_frame.norm() > motion_library.getMotionFromIndex(25).getTerminalStopPosition(0.5).norm() ))  {
+    best_traj_index = 25;
+  }
+
   desired_acceleration = motion_library.getMotionFromIndex(best_traj_index).getAcceleration();
   last_desired_acceleration = desired_acceleration;
 };
@@ -243,7 +257,7 @@ void MotionSelector::EvaluateTerminalVelocityCost() {
     
     // cost on going too fast
     if (final_motion_speed > soft_top_speed) {
-      terminal_velocity_evaluations(i) -= 10.0*(soft_top_speed - final_motion_speed)*(soft_top_speed - final_motion_speed);
+      terminal_velocity_evaluations(i) -= 2.0*(soft_top_speed - final_motion_speed)*(soft_top_speed - final_motion_speed);
     }
 
     i++;
@@ -375,7 +389,7 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> MotionSelector::sampleMotionForDrawing(
       sample_points_xyz_over_time.row(time_index) = motion_to_sample.getPosition(sampling_time);
     }
     else {
-      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getPosition(sampling_time);
+      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getTerminalStopPosition(sampling_time);
     }
   }
   return sample_points_xyz_over_time;

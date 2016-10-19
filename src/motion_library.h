@@ -37,6 +37,7 @@ public:
   void setBestAccelerationMotion(Vector3 best_acceleration);
 
   void UpdateMaxAcceleration(double speed);
+  double ComputeNewMaxAcceleration(double speed);
 
   Motion getMotionFromIndex(size_t index);
   size_t getNummotions();
@@ -99,7 +100,7 @@ private:
   double initial_max_acceleration = 0.0;
   double new_max_acceleration;
 
-  double min_speed_at_max_acceleration_total = 5.0;
+  double speed_at_acceleration_max = 5.0;
   double max_acceleration_total = 4.0;
 
 };
