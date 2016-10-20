@@ -114,7 +114,7 @@ void MotionSelector::computeBestEuclideanMotion(Vector3 const& carrot_body_frame
     angle_to_goal = 180.0/M_PI * angle_to_goal;
   }
 
-  if ( (collision_probabilities(25) < 0.05) && (angle_to_goal < 10) && (carrot_body_frame.norm() > motion_library.getMotionFromIndex(25).getTerminalStopPosition(0.5).norm() ))  {
+  if ( (collision_probabilities(25) < 0.05) && (angle_to_goal < 30) && (carrot_body_frame.norm() > motion_library.getMotionFromIndex(25).getTerminalStopPosition(0.5).norm() ))  {
     best_traj_index = 25;
   }
 
