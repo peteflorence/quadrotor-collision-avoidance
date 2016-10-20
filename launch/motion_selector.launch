@@ -2,7 +2,7 @@
 
   <arg name="use_global_planner" default="false"/>  
 
-  <arg name="soft_top_speed" default="15.0"/>
+  <arg name="soft_top_speed" default="5.0"/>
   <arg name="acceleration_interpolation_min" default="1.5"/>
   <arg name="acceleration_interpolation_max"  default="6.5"/>
   <arg name="speed_at_acceleration_max" default="10.0"/>
