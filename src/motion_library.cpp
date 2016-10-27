@@ -106,7 +106,18 @@ size_t MotionLibrary::getNummotions() {
 };
 
 Vector3 MotionLibrary::getSigmaAtTime(double const& t) {
-	return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity.array().abs()).matrix());
+	//return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity.array().abs()).matrix());
+	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.1) + 0.1*Vector3(1.0,1.0,0.0)*(initial_velocity.norm()) );
+};
+
+Vector3 MotionLibrary::getLASERSigmaAtTime(double const& t) {
+	//return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity_laser_frame.array().abs()).matrix());
+	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.1) + 0.1*Vector3(1.0,1.0,0.0)*(initial_velocity.norm()) );
+};
+
+Vector3 MotionLibrary::getRDFSigmaAtTime(double const& t) const {
+	//return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity_rdf_frame.array().abs()).matrix());
+	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.1,0.5) + 0.1*Vector3(1.0,0.0,1.0)*(initial_velocity.norm()) );
 };
 
 Vector3 MotionLibrary::getInverseSigmaAtTime(double const& t) {
@@ -130,10 +141,6 @@ void MotionLibrary::setInitialVelocityLASER(Vector3 const& initial_velocity_lase
 	return;
 };
 
-Vector3 MotionLibrary::getLASERSigmaAtTime(double const& t) {
-	return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity_laser_frame.array().abs()).matrix());
-};
-
 Vector3 MotionLibrary::getLASERInverseSigmaAtTime(double const& t) {
 	Vector3 LASERsigma = getLASERSigmaAtTime(t);
 	return Vector3(1.0/LASERsigma(0), 1.0/LASERsigma(1), 1.0/LASERsigma(2));
@@ -153,10 +160,6 @@ void MotionLibrary::setInitialVelocityRDF(Vector3 const& initial_velocity_rdf_fr
 		motions.at(index).setInitialVelocityRDF(initial_velocity_rdf_frame);
 	}
 	return;
-};
-
-Vector3 MotionLibrary::getRDFSigmaAtTime(double const& t) const {
-	return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity_rdf_frame.array().abs()).matrix());
 };
 
 std::vector<Vector3> MotionLibrary::getRDFSampledInitialVelocity(size_t n) {
