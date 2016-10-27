@@ -39,7 +39,6 @@ public:
 		pose_sub = nh.subscribe("/pose", 1, &MotionSelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/twist", 1, &MotionSelectorNode::OnVelocity, this);
   	    depth_image_sub = nh.subscribe("/flight/r200/points_xyz_filt", 1, &MotionSelectorNode::OnDepthImage, this);
-  	    //global_goal_sub = nh.subscribe("/move_base_simple/goal", 1, &MotionSelectorNode::OnGlobalGoal, this);
   	    local_goal_sub = nh.subscribe("/local_goal", 1, &MotionSelectorNode::OnLocalGoal, this);
   	    //value_grid_sub = nh.subscribe("/value_grid", 1, &MotionSelectorNode::OnValueGrid, this);
   	    // laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &MotionSelectorNode::OnScan, this);
@@ -145,21 +144,14 @@ public:
 			}
 			motion_library_ptr->setBestAccelerationMotion(best_acceleration);
 
-			// if within stopping distance, compute best stopping acceleration
+			// if within stopping distance, line search for best stopping acceleration
 			Vector3 stop_position = motion_library_ptr->getMotionFromIndex(26-1).getTerminalStopPosition(0.5);
 			double stop_distance = stop_position.dot(vector_towards_goal/vector_towards_goal.norm());
 			double distance_to_carrot = carrot_ortho_body_frame(0);
 			
-
 			int max_line_searches = 10;
 			int counter_line_searches = 0;
 			while ( (stop_distance > distance_to_carrot) && (counter_line_searches < max_line_searches) ) {
-				// double best_acceleration_magnitude = 2 * (distance_to_carrot - initial_velocity_ortho_body(0)*time_to_eval) / (time_to_eval*time_to_eval); 
-				// best_acceleration = best_acceleration * best_acceleration_magnitude / best_acceleration.norm();
-				// if (best_acceleration.norm() > current_max_acceleration) {
-				// 	best_acceleration = best_acceleration * current_max_acceleration / best_acceleration.norm();
-				// }
-
 				best_acceleration = best_acceleration * distance_to_carrot / stop_distance;
 				if (best_acceleration.norm() > current_max_acceleration) {
 					best_acceleration = best_acceleration * current_max_acceleration / best_acceleration.norm();
@@ -167,8 +159,7 @@ public:
 				motion_library_ptr->setBestAccelerationMotion(best_acceleration);
 				stop_position = motion_library_ptr->getMotionFromIndex(26-1).getTerminalStopPosition(0.5);
 				stop_distance = stop_position.dot(vector_towards_goal/vector_towards_goal.norm());
-				counter_line_searches++;
-				
+				counter_line_searches++;	
 			} 
 
 		}
@@ -178,8 +169,8 @@ public:
 	void PublishCurrentAttitudeSetpoint() {
 		mutex.lock();
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
-		mutex.unlock();
 		SetThrustForLibrary(attitude_thrust_desired(2));
+		mutex.unlock();
 		PublishAttitudeSetpoint(attitude_thrust_desired);
 	}
 
@@ -232,12 +223,6 @@ private:
 				while(bearing_error < -180) { 
 					bearing_error += 360;
 				}
-				//ROS_WARN("set_bearing_azimuth_degrees %f", set_bearing_azimuth_degrees);
-				//ROS_WARN("bearing_azimuth_degrees %f", bearing_azimuth_degrees);
-				//ROS_WARN("potential_bearing_azimuth_degrees %f", potential_bearing_azimuth_degrees);
-				//ROS_WARN("bearing_error %f", bearing_error);
-				//ROS_WARN("pose_global_yaw %f", pose_global_yaw);
-				//ROS_WARN("actual_bearing_azimuth_degrees %f", actual_bearing_azimuth_degrees);
 
 				if (abs(bearing_error) < 60.0)  {
 					motion_selector.SetSoftTopSpeed(soft_top_speed_max);
@@ -310,9 +295,7 @@ private:
 	    geometry_msgs::PoseStamped pose_global_goal_ortho_body_frame = PoseFromVector3(Vector3(0,0,0), "ortho_body");
 	   
 	    tf2::doTransform(pose_global_goal_world_frame, pose_global_goal_ortho_body_frame, tf);
-	    mutex.lock();
 	    carrot_ortho_body_frame = VectorFromPose(pose_global_goal_ortho_body_frame);
-	    mutex.unlock();
 	}
 
 	void UpdateAttitudeGeneratorRollPitch(double roll, double pitch) {
@@ -338,12 +321,15 @@ private:
 		double roll, pitch, yaw;
 		tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
 
+		mutex.lock();
 		UpdateMotionLibraryRollPitch(roll, pitch);
 		UpdateAttitudeGeneratorRollPitch(roll, pitch);
 		PublishOrthoBodyTransform(roll, pitch);
 		UpdateCarrotOrthoBodyFrame();
-		ComputeBestAccelerationMotion();
 		UpdateLaserRDFFramesFromPose();
+		mutex.unlock();
+
+		ComputeBestAccelerationMotion();
 
 		mutex.lock();
 		SetPose(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, yaw);
@@ -441,10 +427,11 @@ private:
 		Vector3 velocity_world_frame(twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z);
 		Vector3 velocity_ortho_body_frame = TransformWorldToOrthoBody(velocity_world_frame);
 		velocity_ortho_body_frame(2) = 0.0;  // WARNING for 2D only
+		
+		mutex.lock();
 		UpdateMotionLibraryVelocity(velocity_ortho_body_frame);
 		double speed = velocity_ortho_body_frame.norm();
-		mutex.lock();
-		UpdateTimeHorizon(speed);
+		//UpdateTimeHorizon(speed);
 		UpdateMaxAcceleration(speed);
 		mutex.unlock();
 	}
@@ -468,20 +455,6 @@ private:
 		motion_selector.UpdateTimeHorizon(final_time);
 	}
 	
-	void OnGlobalGoal(geometry_msgs::PoseStamped const& global_goal) {
-		//ROS_INFO("GOT GLOBAL GOAL");
-		carrot_world_frame << global_goal.pose.position.x, global_goal.pose.position.y, flight_altitude; 
-		UpdateCarrotOrthoBodyFrame();
-
-		// if (yaw_on) {
-		// 	if (carrot_world_frame.norm() > 5 && (global_goal.pose.position.x - pose_global_x) != 0) {
-		// 		bearing_azimuth_degrees = 180.0/M_PI*atan2(-(global_goal.pose.position.y - pose_global_y), global_goal.pose.position.x - pose_global_x);
-		// 	}
-		// }
-		std::cout << "bearing_azimuth_degrees is " << bearing_azimuth_degrees << std::endl;
-
-	}
-
 	Vector3 TransformOrthoBodyToWorld(Vector3 const& ortho_body_frame) {
 		geometry_msgs::TransformStamped tf;
 	    try {
@@ -551,8 +524,10 @@ private:
 
 	void OnLocalGoal(geometry_msgs::PoseStamped const& local_goal) {
 		//ROS_INFO("GOT LOCAL GOAL");
+		mutex.lock();
 		carrot_world_frame << local_goal.pose.position.x, local_goal.pose.position.y, flight_altitude; 
 		UpdateCarrotOrthoBodyFrame();
+		mutex.unlock();
 
 		visualization_msgs::Marker marker;
 		marker.header.frame_id = "ortho_body";
@@ -597,22 +572,11 @@ private:
 			}
 			ReactToSampledPointCloud();
 		}
-	
 	}
-
-	
 
 	void PublishAttitudeSetpoint(Vector3 const& roll_pitch_thrust) { 
 
 		using namespace Eigen;
-
-		// Vector3 pid;
-		// double offset;
-		// nh.param("z_p", pid(0), 1.5);
-		// nh.param("z_i", pid(1), 0.6);
-		// nh.param("z_d", pid(2), 0.5);
-		// nh.param("z_offset", offset, 0.69);
-		// attitude_generator.setGains(pid, offset);
 
 		mavros_msgs::AttitudeTarget setpoint_msg;
 		setpoint_msg.header.stamp = ros::Time::now();
@@ -621,9 +585,6 @@ private:
 			| mavros_msgs::AttitudeTarget::IGNORE_YAW_RATE
 			;
 		
-		// uncomment below for bearing control
-		//nh.param("bearing_azimuth_degrees", bearing_azimuth_degrees, 0.0);
-
 		mutex.lock();
 
 		// // Limit size of bearing errors
@@ -669,7 +630,6 @@ private:
 			set_bearing_azimuth_degrees += 360.0;
 		}
 
-
 		Matrix3f m;
 		m =AngleAxisf(-set_bearing_azimuth_degrees*M_PI/180.0, Vector3f::UnitZ())
 		* AngleAxisf(roll_pitch_thrust(1), Vector3f::UnitY())
@@ -687,19 +647,6 @@ private:
 		setpoint_msg.thrust = roll_pitch_thrust(2);
 
 		attitude_thrust_pub.publish(setpoint_msg);
-
-		// To visualize setpoint
-
-		// geometry_msgs::PoseStamped attitude_setpoint;
-		// attitude_setpoint.header.frame_id = "world";
-		// attitude_setpoint.header.stamp = ros::Time::now();
-		// Vector3 initial_acceleration = motion_selector.getInitialAcceleration();
-		// attitude_setpoint.pose.position.x = initial_acceleration(0);
-		// attitude_setpoint.pose.position.y = initial_acceleration(1);
-		// attitude_setpoint.pose.position.z = initial_acceleration(2)+5;
-		// attitude_setpoint.pose.orientation = setpoint_msg.orientation;
-		// attitude_setpoint_visualization_pub.publish( attitude_setpoint );
-
 	}
 
 
@@ -785,7 +732,6 @@ int main(int argc, char* argv[]) {
   //     		<< std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
   //     		<< " microseconds\n";
 		motion_selector_node.PublishCurrentAttitudeSetpoint();
-		//motion_selector_node.ReactToSampledPointCloud();
 
 		counter++;
 		if (counter > 3) {
