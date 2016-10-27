@@ -52,22 +52,22 @@ public:
 		//attitude_setpoint_visualization_pub = nh.advertise<geometry_msgs::PoseStamped>("attitude_setpoint", 1);
 
 		// Initialization
-		double a_max_horizontal;
+		double acceleration_interpolation_min;
 		double soft_top_speed;
-        double min_speed_at_max_acceleration_total;
-        double max_acceleration_total;
+        double speed_at_acceleration_max;
+        double acceleration_interpolation_max;
 
 		nh.param("soft_top_speed", soft_top_speed, 2.0);
-		nh.param("acceleration_interpolation_min", a_max_horizontal, 3.5);
+		nh.param("acceleration_interpolation_min", acceleration_interpolation_min, 3.5);
 		nh.param("yaw_on", yaw_on, false);
 		nh.param("use_depth_image", use_depth_image, true);
-        nh.param("speed_at_acceleration_max", min_speed_at_max_acceleration_total, 10.0);
-        nh.param("acceleration_interpolation_max", max_acceleration_total, 4.0);
+        nh.param("speed_at_acceleration_max", speed_at_acceleration_max, 10.0);
+        nh.param("acceleration_interpolation_max", acceleration_interpolation_max, 4.0);
         nh.param("flight_altitude", flight_altitude, 1.2);
 
 		this->soft_top_speed_max = soft_top_speed;
 
-		motion_selector.InitializeLibrary(final_time, soft_top_speed, a_max_horizontal, min_speed_at_max_acceleration_total, max_acceleration_total);
+		motion_selector.InitializeLibrary(final_time, soft_top_speed, acceleration_interpolation_min, speed_at_acceleration_max, acceleration_interpolation_max);
 		attitude_generator.setZsetpoint(flight_altitude);
 
 		motion_visualizer.initialize(&motion_selector, nh, &best_traj_index, final_time);
@@ -99,7 +99,7 @@ public:
 
 	void ReactToSampledPointCloud() {
 
-		
+
 		auto t1 = std::chrono::high_resolution_clock::now();
 		
 		mutex.lock();
