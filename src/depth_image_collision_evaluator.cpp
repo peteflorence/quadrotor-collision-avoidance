@@ -56,21 +56,34 @@ bool DepthImageCollisionEvaluator::IsOutsideDeadBand(Vector3 robot_position) {
     return (robot_position.squaredNorm() > 0.5);
 }
 
-bool DepthImageCollisionEvaluator::IsOutsideFOV(Vector3 robot_position) {
+double DepthImageCollisionEvaluator::IsOutsideFOV(Vector3 robot_position) {
     Vector3 projected = K * robot_position;
     int pi_x = projected(0)/projected(2); 
     int pi_y = projected(1)/projected(2);
 
+    // Checks if outside left/right FOV
     if ( (pi_x < 0) || (pi_x > (num_x_pixels - 1)) ) {
-        return true;
+        return 0.1;
     }
-    return false;
-    // else if (pi_y < 0) { // ignore if it's under because this is preventing me from slowing down
-    //   return true;
-    // }
-    // else if (robot_position(2) > 10.0) {
-    //   return true;
-    // }
+
+    // Checks if above top/bottom FOV
+    if (pi_y < 0) {
+      return 0.0; 
+    }
+    if (pi_y > (num_y_pixels - 1)) {
+      return 0.0; 
+    }
+
+    // Checks for occlusion
+    pcl::PointXYZ point_at_projected_pixel = xyz_cloud_ptr->at(pi_x,pi_y);
+    if (isnan(point_at_projected_pixel.z)) { 
+      return 0.0;
+    }
+    if( robot_position(2) >  point_at_projected_pixel.z) {
+      return 0.999;
+    }
+
+    return 0.0;
 }
 
 double DepthImageCollisionEvaluator::AddOutsideFOVPenalty(Vector3 robot_position, double probability_of_collision) {
@@ -78,9 +91,7 @@ double DepthImageCollisionEvaluator::AddOutsideFOVPenalty(Vector3 robot_position
       return ThresholdSigmoid(probability_of_collision + 0.5);
     }
     if (IsOutsideDeadBand(robot_position)) {
-      if (IsOutsideFOV(robot_position)) {
-          return ThresholdSigmoid(probability_of_collision + 0.1);
-      }
+      return ThresholdSigmoid(IsOutsideFOV(robot_position));
     }
     return ThresholdSigmoid(probability_of_collision);
 }

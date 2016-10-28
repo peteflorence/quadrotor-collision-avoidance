@@ -27,7 +27,7 @@ public:
 
   bool IsBehind(Vector3 robot_position);
   bool IsOutsideDeadBand(Vector3 robot_position);
-  bool IsOutsideFOV(Vector3 robot_position);
+  double IsOutsideFOV(Vector3 robot_position);
   double AddOutsideFOVPenalty(Vector3 robot_position, double probability_of_collision);
   
   double computeProbabilityOfCollisionNPositionsKDTree_DepthImage(Vector3 const& robot_position, Vector3 const& sigma_robot_position);
