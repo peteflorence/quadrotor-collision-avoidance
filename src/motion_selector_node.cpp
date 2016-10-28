@@ -9,6 +9,7 @@
 #include <sensor_msgs/PointCloud2.h>
 
 #include "tf/tf.h"
+#include <tf/transform_listener.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -17,6 +18,9 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl_ros/point_cloud.h>
+#include "pcl_ros/transforms.h"
+#include "pcl_ros/impl/transforms.hpp"
 
 #include <mutex>
 #include <cmath>
@@ -551,6 +555,20 @@ private:
 		carrot_pub.publish( marker );
 	}
 
+	void TransformToOrthoBodyPointCloud(const sensor_msgs::PointCloud2ConstPtr msg, pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud_out){
+	  	sensor_msgs::PointCloud2 msg_out;
+
+	  	listener.waitForTransform(msg->header.frame_id,"/ortho_body", ros::Time(0), ros::Duration(2));
+	  	pcl_ros::transformPointCloud("/ortho_body", *msg, msg_out, listener);
+
+		pcl::PCLPointCloud2* cloud2 = new pcl::PCLPointCloud2; 
+		pcl_conversions::toPCL(msg_out, *cloud2);
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::fromPCLPointCloud2(*cloud2,*cloud);
+
+		cloud_out = cloud;
+	}
+
 	void OnDepthImage(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
 		// ROS_INFO("GOT POINT CLOUD");
 		if (UseDepthImage()) {
@@ -558,16 +576,11 @@ private:
 
 			if (depth_image_collision_ptr != nullptr) {
 
-
-				pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
-				pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
-				
-		    	pcl_conversions::toPCL(*point_cloud_msg, *cloud);
-		    	pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-		    	pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
+		    	pcl::PointCloud<pcl::PointXYZ>::Ptr ortho_body_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+		    	TransformToOrthoBodyPointCloud(point_cloud_msg, ortho_body_cloud);
 
 		    	mutex.lock();
-				depth_image_collision_ptr->UpdatePointCloudPtr(xyz_cloud);
+				depth_image_collision_ptr->UpdatePointCloudPtr(ortho_body_cloud);
 				mutex.unlock();
 			}
 			ReactToSampledPointCloud();
@@ -664,8 +677,9 @@ private:
 	ros::Publisher attitude_setpoint_visualization_pub;
 
 	std::vector<ros::Publisher> action_paths_pubs;
-
+	tf::TransformListener listener;
 	std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+
 	tf2_ros::Buffer tf_buffer_;
 
 	double start_time = 0.0;
