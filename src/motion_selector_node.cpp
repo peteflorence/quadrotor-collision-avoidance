@@ -584,7 +584,7 @@ private:
 	}
 
 	void OnDepthImage(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
-		ROS_INFO("GOT POINT CLOUD");
+		// ROS_INFO("GOT POINT CLOUD");
 		if (UseDepthImage()) {
 			DepthImageCollisionEvaluator* depth_image_collision_ptr = motion_selector.GetDepthImageCollisionEvaluatorPtr();
 
