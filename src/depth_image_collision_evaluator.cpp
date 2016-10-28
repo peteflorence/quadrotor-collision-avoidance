@@ -91,7 +91,7 @@ double DepthImageCollisionEvaluator::AddOutsideFOVPenalty(Vector3 robot_position
       return ThresholdSigmoid(probability_of_collision + 0.5);
     }
     if (IsOutsideDeadBand(robot_position)) {
-      return ThresholdSigmoid(IsOutsideFOV(robot_position));
+      return ThresholdSigmoid(probability_of_collision + IsOutsideFOV(robot_position));
     }
     return ThresholdSigmoid(probability_of_collision);
 }
