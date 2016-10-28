@@ -8,7 +8,7 @@
   <arg name="speed_at_acceleration_max" default="10.0"/>
   <arg name="yaw_on" default="true"/>
   <arg name="use_depth_image" default="true"/>
-  <arg name="flight_altitude" default="2.0"/>
+  <arg name="flight_altitude" default="3.0"/>
 
   <param name="soft_top_speed" type="double" value="$(arg soft_top_speed)"/>
 	<param name="acceleration_interpolation_min" type="double" value="$(arg acceleration_interpolation_min)"/>
