@@ -291,7 +291,9 @@ void MotionSelector::EvaluateCollisionProbabilities() {
 double MotionSelector::computeProbabilityOfCollisionOneMotion(Motion motion) {
   double probability_no_collision = 1;
   double probability_no_collision_one_step = 1.0;
+  double probability_of_collision_one_step_one_depth = 1.0;
   Vector3 robot_position;
+  Vector3 robot_position_rdf;
   Vector3 sigma_robot_position;
 
   for (size_t time_step_index = 0; time_step_index < num_samples_collision; time_step_index++) {
@@ -300,8 +302,14 @@ double MotionSelector::computeProbabilityOfCollisionOneMotion(Motion motion) {
     probability_no_collision_one_step = 1 - depth_image_collision_evaluator.computeProbabilityOfCollisionNPositionsKDTree_Laser(robot_position, sigma_robot_position);
 
     sigma_robot_position = 0.1*motion_library.getSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
+    
     robot_position = motion.getPosition(collision_sampling_time_vector(time_step_index));
-    probability_no_collision_one_step = probability_no_collision_one_step * (1 - depth_image_collision_evaluator.computeProbabilityOfCollisionNPositionsKDTree_DepthImage(robot_position, sigma_robot_position));
+    robot_position_rdf = motion.getPositionRDF(collision_sampling_time_vector(time_step_index));
+    
+    probability_of_collision_one_step_one_depth = depth_image_collision_evaluator.computeProbabilityOfCollisionNPositionsKDTree_DepthImage(robot_position, sigma_robot_position);
+    probability_of_collision_one_step_one_depth = depth_image_collision_evaluator.AddOutsideFOVPenalty(robot_position_rdf, probability_of_collision_one_step_one_depth);
+
+    probability_no_collision_one_step = probability_no_collision_one_step * (1 - probability_of_collision_one_step_one_depth);
     
     // if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionKDTree(robot_position)) {
     //   return 1.0;

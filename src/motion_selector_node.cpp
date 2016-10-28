@@ -14,7 +14,6 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-#include <pcl/filters/voxel_grid.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -42,7 +41,7 @@ public:
 
 		pose_sub = nh.subscribe("/pose", 1, &MotionSelectorNode::OnPose, this);
 		velocity_sub = nh.subscribe("/twist", 1, &MotionSelectorNode::OnVelocity, this);
-  	    depth_image_sub = nh.subscribe("/flight/r200/points_xyz_filt", 1, &MotionSelectorNode::OnDepthImage, this);
+  	    depth_image_sub = nh.subscribe("/flight/r200/points_xyz", 1, &MotionSelectorNode::OnDepthImage, this);
   	    local_goal_sub = nh.subscribe("/local_goal", 1, &MotionSelectorNode::OnLocalGoal, this);
   	    //value_grid_sub = nh.subscribe("/value_grid", 1, &MotionSelectorNode::OnValueGrid, this);
   	    // laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &MotionSelectorNode::OnScan, this);
@@ -106,15 +105,12 @@ public:
 		auto t1 = std::chrono::high_resolution_clock::now();
 		
 		mutex.lock();
-		if (pose_global_z > 0.35) {
-			motion_selector.computeBestEuclideanMotion(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
 
-			// geometry_msgs::TransformStamped tf = GetTransformToWorld();
-			// motion_selector.computeBestDijkstraMotion(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
-	     }
-	     else {
-	     	motion_selector.computeTakeoffMotion(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
-	     }
+		motion_selector.computeBestEuclideanMotion(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
+
+		// geometry_msgs::TransformStamped tf = GetTransformToWorld();
+		// motion_selector.computeBestDijkstraMotion(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
+
 	    mutex.unlock();
 
       	mutex.lock();
@@ -558,8 +554,26 @@ private:
 	void TransformToOrthoBodyPointCloud(const sensor_msgs::PointCloud2ConstPtr msg, pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud_out){
 	  	sensor_msgs::PointCloud2 msg_out;
 
-	  	listener.waitForTransform(msg->header.frame_id,"/ortho_body", ros::Time(0), ros::Duration(2));
-	  	pcl_ros::transformPointCloud("/ortho_body", *msg, msg_out, listener);
+	  	geometry_msgs::TransformStamped tf;
+    	try {
+	     	tf = tf_buffer_.lookupTransform("ortho_body", "r200_depth_optical_frame",
+	                                    ros::Time(0), ros::Duration(1/30.0));
+	   		} catch (tf2::TransformException &ex) {
+	     	 	ROS_ERROR("%s", ex.what());
+      	return;
+    	}
+
+	  	Eigen::Quaternionf quat(tf.transform.rotation.w, tf.transform.rotation.x, tf.transform.rotation.y, tf.transform.rotation.z);
+	    Eigen::Matrix3f R = quat.toRotationMatrix();
+
+	    Eigen::Vector4f T = Eigen::Vector4f(tf.transform.translation.x,tf.transform.translation.y,tf.transform.translation.z, 1.0); 
+
+     	Eigen::Matrix4f transform_eigen; // Your Transformation Matrix
+		transform_eigen.setIdentity();   // Set to Identity to make bottom row of Matrix 0,0,0,1
+		transform_eigen.block<3,3>(0,0) = R;
+		transform_eigen.col(3) = T;
+
+	  	pcl_ros::transformPointCloud(transform_eigen, *msg, msg_out);
 
 		pcl::PCLPointCloud2* cloud2 = new pcl::PCLPointCloud2; 
 		pcl_conversions::toPCL(msg_out, *cloud2);
@@ -570,7 +584,7 @@ private:
 	}
 
 	void OnDepthImage(const sensor_msgs::PointCloud2ConstPtr& point_cloud_msg) {
-		// ROS_INFO("GOT POINT CLOUD");
+		ROS_INFO("GOT POINT CLOUD");
 		if (UseDepthImage()) {
 			DepthImageCollisionEvaluator* depth_image_collision_ptr = motion_selector.GetDepthImageCollisionEvaluatorPtr();
 
