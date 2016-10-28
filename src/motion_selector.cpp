@@ -299,8 +299,8 @@ double MotionSelector::computeProbabilityOfCollisionOneMotion(Motion motion) {
     robot_position = motion.getPositionLASER(collision_sampling_time_vector(time_step_index));
     probability_no_collision_one_step = 1 - depth_image_collision_evaluator.computeProbabilityOfCollisionNPositionsKDTree_Laser(robot_position, sigma_robot_position);
 
-    sigma_robot_position = 0.1*motion_library.getRDFSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
-    robot_position = motion.getPositionRDF(collision_sampling_time_vector(time_step_index));
+    sigma_robot_position = 0.1*motion_library.getSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
+    robot_position = motion.getPosition(collision_sampling_time_vector(time_step_index));
     probability_no_collision_one_step = probability_no_collision_one_step * (1 - depth_image_collision_evaluator.computeProbabilityOfCollisionNPositionsKDTree_DepthImage(robot_position, sigma_robot_position));
     
     // if (depth_image_collision_evaluator.computeDeterministicCollisionOnePositionKDTree(robot_position)) {
@@ -386,10 +386,10 @@ Eigen::Matrix<Scalar, Eigen::Dynamic, 3> MotionSelector::sampleMotionForDrawing(
   for (size_t time_index = 0; time_index < num_samples; time_index++) {
     sampling_time = sampling_time_vector(time_index);
     if (time_index < num_samples - 1) {
-      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getPositionRDF(sampling_time);
+      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getPosition(sampling_time);
     }
     else {
-      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getPositionRDF(sampling_time);
+      sample_points_xyz_over_time.row(time_index) = motion_to_sample.getPosition(sampling_time);
     }
   }
   return sample_points_xyz_over_time;
