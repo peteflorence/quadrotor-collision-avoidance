@@ -58,7 +58,6 @@ public:
 		double soft_top_speed;
         double speed_at_acceleration_max;
         double acceleration_interpolation_max;
-        bool use_3d_library;
 
 		nh.param("soft_top_speed", soft_top_speed, 2.0);
 		nh.param("acceleration_interpolation_min", acceleration_interpolation_min, 3.5);
@@ -170,10 +169,25 @@ public:
 
 	void PublishCurrentAttitudeSetpoint() {
 		mutex.lock();
+		if (use_3d_library) {
+			AltitudeFeedbackOnBestMotion();
+		}
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 		SetThrustForLibrary(attitude_thrust_desired(2));
 		mutex.unlock();
 		PublishAttitudeSetpoint(attitude_thrust_desired);
+	}
+
+	void AltitudeFeedbackOnBestMotion() {
+		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
+		if (motion_library_ptr != nullptr) {
+				Motion best_motion = motion_library_ptr->getMotionFromIndex(best_traj_index);
+				Vector3 best_motion_position_ortho_body =  best_motion.getPosition(0.5);
+				Vector3 best_motion_position_world = TransformOrthoBodyToWorld(best_motion_position_ortho_body);
+				double new_z_setpoint = best_motion_position_world(2);
+				//std::cout << "New z setpoint " << new_z_setpoint << std::endl;
+				attitude_generator.setZsetpoint(new_z_setpoint);
+		}
 	}
 
 	bool UseDepthImage() {
@@ -728,6 +742,7 @@ private:
 	bool yaw_on = false;
 	double soft_top_speed_max = 0.0;
 	bool use_depth_image = true;
+	bool use_3d_library = false;
 	double flight_altitude;
 
 

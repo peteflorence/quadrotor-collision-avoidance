@@ -9,6 +9,7 @@
   <arg name="yaw_on" default="true"/>
   <arg name="use_depth_image" default="true"/>
   <arg name="flight_altitude" default="3.0"/>
+  <arg name="use_3d_library" default="true"/>
 
   <param name="soft_top_speed" type="double" value="$(arg soft_top_speed)"/>
 	<param name="acceleration_interpolation_min" type="double" value="$(arg acceleration_interpolation_min)"/>
@@ -17,6 +18,8 @@
 	<param name="yaw_on" type="bool" value="$(arg yaw_on)"/>
   <param name="use_depth_image" type="bool" value="$(arg use_depth_image)"/>
   <param name="flight_altitude" type="double" value="$(arg flight_altitude)"/>
+  <param name="use_3d_library" type="bool" value="$(arg use_3d_library)"/>
+
 
   <node pkg="motion_primitives" type="motion_selector_node" name="motion_selector" output="screen">
     <remap from="/local_goal" to="/move_base_simple/goal" unless="$(arg use_global_planner)"/>
