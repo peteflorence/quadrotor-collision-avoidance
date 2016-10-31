@@ -62,7 +62,7 @@ void MotionVisualizer::drawCollisionIndicator(int const& id, Vector3 const& posi
 	marker.color.r = collision_prob;
 	marker.color.g = 1.0 - collision_prob;
 	marker.color.b = 0.0;
-	gaussian_pub.publish( marker );
+	collision_pub.publish( marker );
 }
 
 void MotionVisualizer::drawAll() {

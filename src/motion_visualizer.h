@@ -22,6 +22,7 @@ public:
     }
 
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
+    collision_pub = nh.advertise<visualization_msgs::Marker>( "collision_visualization", 0 );
 
 		initializeDrawingPaths();
 		createSamplingTimeVector();
@@ -44,6 +45,7 @@ private:
 	std::string drawing_frame = "ortho_body";
 	ros::NodeHandle nh;
 	ros::Publisher gaussian_pub;
+  ros::Publisher collision_pub;
 	std::vector<ros::Publisher> action_paths_pubs;
 
   MotionSelector* motion_selector;
