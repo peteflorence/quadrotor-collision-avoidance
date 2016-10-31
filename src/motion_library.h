@@ -40,7 +40,7 @@ public:
   double ComputeNewMaxAcceleration(double speed);
 
   Motion getMotionFromIndex(size_t index);
-  size_t getNummotions();
+  size_t getNumMotions();
   Vector3 getSigmaAtTime(double const& t);
   Vector3 getInverseSigmaAtTime(double const& t);
 

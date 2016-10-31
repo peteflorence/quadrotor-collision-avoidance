@@ -120,7 +120,7 @@ public:
 	    mutex.unlock();
 		
 		mutex.lock();
-      	Eigen::Matrix<Scalar, 26, 1> collision_probabilities = motion_selector.getCollisionProbabilities();
+      	std::vector<double> collision_probabilities = motion_selector.getCollisionProbabilities();
 		motion_visualizer.setCollisionProbabilities(collision_probabilities);
 		mutex.unlock();
 
@@ -145,7 +145,7 @@ public:
 			motion_library_ptr->setBestAccelerationMotion(best_acceleration);
 
 			// if within stopping distance, line search for best stopping acceleration
-			Vector3 stop_position = motion_library_ptr->getMotionFromIndex(26-1).getTerminalStopPosition(0.5);
+			Vector3 stop_position = motion_library_ptr->getMotionFromIndex(0).getTerminalStopPosition(0.5);
 			double stop_distance = stop_position.dot(vector_towards_goal/vector_towards_goal.norm());
 			double distance_to_carrot = carrot_ortho_body_frame(0);
 			
@@ -157,7 +157,7 @@ public:
 					best_acceleration = best_acceleration * current_max_acceleration / best_acceleration.norm();
 				}
 				motion_library_ptr->setBestAccelerationMotion(best_acceleration);
-				stop_position = motion_library_ptr->getMotionFromIndex(26-1).getTerminalStopPosition(0.5);
+				stop_position = motion_library_ptr->getMotionFromIndex(0).getTerminalStopPosition(0.5);
 				stop_distance = stop_position.dot(vector_towards_goal/vector_towards_goal.norm());
 				counter_line_searches++;	
 			} 

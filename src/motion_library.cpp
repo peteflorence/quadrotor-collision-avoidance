@@ -8,8 +8,12 @@ void MotionLibrary::Initialize2DLibrary(double acceleration_interpolation_min, d
 	
 	Vector3 zero_initial_velocity = Vector3(0,0,0);
 
-	// Make first motion be zero accelerations
+	// Gold star motion
 	Vector3 acceleration = Vector3(0,0,0);
+	motions.push_back(Motion( acceleration, zero_initial_velocity ));
+
+	// Zero motion
+	acceleration = Vector3(0,0,0);
 	motions.push_back(Motion( acceleration, zero_initial_velocity ));
 
 	// Make next 8 motions sample around maximum horizontal acceleration
@@ -37,9 +41,6 @@ void MotionLibrary::Initialize2DLibrary(double acceleration_interpolation_min, d
 		motions.at(index).setAccelerationMax(acceleration_interpolation_min);
 	}
 
-	// Gold star motion
-	acceleration = Vector3(0,0,0);
-	motions.push_back(Motion( acceleration, zero_initial_velocity ));
 
 };
 
@@ -49,7 +50,7 @@ void MotionLibrary::UpdateMaxAcceleration(double speed) {
 
 	for (size_t index = 0; index < motions.size(); index++) {
 		motions.at(index).setAccelerationMax(new_max_acceleration);
-		if (index != 26-1) {
+		if (index != 0) {
 			motions.at(index).ScaleAcceleration(new_max_acceleration/initial_max_acceleration);
 		}
 	}
@@ -85,7 +86,7 @@ void MotionLibrary::updateInitialAcceleration() {
 };
 
 void MotionLibrary::setBestAccelerationMotion(Vector3 best_acceleration) {
-	motions.at(26-1).setAcceleration(best_acceleration);
+	motions.at(0).setAcceleration(best_acceleration);
 }
 
 void MotionLibrary::setInitialVelocity(Vector3 const& velocity) {
@@ -101,7 +102,7 @@ Motion MotionLibrary::getMotionFromIndex(size_t index) {
 	return motions.at(index);
 };
 
-size_t MotionLibrary::getNummotions() {
+size_t MotionLibrary::getNumMotions() {
 	return motions.size();
 };
 
