@@ -8,41 +8,34 @@ void MotionLibrary::Initialize2DLibrary(double acceleration_interpolation_min, d
 	
 	Vector3 zero_initial_velocity = Vector3(0,0,0);
 
-	// Gold star motion
+	// Optimal motion (ignoring obstacles) is 0th motion, initialize to 0 acceleration but this gets recalculated in motion_selector_node
 	Vector3 acceleration = Vector3(0,0,0);
 	motions.push_back(Motion( acceleration, zero_initial_velocity ));
 
-	// Zero motion
+	// Next motion is 0 acceleration
 	acceleration = Vector3(0,0,0);
 	motions.push_back(Motion( acceleration, zero_initial_velocity ));
 
-	// Make next 8 motions sample around maximum horizontal acceleration
-	for (double i = 1; i < 9; i++) {
-		double theta = (i-1)*2*M_PI/8.0;
-		acceleration << cos(theta)*acceleration_interpolation_min, sin(theta)*acceleration_interpolation_min, 0;
-		motions.push_back(Motion( acceleration, zero_initial_velocity ));
-	}
-
-	// Make next 8 motions sample around 0.6 * maximum horizontal acceleration
-	for (double i = 9; i < 17; i++) {
-		double theta = (i-1)*2*M_PI/8.0;
-		acceleration << cos(theta)*0.6*acceleration_interpolation_min, sin(theta)*0.6*acceleration_interpolation_min, 0;
-		motions.push_back(Motion( acceleration, zero_initial_velocity ));
-	}
-
-	// Make next 8 motions sample around 0.3 * maximum horizontal acceleration
-	for (double i = 17; i < 25; i++) {
-		double theta = (i-1)*2*M_PI/8.0;
-		acceleration << cos(theta)*0.15*acceleration_interpolation_min, sin(theta)*0.15*acceleration_interpolation_min, 0;
-		motions.push_back(Motion( acceleration, zero_initial_velocity ));
-	}
+	// Then build up more motions by sampling over accelerations
+	BuildMotionsSamplingAroundHorizontalCircle(initial_max_acceleration, 8, 0.0);
+	BuildMotionsSamplingAroundHorizontalCircle(0.6*initial_max_acceleration, 8, 0.0);
+	BuildMotionsSamplingAroundHorizontalCircle(0.15*initial_max_acceleration, 8, 0.0);
 
 	for (size_t index = 0; index < motions.size(); index++) {
 		motions.at(index).setAccelerationMax(acceleration_interpolation_min);
 	}
 
-
 };
+
+void MotionLibrary::BuildMotionsSamplingAroundHorizontalCircle(double horizontal_acceleration_radius, size_t num_samples_around_circle, double vertical_acceleration) {
+	for (double i = 0; i < num_samples_around_circle; i++) {
+		double theta = i*2*M_PI/num_samples_around_circle;
+		Vector3 acceleration; cos << acceleration(theta)*horizontal_acceleration_radius, sin(theta)*horizontal_acceleration_radius, vertical_acceleration;
+		Vector3 zero_initial_velocity = Vector3(0,0,0);
+		motions.push_back(Motion( acceleration, zero_initial_velocity ));
+	}
+	return;
+}
 
 void MotionLibrary::UpdateMaxAcceleration(double speed) {
 
