@@ -12,6 +12,10 @@ void DepthImageCollisionEvaluator::UpdateLaserPointCloudPtr(pcl::PointCloud<pcl:
   my_kd_tree_laser.Initialize(xyz_laser_cloud_ptr);
 }
 
+void DepthImageCollisionEvaluator::UpdateRotationMatrix(Matrix3 const R) {
+  this->R = R;
+};
+
 bool DepthImageCollisionEvaluator::computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position) {
   if (robot_position(2) < -1.0) {
     return true;
@@ -74,12 +78,15 @@ double DepthImageCollisionEvaluator::IsOutsideFOV(Vector3 robot_position) {
       return 0.0; 
     }
 
-    // Checks for occlusion
-    pcl::PointXYZ point_at_projected_pixel = xyz_cloud_ptr->at(pi_x,pi_y);
-    if (isnan(point_at_projected_pixel.z)) { 
-      return 0.0;
+    //Checks for occlusion
+    pcl::PointXYZ point = xyz_cloud_ptr->at(pi_x,pi_y);
+    if (isnan(point.z)) { 
+       return 0.0;
     }
-    if( robot_position(2) >  point_at_projected_pixel.z) {
+    Vector3 position_ortho_body = Vector3(point.x, point.y, point.z);
+    Vector3 position_rdf = R * position_ortho_body;
+    if( robot_position(2) >  position_rdf(2) ) {
+      //std::cout << "OCCLUSION" << std::endl;
       return 0.999;
     }
 

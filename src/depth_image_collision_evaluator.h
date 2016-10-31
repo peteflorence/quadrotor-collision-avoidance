@@ -22,6 +22,7 @@ public:
 	
   void UpdatePointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new);
   void UpdateLaserPointCloudPtr(pcl::PointCloud<pcl::PointXYZ>::Ptr const& xyz_cloud_new);
+  void UpdateRotationMatrix(Matrix3 const R);
 
   bool computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position);
 
@@ -40,11 +41,13 @@ private:
 
   Vector3 sigma_depth_point = Vector3(0.01, 0.01, 0.01);
 
-  Eigen::Matrix<double, 3, 3> K;
+  Matrix3 K;
   double num_x_pixels = 320/4.0;
   double num_y_pixels = 240/4.0;
 
   KDTree<double> my_kd_tree_depth_image;
   KDTree<double> my_kd_tree_laser;
+
+  Matrix3 R; //rotation matrix from ortho_body frame into camera rdf frame
 
 };

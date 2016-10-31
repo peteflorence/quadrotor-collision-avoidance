@@ -405,6 +405,20 @@ private:
     	return VectorFromPose(pose_vector_rdf_frame);
 	}
 
+	Matrix3 GetOrthoBodyToRDFRotationMatrix() {
+		geometry_msgs::TransformStamped tf;
+    	try {
+     		tf = tf_buffer_.lookupTransform("r200_depth_optical_frame", "ortho_body", 
+                                    ros::Time(0), ros::Duration(1/30.0));
+   		} catch (tf2::TransformException &ex) {
+     	 	ROS_ERROR("%s", ex.what());
+      	return Matrix3();
+    	}
+    	Eigen::Quaternion<Scalar> quat(tf.transform.rotation.w, tf.transform.rotation.x, tf.transform.rotation.y, tf.transform.rotation.z);
+	    Matrix3 R = quat.toRotationMatrix();
+	    return R;
+	}
+
 	Vector3 TransformWorldToOrthoBody(Vector3 const& world_frame) {
 		geometry_msgs::TransformStamped tf;
 	    try {
@@ -601,7 +615,10 @@ private:
 		    	pcl::PointCloud<pcl::PointXYZ>::Ptr ortho_body_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 		    	TransformToOrthoBodyPointCloud(point_cloud_msg, ortho_body_cloud);
 
+		    	Matrix3 R = GetOrthoBodyToRDFRotationMatrix();
+
 		    	mutex.lock();
+				depth_image_collision_ptr->UpdateRotationMatrix(R);
 				depth_image_collision_ptr->UpdatePointCloudPtr(ortho_body_cloud);
 				mutex.unlock();
 			}
