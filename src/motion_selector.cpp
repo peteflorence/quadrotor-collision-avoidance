@@ -14,6 +14,8 @@ DepthImageCollisionEvaluator* MotionSelector::GetDepthImageCollisionEvaluatorPtr
 
 
 void MotionSelector::InitializeLibrary(bool use_3d_library, double const& final_time, double soft_top_speed, double a_max_horizontal, double min_speed_at_max_acceleration_total, double max_acceleration_total) {
+  this->use_3d_library = use_3d_library;
+
   motion_library.InitializeLibrary(use_3d_library, a_max_horizontal, min_speed_at_max_acceleration_total, max_acceleration_total);
   InitializeObjectiveVectors();
   this->soft_top_speed = soft_top_speed;
@@ -41,6 +43,8 @@ void MotionSelector::InitializeObjectiveVectors() {
     dijkstra_evaluations.push_back(0.0);
     goal_progress_evaluations.push_back(0.0);
     terminal_velocity_evaluations.push_back(0.0);
+    altitude_evaluations.push_back(0.0);
+
     collision_probabilities.push_back(0.0);
     no_collision_probabilities.push_back(0.0);
 
@@ -78,6 +82,7 @@ void MotionSelector::computeBestEuclideanMotion(Vector3 const& carrot_body_frame
   EvaluateCollisionProbabilities();
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
+  if (use_3d_library) {EvaluateAltitudeCost();};
   EvaluateObjectivesEuclid();
 
   desired_acceleration << 0,0,0;
@@ -116,7 +121,7 @@ void MotionSelector::EvaluateObjectivesEuclid() {
 }
 
 double MotionSelector::EvaluateWeightedObjectiveEuclid(size_t const& motion_index) {
-  return goal_progress_evaluations.at(motion_index) + 1.0*terminal_velocity_evaluations.at(motion_index);
+  return goal_progress_evaluations.at(motion_index) + terminal_velocity_evaluations.at(motion_index) + altitude_evaluations.at(motion_index);
 }
 
 
@@ -226,6 +231,26 @@ void MotionSelector::EvaluateTerminalVelocityCost() {
     i++;
   }
 };
+
+void MotionSelector::EvaluateAltitudeCost() {
+  std::vector<Motion>::const_iterator motion_iterator_begin = motion_library.GetMotionIteratorBegin();
+  std::vector<Motion>::const_iterator motion_iterator_end = motion_library.GetMotionIteratorEnd();
+  size_t i = 0;
+  double minimum_altitude = 0.5;
+  double maximum_altitude = 5.0;
+  double final_altitude;
+  for (auto motion = motion_iterator_begin; motion != motion_iterator_end; motion++) {
+    final_altitude = motion->getPosition(0.3)(2);
+    altitude_evaluations.at(i) = 0;
+    if (final_altitude < minimum_altitude) {
+      altitude_evaluations.at(i) -= 10.0*pow((final_altitude - minimum_altitude),4);
+    }
+    else if (final_altitude > maximum_altitude) {
+      altitude_evaluations.at(i) -= 10.0*pow((final_altitude - maximum_altitude),4);
+    }
+    i++;
+  }
+}
 
 void MotionSelector::EvaluateCollisionProbabilities() {
   std::vector<Motion>::const_iterator motion_iterator_begin = motion_library.GetMotionIteratorBegin();

@@ -53,6 +53,8 @@ private:
   void EvaluateDijkstraCost(Vector3 const& carrot_world_frame, geometry_msgs::TransformStamped const& tf);
   void EvaluateGoalProgress(Vector3 const& carrot_body_frame);
   void EvaluateTerminalVelocityCost();
+  void EvaluateAltitudeCost();
+
   void EvaluateCollisionProbabilities();
   double computeProbabilityOfCollisionOneMotion(Motion motion);
   double computeProbabilityOfCollisionOneMotion_MonteCarlo(Motion motion, std::vector<Vector3> sampled_initial_velocities, size_t n);
@@ -67,6 +69,8 @@ private:
   std::vector<double> dijkstra_evaluations;
   std::vector<double> goal_progress_evaluations;
   std::vector<double> terminal_velocity_evaluations;
+  std::vector<double> altitude_evaluations;
+
   std::vector<double> collision_probabilities;
   std::vector<double> no_collision_probabilities;
 
@@ -77,6 +81,8 @@ private:
 
   double collision_reward = -10000;
   //double collision_reward = -100000000; // PLAGUE setting
+
+  bool use_3d_library;
 
   Vector3 last_desired_acceleration;
 

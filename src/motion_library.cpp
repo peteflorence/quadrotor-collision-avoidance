@@ -106,17 +106,17 @@ size_t MotionLibrary::getNumMotions() {
 
 Vector3 MotionLibrary::getSigmaAtTime(double const& t) {
 	//return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity.array().abs()).matrix());
-	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.2) + 0.1*Vector3(1.0,1.0,0.0)*(initial_velocity.norm()) );
+	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.4) + 0.1*Vector3(1.0,1.0,0.0)*(initial_velocity.norm()) );
 };
 
 Vector3 MotionLibrary::getLASERSigmaAtTime(double const& t) {
 	//return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity_laser_frame.array().abs()).matrix());
-	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.2) + 0.1*Vector3(1.0,1.0,0.0)*(initial_velocity.norm()) );
+	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.4) + 0.1*Vector3(1.0,1.0,0.0)*(initial_velocity.norm()) );
 };
 
 Vector3 MotionLibrary::getRDFSigmaAtTime(double const& t) const {
 	//return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity_rdf_frame.array().abs()).matrix());
-	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.2,0.5) + 0.1*Vector3(1.0,0.0,1.0)*(initial_velocity.norm()) );
+	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.4,0.5) + 0.1*Vector3(1.0,0.0,1.0)*(initial_velocity.norm()) );
 };
 
 Vector3 MotionLibrary::getInverseSigmaAtTime(double const& t) {
