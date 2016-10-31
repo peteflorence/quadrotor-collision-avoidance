@@ -13,8 +13,8 @@
 class MotionLibrary {
 public:
 
-  void Initialize2DLibrary(double a_max_horizontal, double, double);
-  void BuildMotionsSamplingAroundHorizontalCircle(double horizontal_acceleration_radius, size_t num_samples_around_circle, double vertical_acceleration);
+  void InitializeLibrary(bool use_3d_library, double a_max_horizontal, double, double);
+  void BuildMotionsSamplingAroundHorizontalCircle(double vertical_acceleration, double horizontal_acceleration_radius, size_t num_samples_around_circle);
 
   void setInitialVelocity(Vector3 const& initialVelocity);
 

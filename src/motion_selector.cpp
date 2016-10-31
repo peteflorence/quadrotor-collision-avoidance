@@ -13,8 +13,8 @@ DepthImageCollisionEvaluator* MotionSelector::GetDepthImageCollisionEvaluatorPtr
 };
 
 
-void MotionSelector::InitializeLibrary(double const& final_time, double soft_top_speed, double a_max_horizontal, double min_speed_at_max_acceleration_total, double max_acceleration_total) {
-  motion_library.Initialize2DLibrary(a_max_horizontal, min_speed_at_max_acceleration_total, max_acceleration_total);
+void MotionSelector::InitializeLibrary(bool use_3d_library, double const& final_time, double soft_top_speed, double a_max_horizontal, double min_speed_at_max_acceleration_total, double max_acceleration_total) {
+  motion_library.InitializeLibrary(use_3d_library, a_max_horizontal, min_speed_at_max_acceleration_total, max_acceleration_total);
   InitializeObjectiveVectors();
   this->soft_top_speed = soft_top_speed;
   last_desired_acceleration << 0, 0, 0;

@@ -1,6 +1,6 @@
 #include "motion_library.h"
 
-void MotionLibrary::Initialize2DLibrary(double acceleration_interpolation_min, double speed_at_acceleration_max, double max_acceleration_total) {
+void MotionLibrary::InitializeLibrary(bool use_3d_library, double acceleration_interpolation_min, double speed_at_acceleration_max, double max_acceleration_total) {
 
     this->speed_at_acceleration_max = speed_at_acceleration_max;
     this->max_acceleration_total = max_acceleration_total;
@@ -17,30 +17,37 @@ void MotionLibrary::Initialize2DLibrary(double acceleration_interpolation_min, d
 	motions.push_back(Motion( acceleration, zero_initial_velocity ));
 
 	// Then build up more motions by sampling over accelerations
-	BuildMotionsSamplingAroundHorizontalCircle(initial_max_acceleration, 8, 0.0);
-	BuildMotionsSamplingAroundHorizontalCircle(0.6*initial_max_acceleration, 8, 0.0);
-	BuildMotionsSamplingAroundHorizontalCircle(0.15*initial_max_acceleration, 8, 0.0);
+	std::vector<double> horizontal_accelerations = {initial_max_acceleration, 0.6*initial_max_acceleration, 0.15*initial_max_acceleration};
+	std::vector<double> vertical_accelerations = {0.0};
+	size_t num_samples_around_circle = 8;
 
+	if (use_3d_library) {
+		vertical_accelerations.push_back(0.5*initial_max_acceleration);
+		vertical_accelerations.push_back(-0.5*initial_max_acceleration);
+	}
+
+	for (size_t i = 0; i < vertical_accelerations.size(); i++) {
+		for (size_t j = 0; j < horizontal_accelerations.size(); j++) {
+			BuildMotionsSamplingAroundHorizontalCircle(vertical_accelerations.at(i), horizontal_accelerations.at(j), num_samples_around_circle);
+		}
+	}
+	
 	for (size_t index = 0; index < motions.size(); index++) {
 		motions.at(index).setAccelerationMax(acceleration_interpolation_min);
 	}
-
 };
 
-void MotionLibrary::BuildMotionsSamplingAroundHorizontalCircle(double horizontal_acceleration_radius, size_t num_samples_around_circle, double vertical_acceleration) {
+void MotionLibrary::BuildMotionsSamplingAroundHorizontalCircle(double vertical_acceleration, double horizontal_acceleration_radius, size_t num_samples_around_circle) {
 	for (double i = 0; i < num_samples_around_circle; i++) {
 		double theta = i*2*M_PI/num_samples_around_circle;
-		Vector3 acceleration; cos << acceleration(theta)*horizontal_acceleration_radius, sin(theta)*horizontal_acceleration_radius, vertical_acceleration;
+		Vector3 acceleration; acceleration << cos(theta)*horizontal_acceleration_radius, sin(theta)*horizontal_acceleration_radius, vertical_acceleration;
 		Vector3 zero_initial_velocity = Vector3(0,0,0);
 		motions.push_back(Motion( acceleration, zero_initial_velocity ));
 	}
-	return;
 }
 
 void MotionLibrary::UpdateMaxAcceleration(double speed) {
-
 	new_max_acceleration = ComputeNewMaxAcceleration(speed);
-
 	for (size_t index = 0; index < motions.size(); index++) {
 		motions.at(index).setAccelerationMax(new_max_acceleration);
 		if (index != 0) {
@@ -53,9 +60,7 @@ double MotionLibrary::ComputeNewMaxAcceleration(double speed) {
 	if (speed > speed_at_acceleration_max) {
 		return max_acceleration_total;
 	}
-
 	return speed * (max_acceleration_total - initial_max_acceleration) / speed_at_acceleration_max + initial_max_acceleration;
-
 }
 
 double MotionLibrary::getNewMaxAcceleration() const {
@@ -70,11 +75,9 @@ void MotionLibrary::updateInitialAcceleration() {
 	double a_z_initial = 0;
 
 	initial_acceleration = Vector3(a_x_initial, a_y_initial, a_z_initial);
-
 	for (size_t index = 0; index < motions.size(); index++) {
 		motions.at(index).setInitialAcceleration(initial_acceleration);
 	}
-
 	return;
 };
 

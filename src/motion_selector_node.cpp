@@ -58,6 +58,7 @@ public:
 		double soft_top_speed;
         double speed_at_acceleration_max;
         double acceleration_interpolation_max;
+        bool use_3d_library;
 
 		nh.param("soft_top_speed", soft_top_speed, 2.0);
 		nh.param("acceleration_interpolation_min", acceleration_interpolation_min, 3.5);
@@ -66,10 +67,11 @@ public:
         nh.param("speed_at_acceleration_max", speed_at_acceleration_max, 10.0);
         nh.param("acceleration_interpolation_max", acceleration_interpolation_max, 4.0);
         nh.param("flight_altitude", flight_altitude, 1.2);
+        nh.param("use_3d_library", use_3d_library, false);
 
 		this->soft_top_speed_max = soft_top_speed;
 
-		motion_selector.InitializeLibrary(final_time, soft_top_speed, acceleration_interpolation_min, speed_at_acceleration_max, acceleration_interpolation_max);
+		motion_selector.InitializeLibrary(use_3d_library, final_time, soft_top_speed, acceleration_interpolation_min, speed_at_acceleration_max, acceleration_interpolation_max);
 		attitude_generator.setZsetpoint(flight_altitude);
 
 		motion_visualizer.initialize(&motion_selector, nh, &best_traj_index, final_time);
