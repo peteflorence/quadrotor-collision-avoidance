@@ -27,7 +27,7 @@ void MotionVisualizer::drawGaussianPropagation(int id, Vector3 position, Vector3
 	visualization_msgs::Marker marker;
 	marker.header.frame_id = drawing_frame;
 	marker.header.stamp = ros::Time::now();
-	marker.ns = "my_namespace";
+	marker.ns = "gaussian_namespace";
 	marker.id = id;
 	marker.type = visualization_msgs::Marker::SPHERE;
 	marker.action = visualization_msgs::Marker::ADD;
@@ -48,8 +48,8 @@ void MotionVisualizer::drawCollisionIndicator(int const& id, Vector3 const& posi
 	visualization_msgs::Marker marker;
 	marker.header.frame_id = drawing_frame;
 	marker.header.stamp = ros::Time::now();
-	marker.ns = "my_namespace";
-	marker.id = 30 + id;
+	marker.ns = "collision_namespace";
+	marker.id = id;
 	marker.type = visualization_msgs::Marker::SPHERE;
 	marker.action = visualization_msgs::Marker::ADD;
 	marker.pose.position.x = position(0);
@@ -61,27 +61,6 @@ void MotionVisualizer::drawCollisionIndicator(int const& id, Vector3 const& posi
 	marker.color.a = 0.15; // Don't forget to set the alpha!
 	marker.color.r = collision_prob;
 	marker.color.g = 1.0 - collision_prob;
-	marker.color.b = 0.0;
-	gaussian_pub.publish( marker );
-}
-
-void MotionVisualizer::drawFinalStoppingPosition(int id, Vector3 position) {
-	visualization_msgs::Marker marker;
-	marker.header.frame_id = drawing_frame;
-	marker.header.stamp = ros::Time::now();
-	marker.ns = "my_namespace";
-	marker.id = id;
-	marker.type = visualization_msgs::Marker::SPHERE;
-	marker.action = visualization_msgs::Marker::ADD;
-	marker.pose.position.x = position(0);
-	marker.pose.position.y = position(1);
-	marker.pose.position.z = position(2);
-	marker.scale.x = 1;
-	marker.scale.y = 1;
-	marker.scale.z = 1;
-	marker.color.a = 0.15; // Don't forget to set the alpha!
-	marker.color.r = 0.9;
-	marker.color.g = 0.1;
 	marker.color.b = 0.0;
 	gaussian_pub.publish( marker );
 }
@@ -104,12 +83,7 @@ void MotionVisualizer::drawAll() {
 				drawGaussianPropagation(sample, sample_points_xyz_over_time.row(sample), sigma);
 			}
 		}
-
-		// if (motion_index == *best_traj_index) {
-		// 	drawFinalStoppingPosition(num_samples-1, sample_points_xyz_over_time.row(num_samples-1));
-		// }
 		drawCollisionIndicator(motion_index, sample_points_xyz_over_time.row(num_samples-1), collision_probabilities.at(motion_index));
-
 		action_paths_pubs.at(motion_index).publish(action_samples_msg);
 	}
 }

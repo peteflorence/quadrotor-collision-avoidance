@@ -101,17 +101,11 @@ public:
 	}
 
 	void ReactToSampledPointCloud() {
-
-
 		auto t1 = std::chrono::high_resolution_clock::now();
-		
 		mutex.lock();
-
 		motion_selector.computeBestEuclideanMotion(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
-
 		// geometry_msgs::TransformStamped tf = GetTransformToWorld();
 		// motion_selector.computeBestDijkstraMotion(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
-
 	    mutex.unlock();
 
       	mutex.lock();
@@ -124,7 +118,6 @@ public:
       	std::vector<double> collision_probabilities = motion_selector.getCollisionProbabilities();
 		motion_visualizer.setCollisionProbabilities(collision_probabilities);
 		mutex.unlock();
-
 		PublishCurrentAttitudeSetpoint();
 	}
 
@@ -185,7 +178,6 @@ public:
 				Vector3 best_motion_position_ortho_body =  best_motion.getPosition(0.5);
 				Vector3 best_motion_position_world = TransformOrthoBodyToWorld(best_motion_position_ortho_body);
 				double new_z_setpoint = best_motion_position_world(2);
-				//std::cout << "New z setpoint " << new_z_setpoint << std::endl;
 				attitude_generator.setZsetpoint(new_z_setpoint);
 		}
 	}
