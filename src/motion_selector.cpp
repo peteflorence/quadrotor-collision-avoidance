@@ -236,17 +236,17 @@ void MotionSelector::EvaluateAltitudeCost() {
   std::vector<Motion>::const_iterator motion_iterator_begin = motion_library.GetMotionIteratorBegin();
   std::vector<Motion>::const_iterator motion_iterator_end = motion_library.GetMotionIteratorEnd();
   size_t i = 0;
-  double minimum_altitude = 0.5;
+  double minimum_altitude = 0.7;
   double maximum_altitude = 5.0;
   double final_altitude;
   for (auto motion = motion_iterator_begin; motion != motion_iterator_end; motion++) {
-    final_altitude = motion->getPosition(0.3)(2);
+    final_altitude = motion->getPosition(0.1)(2);
     altitude_evaluations.at(i) = 0;
     if (final_altitude < minimum_altitude) {
-      altitude_evaluations.at(i) -= 10.0*pow((final_altitude - minimum_altitude),4);
+      altitude_evaluations.at(i) -= 10.0*(final_altitude - minimum_altitude)*(final_altitude - minimum_altitude);
     }
     else if (final_altitude > maximum_altitude) {
-      altitude_evaluations.at(i) -= 10.0*pow((final_altitude - maximum_altitude),4);
+      altitude_evaluations.at(i) -= 10.0*(final_altitude - minimum_altitude)*(final_altitude - minimum_altitude);
     }
     i++;
   }
