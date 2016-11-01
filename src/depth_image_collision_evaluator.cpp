@@ -67,15 +67,14 @@ double DepthImageCollisionEvaluator::IsOutsideFOV(Vector3 robot_position) {
 
     // Checks if outside left/right FOV
     if ( (pi_x < 0) || (pi_x > (num_x_pixels - 1)) ) {
-        return 0.1;
+        return p_collision_left_right_fov;
     }
-
     // Checks if above top/bottom FOV
     if (pi_y < 0) {
-      return 0.0; 
+      return p_collision_up_down_fov; 
     }
     if (pi_y > (num_y_pixels - 1)) {
-      return 0.0; 
+      return p_collision_up_down_fov; 
     }
 
     //Checks for occlusion
@@ -87,15 +86,14 @@ double DepthImageCollisionEvaluator::IsOutsideFOV(Vector3 robot_position) {
     Vector3 position_rdf = R * position_ortho_body;
     if( robot_position(2) >  position_rdf(2) ) {
       //std::cout << "OCCLUSION" << std::endl;
-      return 0.999;
+      return p_collision_occluded;
     }
-
     return 0.0;
 }
 
 double DepthImageCollisionEvaluator::AddOutsideFOVPenalty(Vector3 robot_position, double probability_of_collision) {
     if (IsBehind(robot_position)) {
-      return ThresholdSigmoid(probability_of_collision + 0.5);
+      return ThresholdSigmoid(probability_of_collision + p_collision_behind);
     }
     if (IsOutsideDeadBand(robot_position)) {
       return ThresholdSigmoid(probability_of_collision + IsOutsideFOV(robot_position));
