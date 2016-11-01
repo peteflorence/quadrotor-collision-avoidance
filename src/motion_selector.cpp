@@ -238,15 +238,17 @@ void MotionSelector::EvaluateAltitudeCost() {
   size_t i = 0;
   double minimum_altitude = 0.7;
   double maximum_altitude = 5.0;
+  double nominal_altitude = 1.5;
   double final_altitude;
   for (auto motion = motion_iterator_begin; motion != motion_iterator_end; motion++) {
     final_altitude = motion->getPosition(0.1)(2);
     altitude_evaluations.at(i) = 0;
+    altitude_evaluations.at(i) = -0.1 * (nominal_altitude - final_altitude) * (nominal_altitude - final_altitude);
     if (final_altitude < minimum_altitude) {
       altitude_evaluations.at(i) -= 10.0*(final_altitude - minimum_altitude)*(final_altitude - minimum_altitude);
     }
     else if (final_altitude > maximum_altitude) {
-      altitude_evaluations.at(i) -= 10.0*(final_altitude - minimum_altitude)*(final_altitude - minimum_altitude);
+      altitude_evaluations.at(i) -= 10.0*(final_altitude - maximum_altitude)*(final_altitude - maximum_altitude);
     }
     i++;
   }
