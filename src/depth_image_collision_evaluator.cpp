@@ -75,14 +75,14 @@ bool DepthImageCollisionEvaluator::IsOutsideFOV(Vector3 robot_position) {
 
 double DepthImageCollisionEvaluator::AddOutsideFOVPenalty(Vector3 robot_position, double probability_of_collision) {
     if (IsBehind(robot_position)) {
-      return probability_of_collision += 0.5;
+      return ThresholdSigmoid(probability_of_collision + 0.5);
     }
     if (IsOutsideDeadBand(robot_position)) {
       if (IsOutsideFOV(robot_position)) {
-          return probability_of_collision += 0.1;
+          return ThresholdSigmoid(probability_of_collision + 0.1);
       }
     }
-    return probability_of_collision;
+    return ThresholdSigmoid(probability_of_collision);
 }
 
 double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTree_DepthImage(Vector3 const& robot_position, Vector3 const& sigma_robot_position) {
@@ -91,7 +91,6 @@ double DepthImageCollisionEvaluator::computeProbabilityOfCollisionNPositionsKDTr
     my_kd_tree_depth_image.SearchForNearest<num_nearest_neighbors>(robot_position[0], robot_position[1], robot_position[2]);
     probability_of_collision = computeProbabilityOfCollisionNPositionsKDTree(robot_position, sigma_robot_position, my_kd_tree_depth_image.closest_pts);
   }
-  probability_of_collision = AddOutsideFOVPenalty(robot_position, probability_of_collision);
   return ThresholdSigmoid(probability_of_collision);
 }
 
