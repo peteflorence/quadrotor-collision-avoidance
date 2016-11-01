@@ -722,7 +722,7 @@ private:
 	tf2_ros::Buffer tf_buffer_;
 
 	double start_time = 0.0;
-	double final_time = 1.0;
+	double final_time = 1.5;
 
 	double bearing_azimuth_degrees = 0.0;
 	double set_bearing_azimuth_degrees = 0.0;
