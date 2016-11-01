@@ -100,6 +100,15 @@ public:
 	    return tf;
 	}
 
+	bool CheckIfInevitableCollision(std::vector<double> const collision_probabilities) {
+		for (size_t i = 0; i < collision_probabilities.size(); i++) {
+			if (collision_probabilities.at(i) < 0.8) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	void ReactToSampledPointCloud() {
 		auto t1 = std::chrono::high_resolution_clock::now();
 		mutex.lock();
@@ -107,17 +116,19 @@ public:
 		// geometry_msgs::TransformStamped tf = GetTransformToWorld();
 		// motion_selector.computeBestDijkstraMotion(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
 	    mutex.unlock();
-
-      	mutex.lock();
-	    if (yaw_on) {
-	    	SetYawFromMotion();
-	    } 
-	    mutex.unlock();
 		
 		mutex.lock();
       	std::vector<double> collision_probabilities = motion_selector.getCollisionProbabilities();
 		motion_visualizer.setCollisionProbabilities(collision_probabilities);
-		mutex.unlock();
+		if (CheckIfInevitableCollision(collision_probabilities)) {
+			std::cout << "ICS!!!" << std::endl;
+		}
+	    else if (yaw_on) {
+	    	SetYawFromMotion();
+	    } 
+	    mutex.unlock();
+
+
 		PublishCurrentAttitudeSetpoint();
 	}
 
