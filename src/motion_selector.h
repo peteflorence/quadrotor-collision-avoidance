@@ -33,6 +33,7 @@ public:
     return collision_probabilities;
   }
 
+  void SetNominalFlightAltitude(double flight_altitude) {this->nominal_altitude = flight_altitude;};
   void SetSoftTopSpeed(double top_speed) {this->soft_top_speed = top_speed;}
 
 private:
@@ -82,7 +83,8 @@ private:
   double collision_reward = -10000;
   //double collision_reward = -100000000; // PLAGUE setting
 
-  bool use_3d_library;
+  bool use_3d_library = true;
+  double nominal_altitude = 1.5;
 
   Vector3 last_desired_acceleration;
 

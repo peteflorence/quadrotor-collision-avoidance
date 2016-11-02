@@ -71,6 +71,7 @@ public:
 		this->soft_top_speed_max = soft_top_speed;
 
 		motion_selector.InitializeLibrary(use_3d_library, final_time, soft_top_speed, acceleration_interpolation_min, speed_at_acceleration_max, acceleration_interpolation_max);
+		motion_selector.SetNominalFlightAltitude(flight_altitude);
 		attitude_generator.setZsetpoint(flight_altitude);
 
 		motion_visualizer.initialize(&motion_selector, nh, &best_traj_index, final_time);
