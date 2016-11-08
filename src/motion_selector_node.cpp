@@ -122,7 +122,7 @@ public:
       	std::vector<double> collision_probabilities = motion_selector.getCollisionProbabilities();
 		motion_visualizer.setCollisionProbabilities(collision_probabilities);
 		if (CheckIfInevitableCollision(collision_probabilities)) {
-			std::cout << "ICS!!!" << std::endl;
+			//std::cout << "ICS!!!" << std::endl;
 		}
 	    else if (yaw_on) {
 	    	SetYawFromMotion();
