@@ -12,6 +12,10 @@ void DepthImageCollisionEvaluator::UpdateLaserPointCloudPtr(pcl::PointCloud<pcl:
   my_kd_tree_laser.Initialize(xyz_laser_cloud_ptr);
 }
 
+void DepthImageCollisionEvaluator::UpdateRotationMatrix(Matrix3 const R) {
+  this->R = R;
+};
+
 bool DepthImageCollisionEvaluator::computeDeterministicCollisionOnePositionKDTree(Vector3 const& robot_position) {
   if (robot_position(2) < -1.0) {
     return true;
@@ -56,31 +60,43 @@ bool DepthImageCollisionEvaluator::IsOutsideDeadBand(Vector3 robot_position) {
     return (robot_position.squaredNorm() > 0.5);
 }
 
-bool DepthImageCollisionEvaluator::IsOutsideFOV(Vector3 robot_position) {
+double DepthImageCollisionEvaluator::IsOutsideFOV(Vector3 robot_position) {
     Vector3 projected = K * robot_position;
     int pi_x = projected(0)/projected(2); 
     int pi_y = projected(1)/projected(2);
 
+    // Checks if outside left/right FOV
     if ( (pi_x < 0) || (pi_x > (num_x_pixels - 1)) ) {
-        return true;
+        return p_collision_left_right_fov;
     }
-    return false;
-    // else if (pi_y < 0) { // ignore if it's under because this is preventing me from slowing down
-    //   return true;
-    // }
-    // else if (robot_position(2) > 10.0) {
-    //   return true;
-    // }
+    // Checks if above top/bottom FOV
+    if (pi_y < 0) {
+      return p_collision_up_down_fov; 
+    }
+    if (pi_y > (num_y_pixels - 1)) {
+      return p_collision_up_down_fov; 
+    }
+
+    //Checks for occlusion
+    pcl::PointXYZ point = xyz_cloud_ptr->at(pi_x,pi_y);
+    if (isnan(point.z)) { 
+       return 0.0;
+    }
+    Vector3 position_ortho_body = Vector3(point.x, point.y, point.z);
+    Vector3 position_rdf = R * position_ortho_body;
+    if( robot_position(2) >  position_rdf(2) ) {
+      //std::cout << "OCCLUSION" << std::endl;
+      return p_collision_occluded;
+    }
+    return 0.0;
 }
 
 double DepthImageCollisionEvaluator::AddOutsideFOVPenalty(Vector3 robot_position, double probability_of_collision) {
     if (IsBehind(robot_position)) {
-      return ThresholdSigmoid(probability_of_collision + 0.5);
+      return ThresholdSigmoid(probability_of_collision + p_collision_behind);
     }
     if (IsOutsideDeadBand(robot_position)) {
-      if (IsOutsideFOV(robot_position)) {
-          return ThresholdSigmoid(probability_of_collision + 0.1);
-      }
+      return ThresholdSigmoid(probability_of_collision + IsOutsideFOV(robot_position));
     }
     return ThresholdSigmoid(probability_of_collision);
 }

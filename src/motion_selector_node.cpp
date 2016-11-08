@@ -44,7 +44,7 @@ public:
   	    depth_image_sub = nh.subscribe("/flight/r200/points_xyz", 1, &MotionSelectorNode::OnDepthImage, this);
   	    local_goal_sub = nh.subscribe("/local_goal", 1, &MotionSelectorNode::OnLocalGoal, this);
   	    //value_grid_sub = nh.subscribe("/value_grid", 1, &MotionSelectorNode::OnValueGrid, this);
-  	    // laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &MotionSelectorNode::OnScan, this);
+  	    laser_scan_sub = nh.subscribe("/laserscan_to_pointcloud/cloud2_out", 1, &MotionSelectorNode::OnScan, this);
 
 
   	    // Publishers
@@ -66,10 +66,12 @@ public:
         nh.param("speed_at_acceleration_max", speed_at_acceleration_max, 10.0);
         nh.param("acceleration_interpolation_max", acceleration_interpolation_max, 4.0);
         nh.param("flight_altitude", flight_altitude, 1.2);
+        nh.param("use_3d_library", use_3d_library, false);
 
 		this->soft_top_speed_max = soft_top_speed;
 
-		motion_selector.InitializeLibrary(final_time, soft_top_speed, acceleration_interpolation_min, speed_at_acceleration_max, acceleration_interpolation_max);
+		motion_selector.InitializeLibrary(use_3d_library, final_time, soft_top_speed, acceleration_interpolation_min, speed_at_acceleration_max, acceleration_interpolation_max);
+		motion_selector.SetNominalFlightAltitude(flight_altitude);
 		attitude_generator.setZsetpoint(flight_altitude);
 
 		motion_visualizer.initialize(&motion_selector, nh, &best_traj_index, final_time);
@@ -99,30 +101,34 @@ public:
 	    return tf;
 	}
 
+	bool CheckIfInevitableCollision(std::vector<double> const collision_probabilities) {
+		for (size_t i = 0; i < collision_probabilities.size(); i++) {
+			if (collision_probabilities.at(i) < 0.8) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	void ReactToSampledPointCloud() {
-
-
 		auto t1 = std::chrono::high_resolution_clock::now();
-		
 		mutex.lock();
-
 		motion_selector.computeBestEuclideanMotion(carrot_ortho_body_frame, best_traj_index, desired_acceleration);
-
 		// geometry_msgs::TransformStamped tf = GetTransformToWorld();
 		// motion_selector.computeBestDijkstraMotion(carrot_ortho_body_frame, carrot_world_frame, tf, best_traj_index, desired_acceleration);
-
 	    mutex.unlock();
-
-      	mutex.lock();
-	    if (yaw_on) {
+		
+		mutex.lock();
+      	std::vector<double> collision_probabilities = motion_selector.getCollisionProbabilities();
+		motion_visualizer.setCollisionProbabilities(collision_probabilities);
+		if (CheckIfInevitableCollision(collision_probabilities)) {
+			//std::cout << "ICS!!!" << std::endl;
+		}
+	    else if (yaw_on) {
 	    	SetYawFromMotion();
 	    } 
 	    mutex.unlock();
-		
-		mutex.lock();
-      	Eigen::Matrix<Scalar, 26, 1> collision_probabilities = motion_selector.getCollisionProbabilities();
-		motion_visualizer.setCollisionProbabilities(collision_probabilities);
-		mutex.unlock();
+
 
 		PublishCurrentAttitudeSetpoint();
 	}
@@ -145,7 +151,7 @@ public:
 			motion_library_ptr->setBestAccelerationMotion(best_acceleration);
 
 			// if within stopping distance, line search for best stopping acceleration
-			Vector3 stop_position = motion_library_ptr->getMotionFromIndex(26-1).getTerminalStopPosition(0.5);
+			Vector3 stop_position = motion_library_ptr->getMotionFromIndex(0).getTerminalStopPosition(0.5);
 			double stop_distance = stop_position.dot(vector_towards_goal/vector_towards_goal.norm());
 			double distance_to_carrot = carrot_ortho_body_frame(0);
 			
@@ -157,7 +163,7 @@ public:
 					best_acceleration = best_acceleration * current_max_acceleration / best_acceleration.norm();
 				}
 				motion_library_ptr->setBestAccelerationMotion(best_acceleration);
-				stop_position = motion_library_ptr->getMotionFromIndex(26-1).getTerminalStopPosition(0.5);
+				stop_position = motion_library_ptr->getMotionFromIndex(0).getTerminalStopPosition(0.5);
 				stop_distance = stop_position.dot(vector_towards_goal/vector_towards_goal.norm());
 				counter_line_searches++;	
 			} 
@@ -168,10 +174,24 @@ public:
 
 	void PublishCurrentAttitudeSetpoint() {
 		mutex.lock();
+		if (use_3d_library) {
+			AltitudeFeedbackOnBestMotion();
+		}
 		Vector3 attitude_thrust_desired = attitude_generator.generateDesiredAttitudeThrust(desired_acceleration);
 		SetThrustForLibrary(attitude_thrust_desired(2));
 		mutex.unlock();
 		PublishAttitudeSetpoint(attitude_thrust_desired);
+	}
+
+	void AltitudeFeedbackOnBestMotion() {
+		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
+		if (motion_library_ptr != nullptr) {
+				Motion best_motion = motion_library_ptr->getMotionFromIndex(best_traj_index);
+				Vector3 best_motion_position_ortho_body =  best_motion.getPosition(0.5);
+				Vector3 best_motion_position_world = TransformOrthoBodyToWorld(best_motion_position_ortho_body);
+				double new_z_setpoint = best_motion_position_world(2);
+				attitude_generator.setZsetpoint(new_z_setpoint);
+		}
 	}
 
 	bool UseDepthImage() {
@@ -397,6 +417,20 @@ private:
     	return VectorFromPose(pose_vector_rdf_frame);
 	}
 
+	Matrix3 GetOrthoBodyToRDFRotationMatrix() {
+		geometry_msgs::TransformStamped tf;
+    	try {
+     		tf = tf_buffer_.lookupTransform("r200_depth_optical_frame", "ortho_body", 
+                                    ros::Time(0), ros::Duration(1/30.0));
+   		} catch (tf2::TransformException &ex) {
+     	 	ROS_ERROR("%s", ex.what());
+      	return Matrix3();
+    	}
+    	Eigen::Quaternion<Scalar> quat(tf.transform.rotation.w, tf.transform.rotation.x, tf.transform.rotation.y, tf.transform.rotation.z);
+	    Matrix3 R = quat.toRotationMatrix();
+	    return R;
+	}
+
 	Vector3 TransformWorldToOrthoBody(Vector3 const& world_frame) {
 		geometry_msgs::TransformStamped tf;
 	    try {
@@ -593,7 +627,10 @@ private:
 		    	pcl::PointCloud<pcl::PointXYZ>::Ptr ortho_body_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 		    	TransformToOrthoBodyPointCloud(point_cloud_msg, ortho_body_cloud);
 
+		    	Matrix3 R = GetOrthoBodyToRDFRotationMatrix();
+
 		    	mutex.lock();
+				depth_image_collision_ptr->UpdateRotationMatrix(R);
 				depth_image_collision_ptr->UpdatePointCloudPtr(ortho_body_cloud);
 				mutex.unlock();
 			}
@@ -697,7 +734,7 @@ private:
 	tf2_ros::Buffer tf_buffer_;
 
 	double start_time = 0.0;
-	double final_time = 1.0;
+	double final_time = 1.5;
 
 	double bearing_azimuth_degrees = 0.0;
 	double set_bearing_azimuth_degrees = 0.0;
@@ -726,6 +763,7 @@ private:
 	bool yaw_on = false;
 	double soft_top_speed_max = 0.0;
 	bool use_depth_image = true;
+	bool use_3d_library = false;
 	double flight_altitude;
 
 

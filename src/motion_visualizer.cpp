@@ -1,7 +1,7 @@
 #include "motion_visualizer.h"
 
 void MotionVisualizer::initializeDrawingPaths() {
-	for (int i = 0; i < motion_selector->getNummotions(); i++) {
+	for (int i = 0; i < motion_selector->getNumMotions(); i++) {
 		action_paths_pubs.push_back(nh.advertise<nav_msgs::Path>("/poly_samples"+std::to_string(i), 1));
 	}
 }
@@ -23,12 +23,11 @@ void MotionVisualizer::createSamplingTimeVector() {
 	}
 }
 
-
 void MotionVisualizer::drawGaussianPropagation(int id, Vector3 position, Vector3 sigma) {
 	visualization_msgs::Marker marker;
 	marker.header.frame_id = drawing_frame;
 	marker.header.stamp = ros::Time::now();
-	marker.ns = "my_namespace";
+	marker.ns = "gaussian_namespace";
 	marker.id = id;
 	marker.type = visualization_msgs::Marker::SPHERE;
 	marker.action = visualization_msgs::Marker::ADD;
@@ -45,39 +44,12 @@ void MotionVisualizer::drawGaussianPropagation(int id, Vector3 position, Vector3
 	gaussian_pub.publish( marker );
 }
 
-void MotionVisualizer::NormalizeCollisions() {
-	double max = collision_probabilities(0);
-	double min = collision_probabilities(0);
-	double current;
-	for (int i = 1; i < 26; i++) {
-		current = collision_probabilities(i);
-		if (current > max) {
-			max = current;
-		}
-		if (current < min) {
-			min = current;
-		}
-	}
-
-	if (max == min) {
-		normalized_collision_probabilities = collision_probabilities;
-		return;
-	};
-
-	for (int i = 0; i < 26; i++) {
-		normalized_collision_probabilities(i) = (collision_probabilities(i) - min) / (max - min);
-	}
-}
-
-
 void MotionVisualizer::drawCollisionIndicator(int const& id, Vector3 const& position, double const& collision_prob) {
-	//NormalizeCollisions();
-
 	visualization_msgs::Marker marker;
 	marker.header.frame_id = drawing_frame;
 	marker.header.stamp = ros::Time::now();
-	marker.ns = "my_namespace";
-	marker.id = 30 + id;
+	marker.ns = "collision_namespace";
+	marker.id = id;
 	marker.type = visualization_msgs::Marker::SPHERE;
 	marker.action = visualization_msgs::Marker::ADD;
 	marker.pose.position.x = position(0);
@@ -90,35 +62,12 @@ void MotionVisualizer::drawCollisionIndicator(int const& id, Vector3 const& posi
 	marker.color.r = collision_prob;
 	marker.color.g = 1.0 - collision_prob;
 	marker.color.b = 0.0;
-	gaussian_pub.publish( marker );
-}
-
-void MotionVisualizer::drawFinalStoppingPosition(int id, Vector3 position) {
-	visualization_msgs::Marker marker;
-	marker.header.frame_id = drawing_frame;
-	marker.header.stamp = ros::Time::now();
-	marker.ns = "my_namespace";
-	marker.id = id;
-	marker.type = visualization_msgs::Marker::SPHERE;
-	marker.action = visualization_msgs::Marker::ADD;
-	marker.pose.position.x = position(0);
-	marker.pose.position.y = position(1);
-	marker.pose.position.z = position(2);
-	marker.scale.x = 1;
-	marker.scale.y = 1;
-	marker.scale.z = 1;
-	marker.color.a = 0.15; // Don't forget to set the alpha!
-	marker.color.r = 0.9;
-	marker.color.g = 0.1;
-	marker.color.b = 0.0;
-	gaussian_pub.publish( marker );
+	collision_pub.publish( marker );
 }
 
 void MotionVisualizer::drawAll() {
-	size_t num_motions = motion_selector->getNummotions(); 
+	size_t num_motions = collision_probabilities.size();
 	MotionLibrary* motion_library_ptr = motion_selector->GetMotionLibraryPtr();
-
-
 	for (size_t motion_index = 0; motion_index < num_motions; motion_index++) {
 
 		Eigen::Matrix<Scalar, Eigen::Dynamic, 3> sample_points_xyz_over_time =  motion_selector->sampleMotionForDrawing(motion_index, sampling_time_vector, num_samples);
@@ -134,12 +83,7 @@ void MotionVisualizer::drawAll() {
 				drawGaussianPropagation(sample, sample_points_xyz_over_time.row(sample), sigma);
 			}
 		}
-
-		// if (motion_index == *best_traj_index) {
-		// 	drawFinalStoppingPosition(num_samples-1, sample_points_xyz_over_time.row(num_samples-1));
-		// }
-		drawCollisionIndicator(motion_index, sample_points_xyz_over_time.row(num_samples-1), collision_probabilities(motion_index));
-
+		drawCollisionIndicator(motion_index, sample_points_xyz_over_time.row(num_samples-1), collision_probabilities.at(motion_index));
 		action_paths_pubs.at(motion_index).publish(action_samples_msg);
 	}
 }

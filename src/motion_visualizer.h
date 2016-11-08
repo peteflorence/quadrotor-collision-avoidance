@@ -17,9 +17,12 @@ public:
 		this->nh = nh;
 		this->best_traj_index = best_traj_index;
 		this->final_time = final_time;
-		collision_probabilities.setZero();
+		for (size_t i = 0; i < motion_selector->getNumMotions(); i++) {
+      collision_probabilities.push_back(0.0);
+    }
 
 		gaussian_pub = nh.advertise<visualization_msgs::Marker>( "gaussian_visualization", 0 );
+    collision_pub = nh.advertise<visualization_msgs::Marker>( "collision_visualization", 0 );
 
 		initializeDrawingPaths();
 		createSamplingTimeVector();
@@ -27,25 +30,22 @@ public:
 
   void UpdateTimeHorizon(double final_time);
   void createSamplingTimeVector();
-
   void initializeDrawingPaths();
 
   void drawAll();
   void drawGaussianPropagation(int id, Vector3 position, Vector3 sigma);
   void drawFinalStoppingPosition(int id, Vector3 position);
   void drawCollisionIndicator(int const& id, Vector3 const& position, double const& collision_prob);
-  void setCollisionProbabilities(Eigen::Matrix<Scalar, 26, 1> const& collision_probabilities) {
+  void setCollisionProbabilities(std::vector<double> const& collision_probabilities) {
   	this->collision_probabilities = collision_probabilities;
   }
-  
 
 private:
-
-	void NormalizeCollisions();
 
 	std::string drawing_frame = "ortho_body";
 	ros::NodeHandle nh;
 	ros::Publisher gaussian_pub;
+  ros::Publisher collision_pub;
 	std::vector<ros::Publisher> action_paths_pubs;
 
   MotionSelector* motion_selector;
@@ -57,9 +57,7 @@ private:
 
   size_t* best_traj_index;
 
-  Eigen::Matrix<Scalar, 26, 1> collision_probabilities;
-  Eigen::Matrix<Scalar, 26, 1> normalized_collision_probabilities;
-  
+  std::vector<double> collision_probabilities;
 };
 
 #endif

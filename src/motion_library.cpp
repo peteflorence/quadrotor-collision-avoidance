@@ -1,6 +1,6 @@
 #include "motion_library.h"
 
-void MotionLibrary::Initialize2DLibrary(double acceleration_interpolation_min, double speed_at_acceleration_max, double max_acceleration_total) {
+void MotionLibrary::InitializeLibrary(bool use_3d_library, double acceleration_interpolation_min, double speed_at_acceleration_max, double max_acceleration_total) {
 
     this->speed_at_acceleration_max = speed_at_acceleration_max;
     this->max_acceleration_total = max_acceleration_total;
@@ -8,48 +8,51 @@ void MotionLibrary::Initialize2DLibrary(double acceleration_interpolation_min, d
 	
 	Vector3 zero_initial_velocity = Vector3(0,0,0);
 
-	// Make first motion be zero accelerations
+	// Optimal motion (ignoring obstacles) is 0th motion, initialize to 0 acceleration but this gets recalculated in motion_selector_node
 	Vector3 acceleration = Vector3(0,0,0);
 	motions.push_back(Motion( acceleration, zero_initial_velocity ));
 
-	// Make next 8 motions sample around maximum horizontal acceleration
-	for (double i = 1; i < 9; i++) {
-		double theta = (i-1)*2*M_PI/8.0;
-		acceleration << cos(theta)*acceleration_interpolation_min, sin(theta)*acceleration_interpolation_min, 0;
-		motions.push_back(Motion( acceleration, zero_initial_velocity ));
-	}
-
-	// Make next 8 motions sample around 0.6 * maximum horizontal acceleration
-	for (double i = 9; i < 17; i++) {
-		double theta = (i-1)*2*M_PI/8.0;
-		acceleration << cos(theta)*0.6*acceleration_interpolation_min, sin(theta)*0.6*acceleration_interpolation_min, 0;
-		motions.push_back(Motion( acceleration, zero_initial_velocity ));
-	}
-
-	// Make next 8 motions sample around 0.3 * maximum horizontal acceleration
-	for (double i = 17; i < 25; i++) {
-		double theta = (i-1)*2*M_PI/8.0;
-		acceleration << cos(theta)*0.15*acceleration_interpolation_min, sin(theta)*0.15*acceleration_interpolation_min, 0;
-		motions.push_back(Motion( acceleration, zero_initial_velocity ));
-	}
-
-	for (size_t index = 0; index < motions.size(); index++) {
-		motions.at(index).setAccelerationMax(acceleration_interpolation_min);
-	}
-
-	// Gold star motion
+	// Next motion is 0 acceleration
 	acceleration = Vector3(0,0,0);
 	motions.push_back(Motion( acceleration, zero_initial_velocity ));
 
+	// Then build up more motions by sampling over accelerations
+	std::vector<double> horizontal_accelerations = {initial_max_acceleration, 0.6*initial_max_acceleration, 0.15*initial_max_acceleration};
+	std::vector<double> vertical_accelerations = {0.0};
+	size_t num_samples_around_circle = 8;
+
+	if (use_3d_library) {
+		vertical_accelerations.push_back(-2.0);
+		vertical_accelerations.push_back(-0.75);
+		vertical_accelerations.push_back(0.75);
+		vertical_accelerations.push_back(2.0);
+	}
+
+	for (size_t i = 0; i < vertical_accelerations.size(); i++) {
+		for (size_t j = 0; j < horizontal_accelerations.size(); j++) {
+			BuildMotionsSamplingAroundHorizontalCircle(vertical_accelerations.at(i), horizontal_accelerations.at(j), num_samples_around_circle);
+		}
+	}
+	
+	for (size_t index = 0; index < motions.size(); index++) {
+		motions.at(index).setAccelerationMax(acceleration_interpolation_min);
+	}
 };
 
+void MotionLibrary::BuildMotionsSamplingAroundHorizontalCircle(double vertical_acceleration, double horizontal_acceleration_radius, size_t num_samples_around_circle) {
+	for (double i = 0; i < num_samples_around_circle; i++) {
+		double theta = i*2*M_PI/num_samples_around_circle;
+		Vector3 acceleration; acceleration << cos(theta)*horizontal_acceleration_radius, sin(theta)*horizontal_acceleration_radius, vertical_acceleration;
+		Vector3 zero_initial_velocity = Vector3(0,0,0);
+		motions.push_back(Motion( acceleration, zero_initial_velocity ));
+	}
+}
+
 void MotionLibrary::UpdateMaxAcceleration(double speed) {
-
 	new_max_acceleration = ComputeNewMaxAcceleration(speed);
-
 	for (size_t index = 0; index < motions.size(); index++) {
 		motions.at(index).setAccelerationMax(new_max_acceleration);
-		if (index != 26-1) {
+		if (index != 0) {
 			motions.at(index).ScaleAcceleration(new_max_acceleration/initial_max_acceleration);
 		}
 	}
@@ -59,9 +62,7 @@ double MotionLibrary::ComputeNewMaxAcceleration(double speed) {
 	if (speed > speed_at_acceleration_max) {
 		return max_acceleration_total;
 	}
-
 	return speed * (max_acceleration_total - initial_max_acceleration) / speed_at_acceleration_max + initial_max_acceleration;
-
 }
 
 double MotionLibrary::getNewMaxAcceleration() const {
@@ -76,16 +77,14 @@ void MotionLibrary::updateInitialAcceleration() {
 	double a_z_initial = 0;
 
 	initial_acceleration = Vector3(a_x_initial, a_y_initial, a_z_initial);
-
 	for (size_t index = 0; index < motions.size(); index++) {
 		motions.at(index).setInitialAcceleration(initial_acceleration);
 	}
-
 	return;
 };
 
 void MotionLibrary::setBestAccelerationMotion(Vector3 best_acceleration) {
-	motions.at(26-1).setAcceleration(best_acceleration);
+	motions.at(0).setAcceleration(best_acceleration);
 }
 
 void MotionLibrary::setInitialVelocity(Vector3 const& velocity) {
@@ -101,23 +100,23 @@ Motion MotionLibrary::getMotionFromIndex(size_t index) {
 	return motions.at(index);
 };
 
-size_t MotionLibrary::getNummotions() {
+size_t MotionLibrary::getNumMotions() {
 	return motions.size();
 };
 
 Vector3 MotionLibrary::getSigmaAtTime(double const& t) {
 	//return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity.array().abs()).matrix());
-	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.2) + 0.1*Vector3(1.0,1.0,0.0)*(initial_velocity.norm()) );
+	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.4) + 0.1*Vector3(1.0,1.0,0.0)*(initial_velocity.norm()) );
 };
 
 Vector3 MotionLibrary::getLASERSigmaAtTime(double const& t) {
 	//return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity_laser_frame.array().abs()).matrix());
-	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.2) + 0.1*Vector3(1.0,1.0,0.0)*(initial_velocity.norm()) );
+	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.5,0.4) + 0.1*Vector3(1.0,1.0,0.0)*(initial_velocity.norm()) );
 };
 
 Vector3 MotionLibrary::getRDFSigmaAtTime(double const& t) const {
 	//return Vector3(0.01,0.01,0.01) + t*0.2*(Vector3(0.5,0.5,0.5) + 0.5*(initial_velocity_rdf_frame.array().abs()).matrix());
-	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.2,0.5) + 0.1*Vector3(1.0,0.0,1.0)*(initial_velocity.norm()) );
+	return Vector3(0.01,0.01,0.01) + t*(Vector3(0.5,0.4,0.5) + 0.1*Vector3(1.0,0.0,1.0)*(initial_velocity.norm()) );
 };
 
 Vector3 MotionLibrary::getInverseSigmaAtTime(double const& t) {
