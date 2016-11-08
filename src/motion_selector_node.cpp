@@ -101,9 +101,9 @@ public:
 	    return tf;
 	}
 
-	bool CheckIfInevitableCollision(std::vector<double> const collision_probabilities) {
-		for (size_t i = 0; i < collision_probabilities.size(); i++) {
-			if (collision_probabilities.at(i) < 0.8) {
+	bool CheckIfInevitableCollision(std::vector<double> const hokuyo_collision_probabilities) {
+		for (size_t i = 0; i < hokuyo_collision_probabilities.size(); i++) {
+			if (hokuyo_collision_probabilities.at(i) < 0.6) {
 				return false;
 			}
 		}
@@ -120,9 +120,10 @@ public:
 		
 		mutex.lock();
       	std::vector<double> collision_probabilities = motion_selector.getCollisionProbabilities();
+      	std::vector<double> hokuyo_collision_probabilities = motion_selector.getHokuyoCollisionProbabilities();
 		motion_visualizer.setCollisionProbabilities(collision_probabilities);
-		if (CheckIfInevitableCollision(collision_probabilities)) {
-			//std::cout << "ICS!!!" << std::endl;
+		if (CheckIfInevitableCollision(hokuyo_collision_probabilities)) {
+			std::cout << "ICS!!!" << std::endl;
 		}
 	    else if (yaw_on) {
 	    	SetYawFromMotion();
