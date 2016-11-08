@@ -123,6 +123,8 @@ public:
       	std::vector<double> hokuyo_collision_probabilities = motion_selector.getHokuyoCollisionProbabilities();
 		motion_visualizer.setCollisionProbabilities(collision_probabilities);
 		if (CheckIfInevitableCollision(hokuyo_collision_probabilities)) {
+			// These next two lines to be replaced by a >45 deg e-stop call to state machine
+			best_traj_index = 6; // 6 is max pitch back
 			std::cout << "ICS!!!" << std::endl;
 		}
 	    else if (yaw_on) {
