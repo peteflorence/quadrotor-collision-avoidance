@@ -122,21 +122,60 @@ public:
       	std::vector<double> collision_probabilities = motion_selector.getCollisionProbabilities();
       	std::vector<double> hokuyo_collision_probabilities = motion_selector.getHokuyoCollisionProbabilities();
 		motion_visualizer.setCollisionProbabilities(collision_probabilities);
-		if (CheckIfInevitableCollision(hokuyo_collision_probabilities)) {
-			// These next two lines to be replaced by a >45 deg e-stop call to state machine
-			best_traj_index = 6; // 6 is max pitch back
-			std::cout << "ICS!!!" << std::endl;
+		if (executing_e_stop || CheckIfInevitableCollision(hokuyo_collision_probabilities)) {
+			ExecuteEStop();
 		}
 	    else if (yaw_on) {
 	    	SetYawFromMotion();
 	    } 
 	    mutex.unlock();
 
-
 		PublishCurrentAttitudeSetpoint();
 	}
 
+	// E stop sandbox
+	bool executing_e_stop = false;
+	double begin_e_stop_time = 0;
+	double e_stop_time_needed = 0;
+	double max_e_stop_pitch_degrees = 55;
+
+	void ExecuteEStop() {
+		best_traj_index = 0; // this overwrites the "best acceleration motion"
+
+		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
+		// If first time entering e stop, compute open loop parameters
+		if (!executing_e_stop) {
+			begin_e_stop_time = ros::Time::now().toSec();
+			if (motion_library_ptr != nullptr) {
+				double e_stop_acceleration_magnitude = 9.8*tan(max_e_stop_pitch_degrees * M_PI / 180.0);
+				Vector3 initial_velocity_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getVelocity(0.0);
+				Vector3 e_stop_acceleration = -1.0 * e_stop_acceleration_magnitude * initial_velocity_ortho_body/initial_velocity_ortho_body.norm();
+				motion_library_ptr->setBestAccelerationMotion(e_stop_acceleration);
+				Vector3 end_jerk_velocity_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getVelocity(0.2);
+
+				e_stop_time_needed = end_jerk_velocity_ortho_body.norm() / e_stop_acceleration_magnitude;
+				std::cout << "E STOP TIME NEEDED " << e_stop_time_needed << std::endl;
+			}
+		}
+		executing_e_stop = true;
+		if (motion_library_ptr != nullptr) {
+			desired_acceleration = motion_library_ptr->getMotionFromIndex(best_traj_index).getAcceleration();
+		}
+
+
+		// Check if time to exit open loop e stop
+		double e_stop_time_elapsed = ros::Time::now().toSec() - begin_e_stop_time;
+		std::cout << "E STOP TIME ELAPSED " << e_stop_time_elapsed << std::endl;
+		if (e_stop_time_elapsed > e_stop_time_needed) {
+			executing_e_stop = false;
+		}
+	}
+
 	void ComputeBestAccelerationMotion() {
+		if (executing_e_stop) { //Does not compute if executing e stop
+			return;
+		}
+
 		mutex.lock();
 		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
 		if (motion_library_ptr != nullptr) {
