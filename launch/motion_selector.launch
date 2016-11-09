@@ -2,14 +2,17 @@
 
   <arg name="use_global_planner" default="true"/>  
 
-  <arg name="soft_top_speed" default="11.0"/>
+  <arg name="soft_top_speed" default="3.0"/>
   <arg name="acceleration_interpolation_min" default="2.5"/>
-  <arg name="acceleration_interpolation_max"  default="9.0"/>
+  <arg name="acceleration_interpolation_max"  default="7.5"/>
   <arg name="speed_at_acceleration_max" default="10.0"/>
   <arg name="yaw_on" default="true"/>
   <arg name="use_depth_image" default="true"/>
   <arg name="flight_altitude" default="1.5"/>
   <arg name="use_3d_library" default="false"/>
+
+  <arg name="max_e_stop_pitch_degrees" default="80.0"/>
+  <arg name="laser_z_below_project_up" default="-0.5"/>
 
   <param name="soft_top_speed" type="double" value="$(arg soft_top_speed)"/>
 	<param name="acceleration_interpolation_min" type="double" value="$(arg acceleration_interpolation_min)"/>
@@ -19,7 +22,8 @@
   <param name="use_depth_image" type="bool" value="$(arg use_depth_image)"/>
   <param name="flight_altitude" type="double" value="$(arg flight_altitude)"/>
   <param name="use_3d_library" type="bool" value="$(arg use_3d_library)"/>
-
+  <param name="max_e_stop_pitch_degrees" type="double" value="$(arg max_e_stop_pitch_degrees)"/>
+  <param name="laser_z_below_project_up" type="double" value="$(arg laser_z_below_project_up)"/>
 
   <node pkg="motion_primitives" type="motion_selector_node" name="motion_selector" output="screen">
     <remap from="/local_goal" to="/move_base_simple/goal" unless="$(arg use_global_planner)"/>

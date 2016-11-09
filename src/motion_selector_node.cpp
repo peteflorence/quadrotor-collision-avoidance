@@ -67,6 +67,8 @@ public:
         nh.param("acceleration_interpolation_max", acceleration_interpolation_max, 4.0);
         nh.param("flight_altitude", flight_altitude, 1.2);
         nh.param("use_3d_library", use_3d_library, false);
+        nh.param("max_e_stop_pitch_degrees", max_e_stop_pitch_degrees, 60.0);
+        nh.param("laser_z_below_project_up", laser_z_below_project_up, -0.5);
 
 		this->soft_top_speed_max = soft_top_speed;
 
@@ -132,12 +134,6 @@ public:
 
 		PublishCurrentAttitudeSetpoint();
 	}
-
-	// E stop sandbox
-	bool executing_e_stop = false;
-	double begin_e_stop_time = 0;
-	double e_stop_time_needed = 0;
-	double max_e_stop_pitch_degrees = 80;
 
 	void ExecuteEStop() {
 		best_traj_index = 0; // this overwrites the "best acceleration motion"
@@ -547,8 +543,6 @@ private:
     	return VectorFromPose(pose_vector_world_frame);
 	}
 
-	double laser_z_below_project_up = -0.5;
-
 	void ProjectOrthoBodyLaserPointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud_ptr) {
 		pcl::PointCloud<pcl::PointXYZ>::iterator point_cloud_iterator_begin = cloud_ptr->begin();
 		pcl::PointCloud<pcl::PointXYZ>::iterator point_cloud_iterator_end = cloud_ptr->end();
@@ -821,6 +815,12 @@ private:
 	bool use_3d_library = false;
 	double flight_altitude;
 
+	bool executing_e_stop = false;
+	double begin_e_stop_time = 0.0;
+	double e_stop_time_needed = 0.0;
+	double max_e_stop_pitch_degrees = 60.0;
+
+	double laser_z_below_project_up = -0.5;
 
 	ros::NodeHandle nh;
 
