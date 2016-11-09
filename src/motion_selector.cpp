@@ -81,6 +81,8 @@ size_t MotionSelector::getNumMotions() {
 // Euclidean Evaluator
 void MotionSelector::computeBestEuclideanMotion(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
   EvaluateCollisionProbabilities();
+
+
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
   if (use_3d_library) {EvaluateAltitudeCost();};
@@ -281,8 +283,8 @@ void MotionSelector::computeProbabilityOfCollisionOneMotion(Motion motion, doubl
 
   for (size_t time_step_index = 0; time_step_index < num_samples_collision; time_step_index++) {
 
-    sigma_robot_position = 0.1*motion_library.getLASERSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
-    robot_position = motion.getPositionLASER(collision_sampling_time_vector(time_step_index));
+    sigma_robot_position = 0.1*motion_library.getSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
+    robot_position = motion.getPosition(collision_sampling_time_vector(time_step_index));
     probability_no_collision_one_step = 1 - depth_image_collision_evaluator.computeProbabilityOfCollisionNPositionsKDTree_Laser(robot_position, sigma_robot_position);
     probability_no_collision_hokuyo = probability_no_collision_hokuyo * probability_no_collision_one_step;
 

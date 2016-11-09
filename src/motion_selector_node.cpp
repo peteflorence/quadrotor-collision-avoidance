@@ -121,7 +121,7 @@ public:
 		mutex.lock();
       	std::vector<double> collision_probabilities = motion_selector.getCollisionProbabilities();
       	std::vector<double> hokuyo_collision_probabilities = motion_selector.getHokuyoCollisionProbabilities();
-		motion_visualizer.setCollisionProbabilities(collision_probabilities);
+		motion_visualizer.setCollisionProbabilities(hokuyo_collision_probabilities);
 		if (executing_e_stop || CheckIfInevitableCollision(hokuyo_collision_probabilities)) {
 			ExecuteEStop();
 		}
@@ -547,23 +547,36 @@ private:
     	return VectorFromPose(pose_vector_world_frame);
 	}
 
-	void OnScan(sensor_msgs::PointCloud2 const& laser_point_cloud_msg) {
+	double laser_z_below_project_up = -0.5;
+	
+	void ProjectOrthoBodyLaserPointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud_ptr) {
+		pcl::PointCloud<pcl::PointXYZ>::iterator point_cloud_iterator_begin = cloud_ptr->begin();
+		pcl::PointCloud<pcl::PointXYZ>::iterator point_cloud_iterator_end = cloud_ptr->end();
+
+		for (pcl::PointCloud<pcl::PointXYZ>::iterator point = point_cloud_iterator_begin; point != point_cloud_iterator_end; point++) {
+			if (point->z > laser_z_below_project_up) {
+				point->z = 0.0;
+			}
+		}
+	}
+
+
+	void OnScan(sensor_msgs::PointCloud2ConstPtr const& laser_point_cloud_msg) {
 		//ROS_INFO("GOT SCAN");
 		DepthImageCollisionEvaluator* depth_image_collision_ptr = motion_selector.GetDepthImageCollisionEvaluatorPtr();
 
 		if (depth_image_collision_ptr != nullptr) {
-			
-			pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
-			pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
-			
-			pcl_conversions::toPCL(laser_point_cloud_msg, *cloud);
-			pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
-			pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
 
-			depth_image_collision_ptr->UpdateLaserPointCloudPtr(xyz_cloud);
+			//sensor_msgs::PointCloud2ConstPtr laser_point_cloud_msg_ptr(laser_point_cloud_msg);
+			pcl::PointCloud<pcl::PointXYZ>::Ptr ortho_body_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+		    TransformToOrthoBodyPointCloud("laser", laser_point_cloud_msg, ortho_body_cloud);
+
+		    if (!use_3d_library) {
+		    	ProjectOrthoBodyLaserPointCloud(ortho_body_cloud);
+		    }
+
+			depth_image_collision_ptr->UpdateLaserPointCloudPtr(ortho_body_cloud);
 		}
-
-
 	}
 
 	void UpdateValueGrid(nav_msgs::OccupancyGrid value_grid_msg) {
@@ -627,12 +640,12 @@ private:
 		carrot_pub.publish( marker );
 	}
 
-	void TransformToOrthoBodyPointCloud(const sensor_msgs::PointCloud2ConstPtr msg, pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud_out){
+	void TransformToOrthoBodyPointCloud(std::string const& source_frame, const sensor_msgs::PointCloud2ConstPtr msg, pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud_out){
 	  	sensor_msgs::PointCloud2 msg_out;
 
 	  	geometry_msgs::TransformStamped tf;
     	try {
-	     	tf = tf_buffer_.lookupTransform("ortho_body", "r200_depth_optical_frame",
+	     	tf = tf_buffer_.lookupTransform("ortho_body", source_frame,
 	                                    ros::Time(0), ros::Duration(1/30.0));
 	   		} catch (tf2::TransformException &ex) {
 	     	 	ROS_ERROR("%s", ex.what());
@@ -667,7 +680,7 @@ private:
 			if (depth_image_collision_ptr != nullptr) {
 
 		    	pcl::PointCloud<pcl::PointXYZ>::Ptr ortho_body_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-		    	TransformToOrthoBodyPointCloud(point_cloud_msg, ortho_body_cloud);
+		    	TransformToOrthoBodyPointCloud("r200_depth_optical_frame", point_cloud_msg, ortho_body_cloud);
 
 		    	Matrix3 R = GetOrthoBodyToRDFRotationMatrix();
 
