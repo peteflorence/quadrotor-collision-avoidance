@@ -121,7 +121,7 @@ public:
 		mutex.lock();
       	std::vector<double> collision_probabilities = motion_selector.getCollisionProbabilities();
       	std::vector<double> hokuyo_collision_probabilities = motion_selector.getHokuyoCollisionProbabilities();
-		motion_visualizer.setCollisionProbabilities(hokuyo_collision_probabilities);
+		motion_visualizer.setCollisionProbabilities(collision_probabilities);
 		if (executing_e_stop || CheckIfInevitableCollision(hokuyo_collision_probabilities)) {
 			ExecuteEStop();
 		}
@@ -137,7 +137,7 @@ public:
 	bool executing_e_stop = false;
 	double begin_e_stop_time = 0;
 	double e_stop_time_needed = 0;
-	double max_e_stop_pitch_degrees = 55;
+	double max_e_stop_pitch_degrees = 80;
 
 	void ExecuteEStop() {
 		best_traj_index = 0; // this overwrites the "best acceleration motion"
@@ -153,7 +153,7 @@ public:
 				motion_library_ptr->setBestAccelerationMotion(e_stop_acceleration);
 				Vector3 end_jerk_velocity_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getVelocity(0.2);
 
-				e_stop_time_needed = end_jerk_velocity_ortho_body.norm() / e_stop_acceleration_magnitude;
+				e_stop_time_needed = end_jerk_velocity_ortho_body.norm() / e_stop_acceleration_magnitude / 0.85;
 				std::cout << "E STOP TIME NEEDED " << e_stop_time_needed << std::endl;
 			}
 		}
@@ -548,7 +548,7 @@ private:
 	}
 
 	double laser_z_below_project_up = -0.5;
-	
+
 	void ProjectOrthoBodyLaserPointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud_ptr) {
 		pcl::PointCloud<pcl::PointXYZ>::iterator point_cloud_iterator_begin = cloud_ptr->begin();
 		pcl::PointCloud<pcl::PointXYZ>::iterator point_cloud_iterator_end = cloud_ptr->end();
