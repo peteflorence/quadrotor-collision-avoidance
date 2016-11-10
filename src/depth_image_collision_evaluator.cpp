@@ -78,6 +78,9 @@ double DepthImageCollisionEvaluator::IsOutsideFOV(Vector3 robot_position) {
     }
 
     //Checks for occlusion
+    if (xyz_cloud_ptr == nullptr) {
+      return 0.0;
+    } 
     pcl::PointXYZ point = xyz_cloud_ptr->at(pi_x,pi_y);
     if (isnan(point.z)) { 
        return 0.0;
