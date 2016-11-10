@@ -47,6 +47,7 @@ void MotionSelector::InitializeObjectiveVectors() {
 
     collision_probabilities.push_back(0.0);
     no_collision_probabilities.push_back(0.0);
+    hokuyo_collision_probabilities.push_back(0.0);
 
     objectives_dijkstra.push_back(0.0);
     objectives_euclid.push_back(0.0);
@@ -80,6 +81,8 @@ size_t MotionSelector::getNumMotions() {
 // Euclidean Evaluator
 void MotionSelector::computeBestEuclideanMotion(Vector3 const& carrot_body_frame, size_t &best_traj_index, Vector3 &desired_acceleration) {
   EvaluateCollisionProbabilities();
+
+
   EvaluateGoalProgress(carrot_body_frame); 
   EvaluateTerminalVelocityCost();
   if (use_3d_library) {EvaluateAltitudeCost();};
@@ -258,14 +261,20 @@ void MotionSelector::EvaluateCollisionProbabilities() {
   std::vector<Motion>::const_iterator motion_iterator_end = motion_library.GetMotionIteratorEnd();
   size_t i = 0;
   for (auto motion = motion_iterator_begin; motion != motion_iterator_end; motion++) {
-    collision_probabilities.at(i) = computeProbabilityOfCollisionOneMotion(*motion);
+    double collision_probability = 0;
+    double hokuyo_collision_probability = 0;
+    computeProbabilityOfCollisionOneMotion(*motion, collision_probability, hokuyo_collision_probability);
+    collision_probabilities.at(i) = collision_probability;
+    hokuyo_collision_probabilities.at(i) = hokuyo_collision_probability;
     no_collision_probabilities.at(i) = 1.0 - collision_probabilities.at(i); 
     i++;
   }
 };
 
-double MotionSelector::computeProbabilityOfCollisionOneMotion(Motion motion) {
+void MotionSelector::computeProbabilityOfCollisionOneMotion(Motion motion, double &collision_probability, double &hokuyo_collision_probability) {
   double probability_no_collision = 1;
+  double probability_no_collision_hokuyo = 1;
+
   double probability_no_collision_one_step = 1.0;
   double probability_of_collision_one_step_one_depth = 1.0;
   Vector3 robot_position;
@@ -273,9 +282,11 @@ double MotionSelector::computeProbabilityOfCollisionOneMotion(Motion motion) {
   Vector3 sigma_robot_position;
 
   for (size_t time_step_index = 0; time_step_index < num_samples_collision; time_step_index++) {
-    sigma_robot_position = 0.1*motion_library.getLASERSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
-    robot_position = motion.getPositionLASER(collision_sampling_time_vector(time_step_index));
+
+    sigma_robot_position = 0.1*motion_library.getSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
+    robot_position = motion.getPosition(collision_sampling_time_vector(time_step_index));
     probability_no_collision_one_step = 1 - depth_image_collision_evaluator.computeProbabilityOfCollisionNPositionsKDTree_Laser(robot_position, sigma_robot_position);
+    probability_no_collision_hokuyo = probability_no_collision_hokuyo * probability_no_collision_one_step;
 
     sigma_robot_position = 0.1*motion_library.getSigmaAtTime(collision_sampling_time_vector(time_step_index)); 
     robot_position = motion.getPosition(collision_sampling_time_vector(time_step_index));
@@ -287,7 +298,8 @@ double MotionSelector::computeProbabilityOfCollisionOneMotion(Motion motion) {
     probability_no_collision_one_step = probability_no_collision_one_step * (1 - probability_of_collision_one_step_one_depth);
     probability_no_collision = probability_no_collision * probability_no_collision_one_step;    
   }
-  return 1.0 - probability_no_collision;
+  collision_probability = 1.0 - probability_no_collision;
+  hokuyo_collision_probability = 1.0 - probability_no_collision_hokuyo;
 };
 
 double MotionSelector::computeProbabilityOfCollisionOneMotion_MonteCarlo(Motion motion, std::vector<Vector3> sampled_initial_velocities, size_t n) { 

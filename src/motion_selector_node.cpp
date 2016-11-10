@@ -67,6 +67,8 @@ public:
         nh.param("acceleration_interpolation_max", acceleration_interpolation_max, 4.0);
         nh.param("flight_altitude", flight_altitude, 1.2);
         nh.param("use_3d_library", use_3d_library, false);
+        nh.param("max_e_stop_pitch_degrees", max_e_stop_pitch_degrees, 60.0);
+        nh.param("laser_z_below_project_up", laser_z_below_project_up, -0.5);
 
 		this->soft_top_speed_max = soft_top_speed;
 
@@ -101,9 +103,9 @@ public:
 	    return tf;
 	}
 
-	bool CheckIfInevitableCollision(std::vector<double> const collision_probabilities) {
-		for (size_t i = 0; i < collision_probabilities.size(); i++) {
-			if (collision_probabilities.at(i) < 0.8) {
+	bool CheckIfInevitableCollision(std::vector<double> const hokuyo_collision_probabilities) {
+		for (size_t i = 0; i < hokuyo_collision_probabilities.size(); i++) {
+			if (hokuyo_collision_probabilities.at(i) < 0.6) {
 				return false;
 			}
 		}
@@ -120,20 +122,56 @@ public:
 		
 		mutex.lock();
       	std::vector<double> collision_probabilities = motion_selector.getCollisionProbabilities();
+      	std::vector<double> hokuyo_collision_probabilities = motion_selector.getHokuyoCollisionProbabilities();
 		motion_visualizer.setCollisionProbabilities(collision_probabilities);
-		if (CheckIfInevitableCollision(collision_probabilities)) {
-			//std::cout << "ICS!!!" << std::endl;
+		if (executing_e_stop || CheckIfInevitableCollision(hokuyo_collision_probabilities)) {
+			ExecuteEStop();
 		}
 	    else if (yaw_on) {
 	    	SetYawFromMotion();
 	    } 
 	    mutex.unlock();
 
-
 		PublishCurrentAttitudeSetpoint();
 	}
 
+	void ExecuteEStop() {
+		best_traj_index = 0; // this overwrites the "best acceleration motion"
+
+		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
+		// If first time entering e stop, compute open loop parameters
+		if (!executing_e_stop) {
+			begin_e_stop_time = ros::Time::now().toSec();
+			if (motion_library_ptr != nullptr) {
+				double e_stop_acceleration_magnitude = 9.8*tan(max_e_stop_pitch_degrees * M_PI / 180.0);
+				Vector3 initial_velocity_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getVelocity(0.0);
+				Vector3 e_stop_acceleration = -1.0 * e_stop_acceleration_magnitude * initial_velocity_ortho_body/initial_velocity_ortho_body.norm();
+				motion_library_ptr->setBestAccelerationMotion(e_stop_acceleration);
+				Vector3 end_jerk_velocity_ortho_body = motion_library_ptr->getMotionFromIndex(best_traj_index).getVelocity(0.2);
+
+				e_stop_time_needed = end_jerk_velocity_ortho_body.norm() / e_stop_acceleration_magnitude / 0.85;
+				std::cout << "E STOP TIME NEEDED " << e_stop_time_needed << std::endl;
+			}
+		}
+		executing_e_stop = true;
+		if (motion_library_ptr != nullptr) {
+			desired_acceleration = motion_library_ptr->getMotionFromIndex(best_traj_index).getAcceleration();
+		}
+
+
+		// Check if time to exit open loop e stop
+		double e_stop_time_elapsed = ros::Time::now().toSec() - begin_e_stop_time;
+		std::cout << "E STOP TIME ELAPSED " << e_stop_time_elapsed << std::endl;
+		if (e_stop_time_elapsed > e_stop_time_needed) {
+			executing_e_stop = false;
+		}
+	}
+
 	void ComputeBestAccelerationMotion() {
+		if (executing_e_stop) { //Does not compute if executing e stop
+			return;
+		}
+
 		mutex.lock();
 		MotionLibrary* motion_library_ptr = motion_selector.GetMotionLibraryPtr();
 		if (motion_library_ptr != nullptr) {
@@ -505,23 +543,34 @@ private:
     	return VectorFromPose(pose_vector_world_frame);
 	}
 
-	void OnScan(sensor_msgs::PointCloud2 const& laser_point_cloud_msg) {
+	void ProjectOrthoBodyLaserPointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud_ptr) {
+		pcl::PointCloud<pcl::PointXYZ>::iterator point_cloud_iterator_begin = cloud_ptr->begin();
+		pcl::PointCloud<pcl::PointXYZ>::iterator point_cloud_iterator_end = cloud_ptr->end();
+
+		for (pcl::PointCloud<pcl::PointXYZ>::iterator point = point_cloud_iterator_begin; point != point_cloud_iterator_end; point++) {
+			if (point->z > laser_z_below_project_up) {
+				point->z = 0.0;
+			}
+		}
+	}
+
+
+	void OnScan(sensor_msgs::PointCloud2ConstPtr const& laser_point_cloud_msg) {
 		//ROS_INFO("GOT SCAN");
 		DepthImageCollisionEvaluator* depth_image_collision_ptr = motion_selector.GetDepthImageCollisionEvaluatorPtr();
 
 		if (depth_image_collision_ptr != nullptr) {
-			
-			pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
-			pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
-			
-			pcl_conversions::toPCL(laser_point_cloud_msg, *cloud);
-			pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
-			pcl::fromPCLPointCloud2(*cloud,*xyz_cloud);
 
-			depth_image_collision_ptr->UpdateLaserPointCloudPtr(xyz_cloud);
+			//sensor_msgs::PointCloud2ConstPtr laser_point_cloud_msg_ptr(laser_point_cloud_msg);
+			pcl::PointCloud<pcl::PointXYZ>::Ptr ortho_body_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+		    TransformToOrthoBodyPointCloud("laser", laser_point_cloud_msg, ortho_body_cloud);
+
+		    if (!use_3d_library) {
+		    	ProjectOrthoBodyLaserPointCloud(ortho_body_cloud);
+		    }
+
+			depth_image_collision_ptr->UpdateLaserPointCloudPtr(ortho_body_cloud);
 		}
-
-
 	}
 
 	void UpdateValueGrid(nav_msgs::OccupancyGrid value_grid_msg) {
@@ -585,12 +634,12 @@ private:
 		carrot_pub.publish( marker );
 	}
 
-	void TransformToOrthoBodyPointCloud(const sensor_msgs::PointCloud2ConstPtr msg, pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud_out){
+	void TransformToOrthoBodyPointCloud(std::string const& source_frame, const sensor_msgs::PointCloud2ConstPtr msg, pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud_out){
 	  	sensor_msgs::PointCloud2 msg_out;
 
 	  	geometry_msgs::TransformStamped tf;
     	try {
-	     	tf = tf_buffer_.lookupTransform("ortho_body", "r200_depth_optical_frame",
+	     	tf = tf_buffer_.lookupTransform("ortho_body", source_frame,
 	                                    ros::Time(0), ros::Duration(1/30.0));
 	   		} catch (tf2::TransformException &ex) {
 	     	 	ROS_ERROR("%s", ex.what());
@@ -625,7 +674,7 @@ private:
 			if (depth_image_collision_ptr != nullptr) {
 
 		    	pcl::PointCloud<pcl::PointXYZ>::Ptr ortho_body_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-		    	TransformToOrthoBodyPointCloud(point_cloud_msg, ortho_body_cloud);
+		    	TransformToOrthoBodyPointCloud("r200_depth_optical_frame", point_cloud_msg, ortho_body_cloud);
 
 		    	Matrix3 R = GetOrthoBodyToRDFRotationMatrix();
 
@@ -766,6 +815,12 @@ private:
 	bool use_3d_library = false;
 	double flight_altitude;
 
+	bool executing_e_stop = false;
+	double begin_e_stop_time = 0.0;
+	double e_stop_time_needed = 0.0;
+	double max_e_stop_pitch_degrees = 60.0;
+
+	double laser_z_below_project_up = -0.5;
 
 	ros::NodeHandle nh;
 

@@ -32,6 +32,9 @@ public:
   std::vector<double> getCollisionProbabilities() {
     return collision_probabilities;
   }
+  std::vector<double> getHokuyoCollisionProbabilities() {
+    return hokuyo_collision_probabilities;
+  }
 
   void SetNominalFlightAltitude(double flight_altitude) {this->nominal_altitude = flight_altitude;};
   void SetSoftTopSpeed(double top_speed) {this->soft_top_speed = top_speed;}
@@ -57,7 +60,7 @@ private:
   void EvaluateAltitudeCost();
 
   void EvaluateCollisionProbabilities();
-  double computeProbabilityOfCollisionOneMotion(Motion motion);
+  void computeProbabilityOfCollisionOneMotion(Motion motion, double &collision_probability, double &hokuyo_collision_probability);
   double computeProbabilityOfCollisionOneMotion_MonteCarlo(Motion motion, std::vector<Vector3> sampled_initial_velocities, size_t n);
   
   double final_time;
@@ -74,6 +77,7 @@ private:
 
   std::vector<double> collision_probabilities;
   std::vector<double> no_collision_probabilities;
+  std::vector<double> hokuyo_collision_probabilities;
 
   std::vector<double> objectives_dijkstra;
   std::vector<double> objectives_euclid;
