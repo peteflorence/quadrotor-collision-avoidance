@@ -1,5 +1,7 @@
 # High-Speed-Collision-Avoidance
 
+- Note that this repo is not always up to date.  The rest of the project code lives in a private BitBucket repo -- please contact me (info at bottom) if you have any questions.
+
 This code powers:
 
 -  [Our 2016 WAFR paper](http://groups.csail.mit.edu/robotics-center/public_papers/Florence16.pdf) (Workshop on the Algorithmic Foundations of Robotics)
